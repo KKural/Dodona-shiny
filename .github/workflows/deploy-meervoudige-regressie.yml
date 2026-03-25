@@ -1,0 +1,61 @@
+name: Deploy — Meervoudige Regressie App
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'shiny_apps/app_meervoudige_regressie/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libcurl4-openssl-dev libssl-dev libxml2-dev \
+            libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
+            libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-r-${{ hashFiles('shiny_apps/app_meervoudige_regressie/app.R') }}
+          restore-keys: ${{ runner.os }}-r-
+
+      - name: Install R packages
+        shell: Rscript {0}
+        run: |
+          install.packages(c(
+            "shiny", "ggplot2", "dplyr", "tidyr",
+            "rhandsontable", "gridExtra", "rsconnect"
+          ), repos = "https://cloud.r-project.org")
+
+      - name: Deploy to shinyapps.io
+        shell: Rscript {0}
+        env:
+          SHINYAPPS_ACCOUNT: ${{ secrets.SHINYAPPS_ACCOUNT }}
+          SHINYAPPS_TOKEN:   ${{ secrets.SHINYAPPS_TOKEN }}
+          SHINYAPPS_SECRET:  ${{ secrets.SHINYAPPS_SECRET }}
+        run: |
+          rsconnect::setAccountInfo(
+            name   = Sys.getenv("SHINYAPPS_ACCOUNT"),
+            token  = Sys.getenv("SHINYAPPS_TOKEN"),
+            secret = Sys.getenv("SHINYAPPS_SECRET")
+          )
+          rsconnect::deployApp(
+            appDir         = "shiny_apps/app_meervoudige_regressie",
+            appName        = "meervoudige-regressie",
+            account        = Sys.getenv("SHINYAPPS_ACCOUNT"),
+            forceUpdate    = TRUE,
+            launch.browser = FALSE
+          )
