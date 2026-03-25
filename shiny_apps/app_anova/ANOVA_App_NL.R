@@ -37,7 +37,20 @@ check_decimals <- function(user_val, true_val, target_decimals = 4) {
 is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
   if (is.na(user_val) || is.na(true_val)) return(FALSE)
   if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
-  any(sapply(seq_len(target_decimals - 1), function(d)
+  # Detect how many decimal places the user actually entered.
+  # If they entered full precision (e.g. 0.2436 for a 4-decimal field), it is a
+  # genuine calculation error, not a rounding/truncation miss.
+  user_precision <- target_decimals
+  for (k in seq_len(target_decimals)) {
+    if (abs(round(user_val, k) - user_val) < 1e-9) {
+      user_precision <- k
+      break
+    }
+  }
+  if (user_precision >= target_decimals) return(FALSE)
+  # User entered fewer decimals; check if their value agrees with the truth at
+  # that lower precision (they computed correctly but stopped rounding too early).
+  any(sapply(seq_len(user_precision), function(d)
     round(user_val, d) == round(true_val, d)
   ))
 }
@@ -1130,8 +1143,19 @@ server <- function(input, output, session) {
     n_ok  <- sum(all_chk == TRUE, na.rm = TRUE); n_tot <- n * 2L + length(entry_rows) * 2L
     if (n_ok == n_tot)
       div(class="ok", paste0("V Afwijkingtabel volledig correct! (", n_ok, "/", n_tot, " cellen)"))
-    else
-      div(class="muted", paste0(n_ok, "/", n_tot, " cellen correct - Controleer afwijkingen en kwadraten."))
+    else {
+      wrong_cols <- c(
+        if (any(dW_chk  == FALSE, na.rm = TRUE)) "(Y\u2212Yj)",
+        if (any(dW2_chk == FALSE, na.rm = TRUE)) "(Y\u2212Yj)\u00b2",
+        if (any(dB_chk[entry_rows]  == FALSE, na.rm = TRUE)) "(Yj\u2212Y.)",
+        if (any(dB2_chk[entry_rows] == FALSE, na.rm = TRUE)) "(Yj\u2212Y.)\u00b2"
+      )
+      col_hint <- if (length(wrong_cols) > 0)
+        paste0(" \u2014 controleer kolom", if (length(wrong_cols) > 1) "men" else "", ": ",
+               paste(wrong_cols, collapse = ", "))
+      else ""
+      div(class="muted", paste0(n_ok, "/", n_tot, " cellen correct", col_hint, "."))
+    }
   })
 
   output$col_sums_hint <- renderUI({

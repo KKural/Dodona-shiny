@@ -36,7 +36,15 @@ check_decimals <- function(user_val, true_val, target_decimals = 4) {
 is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
   if (is.na(user_val) || is.na(true_val)) return(FALSE)
   if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
-  any(sapply(seq_len(target_decimals - 1), function(d)
+  user_precision <- target_decimals
+  for (k in seq_len(target_decimals)) {
+    if (abs(round(user_val, k) - user_val) < 1e-9) {
+      user_precision <- k
+      break
+    }
+  }
+  if (user_precision >= target_decimals) return(FALSE)
+  any(sapply(seq_len(user_precision), function(d)
     round(user_val, d) == round(true_val, d)
   ))
 }
