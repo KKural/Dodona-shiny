@@ -539,7 +539,6 @@ ui <- fluidPage(
               column(5, actionButton("new_same", "Willekeurig scenario", class = "btn btn-default btn-wide"))
             ),
             uiOutput("seed_echo")
-          )
       ),
       br(),
 
