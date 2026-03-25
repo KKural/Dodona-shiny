@@ -441,8 +441,8 @@ ui <- fluidPage(
     .feedback-panel{margin-top:10px;padding:10px 12px;border-radius:10px;background:#FFF5F7;border:1px solid rgba(176,0,32,0.12);}
     .feedback-detail-item + .feedback-detail-item{margin-top:8px;padding-top:8px;border-top:1px solid rgba(176,0,32,0.10);}
     .feedback-detail-label{display:block;font-weight:700;color:#7A0019;margin-bottom:2px;}
-    input.invalid{border:2px solid #D50000 !important; box-shadow:0 0 0 2px rgba(213,0,0,0.10) inset;}
-    input.valid{border:2px solid #00C853 !important; box-shadow:0 0 0 2px rgba(0,200,83,0.10) inset;}
+    input.invalid{border:2px solid #D50000 !important; background:#ffebee !important; box-shadow:0 0 0 2px rgba(213,0,0,0.10) inset;}
+    input.valid{border:2px solid #00C853 !important; background:#e8f5e9 !important; box-shadow:0 0 0 2px rgba(0,200,83,0.10) inset;}
     .grid-compact{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
     .grid-compact-3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
     .grid-compact-4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}

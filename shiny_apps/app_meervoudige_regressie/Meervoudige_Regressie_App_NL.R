@@ -432,8 +432,8 @@ ui <- fluidPage(
     .traffic{display:flex;gap:8px;margin-top:8px}
     .light{width:12px;height:12px;border-radius:50%;display:inline-block;background:#BDBDBD;}
     .feedback{color:#B00020;font-weight:600;margin-top:4px;}
-    input.invalid{border:2px solid #D50000 !important; box-shadow:0 0 0 2px rgba(213,0,0,0.10) inset;}
-    input.valid{border:2px solid #00C853 !important; box-shadow:0 0 0 2px rgba(0,200,83,0.10) inset;}
+    input.invalid{border:2px solid #D50000 !important; background:#ffebee !important; box-shadow:0 0 0 2px rgba(213,0,0,0.10) inset;}
+    input.valid{border:2px solid #00C853 !important; background:#e8f5e9 !important; box-shadow:0 0 0 2px rgba(0,200,83,0.10) inset;}
     .grid-compact{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
     .grid-compact-3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
     .grid-compact-4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
