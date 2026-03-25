@@ -67,3 +67,11 @@ Thumbs.db
 # Exceptions: keep R scripts and markdown in media/ folders
 !**/media/*.R
 !**/media/*.md
+
+# Python/Shiny generated artefacts
+shiny_apps/**/.venv/
+shiny_apps/**/__pycache__/
+shiny_apps/**/rsconnect-python/
+shiny_apps/**/*.pyc
+shiny_apps/**/*.pyo
+shiny_apps/**/*.log
