@@ -1242,36 +1242,49 @@ server <- function(input, output, session) {
       else NULL
     })
   show_field_msg("msg_df_between", "df_between", function(t) t$df_between,
-    "df<sub>between</sub> onjuist. df<sub>between</sub> = k &#8722; 1 (aantal groepen min 1).",
+    sprintf("<b>Waarom fout:</b> df<sub>between</sub> is onjuist.<br/><b>Correctie:</b> df<sub>between</sub> = k &#8722; 1 (aantal groepen min 1). U heeft k = %d groepen, dus df<sub>between</sub> = %d.", 0, 0),
     diag_fn = function(val, t) {
       v <- suppressWarnings(as.numeric(val))
       if (!is.na(v) && v == t$k)
-        sprintf("<b>Waarom fout:</b> U vulde k (= %d) in. df<sub>between</sub> = k &#8722; 1, dus trek 1 af.", t$k)
+        sprintf("<b>Waarom fout:</b> U vulde k (= %d) in plaats van k &#8722; 1.<br/><b>Oorzaak:</b> df<sub>between</sub> is het aantal <em>vrijheidsgraden</em> tussen groepen, niet het aantal groepen zelf.<br/><b>Correctie:</b> df<sub>between</sub> = k &#8722; 1 = %d &#8722; 1 = %d.", t$k, t$k, t$k - 1L)
+      else if (!is.na(v) && v == t$k + 1L)
+        sprintf("<b>Waarom fout:</b> U telde 1 op bij k (= %d) in plaats van 1 af te trekken.<br/><b>Correctie:</b> df<sub>between</sub> = k &#8722; 1 = %d.", t$k, t$k - 1L)
       else if (!is.na(v) && v == t$df_within)
-        sprintf("<b>Waarom fout:</b> U vulde df<sub>within</sub> (= %d) in bij df<sub>between</sub> &#8212; deze zijn verwisseld.<br/><b>Correctie:</b> df<sub>between</sub> = k &#8722; 1; df<sub>within</sub> = N &#8722; k.", t$df_within)
-      else NULL
+        sprintf("<b>Waarom fout:</b> U vulde df<sub>within</sub> (= %d) in bij df<sub>between</sub> &#8212; verwisseld.<br/><b>Correctie:</b> df<sub>between</sub> = k &#8722; 1 = %d; df<sub>within</sub> = N &#8722; k = %d.", t$df_within, t$k - 1L, t$df_within)
+      else if (!is.na(v) && v == t$df_total)
+        sprintf("<b>Waarom fout:</b> U vulde df<sub>total</sub> (= %d) in bij df<sub>between</sub>.<br/><b>Oorzaak:</b> df<sub>total</sub> = N &#8722; 1; df<sub>between</sub> = k &#8722; 1.<br/><b>Correctie:</b> df<sub>between</sub> = k &#8722; 1 = %d.", t$df_total, t$k - 1L)
+      else
+        sprintf("<b>Waarom fout:</b> df<sub>between</sub> is onjuist.<br/><b>Correctie:</b> df<sub>between</sub> = k &#8722; 1 (aantal groepen min 1). U heeft k = %d groepen, dus df<sub>between</sub> = %d.", t$k, t$k - 1L)
     })
   show_field_msg("msg_df_within", "df_within", function(t) t$df_within,
-    "df<sub>within</sub> onjuist. df<sub>within</sub> = N &#8722; k (totaal N min aantal groepen k).",
+    "<b>Waarom fout:</b> df<sub>within</sub> is onjuist.<br/><b>Correctie:</b> df<sub>within</sub> = N &#8722; k (totaal aantal waarnemingen min aantal groepen).",
     diag_fn = function(val, t) {
       v <- suppressWarnings(as.numeric(val))
       if (!is.na(v) && v == t$n)
-        sprintf("<b>Waarom fout:</b> U vulde N (= %d) in. df<sub>within</sub> = N &#8722; k &#8212; trek ook het aantal groepen k (= %d) af.", t$n, t$k)
+        sprintf("<b>Waarom fout:</b> U vulde N (= %d) in zonder k af te trekken.<br/><b>Oorzaak:</b> df<sub>within</sub> = N &#8722; k, niet N.<br/><b>Correctie:</b> df<sub>within</sub> = %d &#8722; %d = %d.", t$n, t$n, t$k, t$df_within)
       else if (!is.na(v) && v == t$n - 1L)
-        sprintf("<b>Waarom fout:</b> U vulde N &#8722; 1 (= %d) in. df<sub>within</sub> = N &#8722; k &#8212; trek k (= %d) af, niet 1.", t$n - 1L, t$k)
+        sprintf("<b>Waarom fout:</b> U vulde N &#8722; 1 (= %d) in. Dat is df<sub>total</sub>, niet df<sub>within</sub>.<br/><b>Correctie:</b> df<sub>within</sub> = N &#8722; k = %d &#8722; %d = %d.", t$n - 1L, t$n, t$k, t$df_within)
       else if (!is.na(v) && v == t$df_between)
-        sprintf("<b>Waarom fout:</b> U vulde df<sub>between</sub> (= %d) in bij df<sub>within</sub> &#8212; deze zijn verwisseld.<br/><b>Correctie:</b> df<sub>within</sub> = N &#8722; k; df<sub>between</sub> = k &#8722; 1.", t$df_between)
-      else NULL
+        sprintf("<b>Waarom fout:</b> U vulde df<sub>between</sub> (= %d) in bij df<sub>within</sub> &#8212; verwisseld.<br/><b>Correctie:</b> df<sub>within</sub> = N &#8722; k = %d; df<sub>between</sub> = k &#8722; 1 = %d.", t$df_between, t$df_within, t$df_between)
+      else if (!is.na(v) && v == t$k)
+        sprintf("<b>Waarom fout:</b> U vulde k (= %d) in bij df<sub>within</sub>.<br/><b>Correctie:</b> df<sub>within</sub> = N &#8722; k = %d, niet k.", t$k, t$df_within)
+      else
+        sprintf("<b>Waarom fout:</b> df<sub>within</sub> is onjuist.<br/><b>Correctie:</b> df<sub>within</sub> = N &#8722; k = %d &#8722; %d = %d.", t$n, t$k, t$df_within)
     })
   show_field_msg("msg_df_total", "df_total", function(t) t$df_total,
-    "df<sub>total</sub> onjuist. df<sub>total</sub> = N &#8722; 1.",
+    "<b>Waarom fout:</b> df<sub>total</sub> is onjuist.<br/><b>Correctie:</b> df<sub>total</sub> = N &#8722; 1.",
     diag_fn = function(val, t) {
       v <- suppressWarnings(as.numeric(val))
       if (!is.na(v) && v == t$n)
-        sprintf("<b>Waarom fout:</b> U vulde N (= %d) in. df<sub>total</sub> = N &#8722; 1 &#8212; trek 1 af.", t$n)
+        sprintf("<b>Waarom fout:</b> U vulde N (= %d) in zonder 1 af te trekken.<br/><b>Correctie:</b> df<sub>total</sub> = N &#8722; 1 = %d.", t$n, t$df_total)
       else if (!is.na(v) && v == t$df_within + t$df_between - 1L)
-        sprintf("<b>Waarom fout:</b> U berekende df<sub>between</sub> + df<sub>within</sub> &#8722; 1 (= %d) &#8212; de &#8722;1 is niet nodig hier.<br/><b>Correctie:</b> df<sub>total</sub> = N &#8722; 1 = df<sub>between</sub> + df<sub>within</sub>.", t$df_within + t$df_between - 1L)
-      else NULL
+        sprintf("<b>Waarom fout:</b> U berekende df<sub>between</sub> + df<sub>within</sub> &#8722; 1 (= %d) &#8212; de &#8722;1 is hier niet nodig.<br/><b>Correctie:</b> df<sub>total</sub> = df<sub>between</sub> + df<sub>within</sub> = N &#8722; 1 = %d.", t$df_within + t$df_between - 1L, t$df_total)
+      else if (!is.na(v) && v == t$df_between)
+        sprintf("<b>Waarom fout:</b> U vulde df<sub>between</sub> (= %d) in bij df<sub>total</sub>.<br/><b>Correctie:</b> df<sub>total</sub> = N &#8722; 1 = %d.", t$df_between, t$df_total)
+      else if (!is.na(v) && v == t$df_within)
+        sprintf("<b>Waarom fout:</b> U vulde df<sub>within</sub> (= %d) in bij df<sub>total</sub>.<br/><b>Correctie:</b> df<sub>total</sub> = N &#8722; 1 = %d.", t$df_within, t$df_total)
+      else
+        sprintf("<b>Waarom fout:</b> df<sub>total</sub> is onjuist.<br/><b>Correctie:</b> df<sub>total</sub> = N &#8722; 1 = %d.", t$df_total)
     })
   show_field_msg("msg_msb", "msb", function(t) t$MSB,
     "MSB onjuist. MSB = SSB / df<sub>between</sub>.",
