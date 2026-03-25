@@ -2139,8 +2139,9 @@ server <- function(input, output, session){
       has_attempted(input$tot_X1_2)
     
     if (step4_started) {
+      step3_result <- validate_step3()
       step4_result <- validate_step4(step4_started)
-      if (step4_result$ok) {
+      if (isTRUE(step3_result$ok) && step4_result$ok) {
         div(class = "ok", "✅ Deel III (Stappen 2-4) voltooid! Alle afwijkingen, kwadraten en sommen correct.")
       } else {
         NULL
@@ -2255,6 +2256,55 @@ server <- function(input, output, session){
     )
   })
   
+  output$step79_feedback <- renderUI({
+    df <- current()
+    if (is.null(df) || nrow(df) == 0) return(NULL)
+
+    result <- validate_step79()
+    if (!result$ok && !is.null(result$message)) {
+      div(class = "err", result$message)
+    } else if (result$ok) {
+      div(class = "ok", "Deel V (Stappen 7-9) voltooid! Kruisproductsom, covariantie en SD-product zijn correct.")
+    } else {
+      NULL
+    }
+  })
+
+  output$step1012_feedback <- renderUI({
+    df <- current()
+    if (is.null(df) || nrow(df) == 0) return(NULL)
+
+    result <- validate_step1012()
+    if (!result$ok && !is.null(result$message)) {
+      div(class = "err", result$message)
+    } else if (result$ok) {
+      if (identical(input$mode, "Correlation")) {
+        div(class = "ok", "Deel VI (Stap 10) voltooid! Correlatiecoefficient r correct berekend.")
+      } else {
+        div(class = "ok", "Deel VI (Stappen 10-12) voltooid! Correlatie, regressiecoefficient en intercept zijn correct.")
+      }
+    } else {
+      NULL
+    }
+  })
+
+  output$step1012_detail_feedback <- renderUI({
+    df <- current()
+    if (is.null(df) || nrow(df) == 0) return(NULL)
+
+    if (identical(input$mode, "Correlation")) {
+      feedback_panel_ui(
+        c("Correlatie r" = "msg_correlation"),
+        "Uitgebreide feedback bij de correlatiecoefficient"
+      )
+    } else {
+      feedback_panel_ui(
+        c("Correlatie r" = "msg_correlation", "Helling b" = "msg_slope", "Intercept a" = "msg_intercept"),
+        "Uitgebreide feedback bij de regressiecoefficienten"
+      )
+    }
+  })
+
   output$step13_feedback <- renderUI({
     df <- current()
     if (is.null(df) || nrow(df) == 0) return(NULL)
@@ -2689,6 +2739,17 @@ server <- function(input, output, session){
               list(value = correlation_exp, tip = sprintf(
                 "<b>Waarom fout:</b> U vulde r (= %.4f) in &#8212; vervreemding = 1 &#8722; r&#178;.<br/><b>Correctie:</b> Kwadrateer eerst r, trek dan af van 1: 1 &#8722; r&#178;.", correlation_exp))
             ), "Vervreemdingsco&#235;ffici&#235;nt onjuist. 1 &#8722; R&#178;."))
+        }
+
+        # Reset any unattempted field to neutral — prevents stale green/red after clearing
+        for (.fid in c("var_X", "var_Y", "sd_X", "sd_Y",
+                       "cross_product_sum", "covariance", "sd_product",
+                       "correlation", "slope", "intercept",
+                       "r_squared", "alienation")) {
+          if (!has_attempted(input[[.fid]])) {
+            session$sendCustomMessage("markField", list(id = .fid, state = "neutral"))
+            output[[paste0("msg_", .fid)]] <- renderUI(HTML(""))
+          }
         }
       }
       
