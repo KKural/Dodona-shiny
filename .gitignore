@@ -1,6 +1,6 @@
 # R Project .gitignore
 # ──────────────────────────────────────────────────────────────────────────────
-# Only track: shiny_app/, .github/, get_shinyapps_token.R
+# Only track: shiny_apps/, .github/, get_shinyapps_token.R
 # Everything else below is explicitly excluded.
 
 # Exclude all other top-level folders in this Dodona root
