@@ -1033,7 +1033,7 @@ server <- function(input, output, session) {
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     n_tot <- length(checks)
-    if (n_ok == n_tot) div(class="ok", paste0("V Alle gemiddelden correct! (", n_ok, "/", n_tot, ")"))
+    if (n_ok == n_tot) div(class="ok", paste0("V Alle gemiddelden juist! (", n_ok, "/", n_tot, ")"))
     else div(class="muted", paste0(n_ok, "/", n_tot, " correct"))
   })
 
@@ -1142,7 +1142,7 @@ server <- function(input, output, session) {
     all_chk <- c(dW_chk, dW2_chk, dB_chk[entry_rows], dB2_chk[entry_rows])
     n_ok  <- sum(all_chk == TRUE, na.rm = TRUE); n_tot <- n * 2L + length(entry_rows) * 2L
     if (n_ok == n_tot)
-      div(class="ok", paste0("V Afwijkingtabel volledig correct! (", n_ok, "/", n_tot, " cellen)"))
+      div(class="ok", paste0("V Afwijkingtabel volledig juist! (", n_ok, "/", n_tot, " cellen)"))
     else {
       wrong_cols <- c(
         if (any(dW_chk  == FALSE, na.rm = TRUE)) "(Y\u2212Yj)",
@@ -1380,8 +1380,8 @@ server <- function(input, output, session) {
     t <- rv$truth; if (is.null(t)) return(NULL)
     checks <- c(ssw=safe_check(input$ssw,t$SSW), ssb=safe_check(input$ssb,t$SSB), sst=safe_check(input$sst,t$SST))
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 3L) div(class="ok","V Alle kwadratensommen correct! SST = SSW + SSB")
-    else div(class="muted", paste0(n_ok,"/3 correct - Gebruik kolomsommen uit de afwijkingtabel."))
+    if (n_ok == 3L) div(class="ok","V Alle kwadratensommen juist! SST = SSW + SSB")
+    else div(class="muted", paste0(n_ok,"/3 juist - Gebruik kolomsommen uit de afwijkingtabel."))
   })
 
   output$ss_detail_feedback <- renderUI({
@@ -1416,10 +1416,10 @@ server <- function(input, output, session) {
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     if (n_ok == 7L)
-      div(class="ok", paste0("V ANOVA-tabel correct! F(",t$df_between,",",t$df_within,") = ",round(t$F_ratio,4),
+      div(class="ok", paste0("V ANOVA-tabel juist! F(",t$df_between,",",t$df_within,") = ",round(t$F_ratio,4),
                              " | \u03b7\u00b2 = ",round(t$eta_sq,4)))
     else
-      div(class="muted", paste0(n_ok,"/7 correct"))
+      div(class="muted", paste0(n_ok,"/7 juist"))
   })
 
   output$anova_table_detail_feedback <- renderUI({
@@ -1502,7 +1502,7 @@ server <- function(input, output, session) {
       style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
       h3(
         style = "color: #2E7D32; margin-top: 0;",
-        "Uitstekend werk! Alle stappen correct!"
+        "Uitstekend werk! Alle stappen juist!"
       ),
       p(
         style = "font-size: 15px; margin: 10px 0; color: #1B5E20;",

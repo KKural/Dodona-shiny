@@ -959,9 +959,9 @@ server <- function(input, output, session) {
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     if (n_ok == 3L)
-      div(class="ok", paste0("V Correct! r_xy.z = ", round(t$r_xy_z, 4)))
+      div(class="ok", paste0("V Juist! r_xy.z = ", round(t$r_xy_z, 4)))
     else
-      div(class="muted", paste0(n_ok, "/3 correct"))
+      div(class="muted", paste0(n_ok, "/3 juist"))
   })
 
   output$ct_detail_feedback <- renderUI({
@@ -1212,10 +1212,10 @@ server <- function(input, output, session) {
     user_ct <- suppressWarnings(as.integer(input$conclusie_type))
     if (is.na(user_ct)) return(NULL)
     if (user_ct == t$conclusie_type) {
-      div(class="ok", paste0("V Correct! ",
+      div(class="ok", paste0("V Juist! ",
         switch(as.character(t$conclusie_type),
           "1" = "Schijnverband: r_xy.z \u2248 0, Z verklaart het gehele verband.",
-          "2" = "Indirect verband: r_xy.z daalt, Z is een derde (confounding) variabele.",
+          "2" = "Indirect verband: r_xy.z daalt, Z is een derde (verklarende) variabele.",
           "3" = "Suppressor: r_xy.z stijgt, Z onderdrukte de werkelijke relatie.",
           "4" = "Direct verband: r_xy.z verandert nauwelijks na controle voor Z.",
           "5" = "Tekenwisseling: het teken van r_xy.z is omgekeerd ten opzichte van r_xy.")))
@@ -1241,7 +1241,7 @@ server <- function(input, output, session) {
                 y = safe_check(input$y_bar, t$y_bar),
                 z = safe_check(input$z_bar, t$z_bar))
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 3L) div(class="ok","V Alle gemiddelden correct!")
+    if (n_ok == 3L) div(class="ok","V Alle gemiddelden juist!")
     else div(class="muted", paste0(n_ok, "/3 correct"))
   })
 
@@ -1474,7 +1474,7 @@ server <- function(input, output, session) {
     }))
     n_ok <- sum(all_chk == TRUE, na.rm = TRUE); n_tot <- n * 9L
     if (n_ok == n_tot)
-      div(class="ok", paste0("V Afwijkingtabel volledig correct! (", n_ok, "/", n_tot, " cellen)"))
+      div(class="ok", paste0("V Afwijkingtabel volledig juist! (", n_ok, "/", n_tot, " cellen)"))
     else
       div(class="muted", paste0(n_ok, "/", n_tot, " cellen correct"))
   })
@@ -1487,8 +1487,8 @@ server <- function(input, output, session) {
       sd_x=safe_check(input$sd_x,t$SD_x), sd_y=safe_check(input$sd_y,t$SD_y), sd_z=safe_check(input$sd_z,t$SD_z)
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 9L) div(class="ok","V Varianties en standaarddeviaties correct!")
-    else div(class="muted", paste0(n_ok, "/9 correct"))
+    if (n_ok == 9L) div(class="ok","V Varianties en standaarddeviaties juist!")
+    else div(class="muted", paste0(n_ok, "/9 juist"))
   })
 
   output$cov_r_status <- renderUI({
@@ -1499,8 +1499,8 @@ server <- function(input, output, session) {
       r_xy=safe_check(input$r_xy,t$r_xy), r_xz=safe_check(input$r_xz,t$r_xz), r_yz=safe_check(input$r_yz,t$r_yz)
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 9L) div(class="ok","V Covarianties en bivariate correlaties correct!")
-    else div(class="muted", paste0(n_ok, "/9 correct"))
+    if (n_ok == 9L) div(class="ok","V Covarianties en bivariate correlaties juist!")
+    else div(class="muted", paste0(n_ok, "/9 juist"))
   })
 
   output$partial_status <- renderUI({
@@ -1512,9 +1512,9 @@ server <- function(input, output, session) {
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     if (n_ok == 3L)
-      div(class="ok", paste0("V Correct! r_xy.z = ", round(t$r_xy_z, 4)))
+      div(class="ok", paste0("V Juist! r_xy.z = ", round(t$r_xy_z, 4)))
     else
-      div(class="muted", paste0(n_ok, "/3 correct"))
+      div(class="muted", paste0(n_ok, "/3 juist"))
   })
 
   output$partial_detail_feedback <- renderUI({
@@ -1559,7 +1559,7 @@ server <- function(input, output, session) {
     if (input$mode != "raw" || !all_correct()) return(NULL)
     t <- rv$truth
     div(class = "card", style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
-        h3(style = "color: #2E7D32; margin-top: 0;", "Uitstekend werk! Alle stappen correct!"),
+        h3(style = "color: #2E7D32; margin-top: 0;", "Uitstekend werk! Alle stappen juist!"),
         p(style = "font-size: 15px; margin: 10px 0; color: #1B5E20;", HTML(paste0("r_xy.z = ",
                         round(t$r_xy_z, 4), " — bekijk de visualisaties hieronder."))))
   })
