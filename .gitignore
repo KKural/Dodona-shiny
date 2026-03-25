@@ -1,5 +1,28 @@
 # R Project .gitignore
 # ──────────────────────────────────────────────────────────────────────────────
+# Only track: shiny_app/, .github/, get_shinyapps_token.R
+# Everything else below is explicitly excluded.
+
+# Exclude all other top-level folders in this Dodona root
+Statistiek-in-de-Criminologie/
+calculations/
+course_content/
+data/
+outputs/
+planning_docs/
+PPT and solutions/
+Videos/
+_archive/
+textbook/
+Thesis/
+images/
+writing/
+
+# Exclude Office temp/lock files
+~$*
+*.tmp
+
+# ──────────────────────────────────────────────────────────────────────────────
 
 # R session artefacts
 .Rhistory
