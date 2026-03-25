@@ -63,7 +63,7 @@ is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
 
 # Enhanced column vector checking
 check_col_vec <- function(user_vec, true_vec, target_decimals = 4, tol = NULL) {
-  if (is.null(user_vec) || is.null(true_vec)) return(rep(FALSE, length(true_vec)))
+  if (is.null(user_vec) || is.null(true_vec)) return(rep(NA, length(true_vec)))
   mapply(function(u, t) check_decimals(u, t, target_decimals, tol), user_vec, true_vec)
 }
 
@@ -734,18 +734,15 @@ ui <- fluidPage(
       ),
       br(),
       
-      # Part VI — Steps 10-12: Final Regression Results (hidden in Correlation mode)
-      conditionalPanel(
-        condition = "input.mode != 'Correlation'",
-        div(class="card",
-            h4("Deel VI — Stappen 10-12: Regressiecoëfficiënten (4 decimalen)"),
-            div(class="muted", "Voltooi de regressieanalyse met correlatie, regressiecoëfficiënt en intercept."),
-            uiOutput("final_regression_ui"),
-            uiOutput("step1012_feedback"),
-            uiOutput("step1012_detail_feedback")
-        ),
-        br()
+      # Part VI — Step 10 in Correlation mode, Steps 10-12 in Bivariate mode
+      div(class="card",
+          uiOutput("final_results_heading"),
+          uiOutput("final_results_intro"),
+          uiOutput("final_regression_ui"),
+          uiOutput("step1012_feedback"),
+          uiOutput("step1012_detail_feedback")
       ),
+      br(),
       
       # Part VII — Step 13: Prediction Table (hidden in Correlation mode)
       conditionalPanel(
@@ -928,9 +925,31 @@ server <- function(input, output, session){
     if (is.null(mode)) mode <- "Bivariate"
     
     if (mode == "Correlation") {
-      h4("Deel VI — Visualisaties & Samenvatting (wordt vrijgeschakeld wanneer alle antwoorden correct zijn)")
+      h4("Deel VI — Visualisaties & Samenvatting (beschikbaar zodra alle antwoorden correct zijn)")
     } else {
-      h4("Deel IX — Visualisaties & Samenvatting (wordt vrijgeschakeld wanneer alle antwoorden correct zijn)")
+      h4("Deel IX — Visualisaties & Samenvatting (beschikbaar zodra alle antwoorden correct zijn)")
+    }
+  })
+  
+  output$final_results_heading <- renderUI({
+    mode <- input$mode
+    if (is.null(mode)) mode <- "Bivariate"
+
+    if (mode == "Correlation") {
+      h4("Deel VI - Stap 10: Correlatiecoefficient (4 decimalen)")
+    } else {
+      h4("Deel VI - Stappen 10-12: Correlatie & Regressiecoefficienten (4 decimalen)")
+    }
+  })
+
+  output$final_results_intro <- renderUI({
+    mode <- input$mode
+    if (is.null(mode)) mode <- "Bivariate"
+
+    if (mode == "Correlation") {
+      div(class = "muted", "Bereken de correlatiecoefficient r uit covariantie en het SD-product.")
+    } else {
+      div(class = "muted", "Voltooi de regressieanalyse met correlatie, regressiecoefficient en intercept.")
     }
   })
   
@@ -1311,36 +1330,51 @@ server <- function(input, output, session){
     if (is.null(df) || nrow(df) == 0 || is.null(y) || length(xs) == 0) {
       return(list(ok = FALSE, message = "Dataset niet klaar."))
     }
-    
+
+    xcol <- xs[[1]]
+    X_truth <- calc_truth_basic(round(df[[xcol]], 2))
+    Y_truth <- calc_truth_basic(round(df[[y]], 2))
+
+    cross_product_sum <- sum((round(df[[xcol]], 2) - X_truth$mean) * (round(df[[y]], 2) - Y_truth$mean))
+    cov_XY <- cross_product_sum / (nrow(df) - 1)
+    correlation_expected <- round(cov_XY / (X_truth$sd * Y_truth$sd), 4)
+
     correlation_attempted <- has_attempted(input$correlation)
-    slope_attempted <- has_attempted(input$slope)
-    intercept_attempted <- has_attempted(input$intercept)
-    
-    if (!correlation_attempted && !slope_attempted && !intercept_attempted) {
+    if (!correlation_attempted) {
       return(list(ok = FALSE, attempted = FALSE, message = NULL))
     }
-    
+
+    correlation_correct <- isTRUE(safe_check(input$correlation, correlation_expected, 4))
+
+    if (identical(input$mode, "Correlation")) {
+      if (!correlation_correct) {
+        return(list(ok = FALSE, attempted = TRUE, message = "Controleer Stap 10: de correlatiecoefficient r moet overeenkomen op 4 decimalen."))
+      }
+      return(list(ok = TRUE, attempted = TRUE, message = NULL))
+    }
+
+    slope_attempted <- has_attempted(input$slope)
+    intercept_attempted <- has_attempted(input$intercept)
+
+    if (!slope_attempted && !intercept_attempted) {
+      return(list(ok = FALSE, attempted = TRUE, message = NULL))
+    }
+
     all_attempted <- correlation_attempted && slope_attempted && intercept_attempted
-    
     if (!all_attempted) {
       return(list(ok = FALSE, attempted = TRUE, message = NULL))
     }
-    
-    correlation_valid <- !is.na(as.numeric(input$correlation)) && 
-      is.finite(as.numeric(input$correlation))
-    
-    slope_valid <- !is.na(as.numeric(input$slope)) && 
-      is.finite(as.numeric(input$slope))
-    
-    intercept_valid <- !is.na(as.numeric(input$intercept)) && 
-      is.finite(as.numeric(input$intercept))
-    
-    all_valid <- correlation_valid && slope_valid && intercept_valid
-    
-    if (!all_valid) {
-      return(list(ok = FALSE, attempted = TRUE, message = "Controleer Stappen 10-12: correlatie, helling en intercept moeten geldige getallen zijn."))
+
+    slope_expected <- round(cov_XY / X_truth$var, 4)
+    intercept_expected <- round(Y_truth$mean - slope_expected * X_truth$mean, 4)
+
+    slope_correct <- isTRUE(safe_check(input$slope, slope_expected, 4))
+    intercept_correct <- isTRUE(safe_check(input$intercept, intercept_expected, 4))
+
+    if (!(correlation_correct && slope_correct && intercept_correct)) {
+      return(list(ok = FALSE, attempted = TRUE, message = "Controleer Stappen 10-12: correlatie, helling en intercept moeten overeenkomen op 4 decimalen."))
     }
-    
+
     list(ok = TRUE, attempted = TRUE, message = NULL)
   }
   
@@ -1968,6 +2002,15 @@ server <- function(input, output, session){
     y <- yvar()
     xs <- xvars()
     if (is.null(y) || length(xs)==0) return(NULL)
+
+    if (identical(input$mode, "Correlation")) {
+      return(tagList(
+        numericInput("correlation",
+                     HTML("<strong>Stap 10:</strong> Correlatie r = Cov(X,Y) / (SD(X)*SD(Y))"),
+                     value = NA, step = 0.0001),
+        uiOutput("msg_correlation")
+      ))
+    }
     
     tagList(
       numericInput("correlation", 
@@ -2349,7 +2392,7 @@ server <- function(input, output, session){
         okm <- check_decimals(to_num(paste0("mean_", id)), tru$mean, 4)
         oks <- check_decimals(to_num(paste0("sd_",   id)), tru$sd,   4)
         
-        mark_field(parade0("mean_", id), okm, paste0("msg_mean_", id),
+        mark_field(paste0("mean_", id), okm, paste0("msg_mean_", id),
                    true_val = tru$mean,
                    err_msg = {
                      v_m  <- to_num(paste0("mean_", id))
@@ -2661,7 +2704,7 @@ server <- function(input, output, session){
       
       if (identical(input$mode, "Correlation")) {
         all_steps_complete <- step1_result$ok && step3_result$ok && step4_result$ok && 
-          step56_result$ok && step79_result$ok
+          step56_result$ok && step79_result$ok && step1012_result$ok
       } else {
         all_steps_complete <- step1_result$ok && step3_result$ok && step4_result$ok && 
           step56_result$ok && step79_result$ok && step1012_result$ok && step1415_result$ok
@@ -2685,7 +2728,13 @@ server <- function(input, output, session){
   # Plot generation
   output$plot_block <- renderUI({
     if (!isTRUE(unlocked())) return(NULL)
-    
+
+    if (identical(input$mode, "Correlation")) {
+      return(tagList(
+        plotOutput("scatter_plot", height = 330)
+      ))
+    }
+
     tagList(
       plotOutput("scatter_plot", height = 330),
       plotOutput("resid_plot", height = 210),
@@ -2699,11 +2748,12 @@ server <- function(input, output, session){
     x <- xvars()[1]
     y <- yvar()
     if (is.null(df) || is.null(x) || is.null(y)) return(NULL)
+    plot_title <- if (identical(input$mode, "Correlation")) "Correlatie" else "Bivariate Regressie"
     
     ggplot(df, aes(.data[[x]], .data[[y]])) +
       geom_point(size=3, alpha=0.8, color="steelblue") +
       geom_smooth(method="lm", se=FALSE, linewidth=1.4, color="darkred") +
-      labs(x=x, y=y, title="Bivariate Regressie") + 
+      labs(x=x, y=y, title=plot_title) + 
       theme_minimal(base_size=13) +
       theme(plot.title = element_text(hjust = 0.5))
   })
@@ -2750,6 +2800,17 @@ server <- function(input, output, session){
     
     fit <- lm(df[[y]] ~ df[[x]])
     r <- cor(df[[x]], df[[y]])
+
+    if (identical(input$mode, "Correlation")) {
+      return(
+        div(class="accent",
+            h5("Statistieken Samenvatting"),
+            tags$ul(
+              tags$li(paste0("Correlatie (r): ", round(r, 4)))
+            )
+        )
+      )
+    }
     
     div(class="accent",
         h5("Statistieken Samenvatting"),

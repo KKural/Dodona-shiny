@@ -747,7 +747,7 @@ server <- function(input, output, session) {
     div(class = if (compact) "feedback feedback-compact" else "feedback", HTML(msg_to_show))
   }
 
-  feedback_panel_ui <- function(id_map, title) {
+  feedback_panel_ui <- function(id_map, title = "Uitgebreide feedback") {
     store <- reactiveValuesToList(feedback_store)
     items <- lapply(seq_along(id_map), function(i) {
       id <- unname(id_map[[i]])
