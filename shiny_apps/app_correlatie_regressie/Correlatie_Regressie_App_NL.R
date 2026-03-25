@@ -45,20 +45,29 @@ check_decimals <- function(user_val, true_val, target_decimals = 4, tol = NULL) 
   round(user_val, target_decimals) == round(true_val, target_decimals)
 }
 
-is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
+normalize_raw_numeric <- function(raw_val) {
+  if (is.null(raw_val) || length(raw_val) == 0) return(NA_character_)
+  raw <- trimws(as.character(raw_val)[1])
+  if (!nzchar(raw)) return(NA_character_)
+  chartr(",", ".", raw)
+}
+
+count_decimal_places <- function(raw_val) {
+  raw <- normalize_raw_numeric(raw_val)
+  if (is.na(raw) || grepl("[eE]", raw)) return(NA_integer_)
+  raw <- sub("^[+-]", "", raw)
+  if (!grepl("\\.", raw)) return(0L)
+  nchar(sub("^[^.]*\\.", "", raw))
+}
+
+is_decimal_miss <- function(user_val, true_val, target_decimals = 4, raw_input = NULL) {
   if (is.na(user_val) || is.na(true_val)) return(FALSE)
   if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
-  user_precision <- target_decimals
-  for (k in seq_len(target_decimals)) {
-    if (abs(round(user_val, k) - user_val) < 1e-9) {
-      user_precision <- k
-      break
-    }
-  }
-  if (user_precision >= target_decimals) return(FALSE)
-  any(sapply(seq_len(user_precision), function(d)
+  user_precision <- count_decimal_places(if (is.null(raw_input)) as.character(user_val) else raw_input)
+  if (is.na(user_precision) || user_precision >= target_decimals) return(FALSE)
+  any(vapply(seq_len(user_precision), function(d) {
     round(user_val, d) == round(true_val, d)
-  ))
+  }, logical(1)))
 }
 
 # Enhanced column vector checking
@@ -601,6 +610,25 @@ ui <- fluidPage(
         el.classList.add('valid');
       }
     });
+
+    function syncRawNumericValue(el) {
+      if (!el || !el.id || !window.Shiny) return;
+      Shiny.setInputValue(el.id + '__raw', el.value, {priority: 'event'});
+    }
+
+    document.addEventListener('input', function(evt) {
+      var el = evt.target;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') {
+        syncRawNumericValue(el);
+      }
+    });
+
+    document.addEventListener('change', function(evt) {
+      var el = evt.target;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') {
+        syncRawNumericValue(el);
+      }
+    });
     
     // Add subtle hover effects for better UX
     document.addEventListener('DOMContentLoaded', function() {
@@ -614,6 +642,9 @@ ui <- fluidPage(
           this.style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)';
         });
       });
+
+      var numericInputs = document.querySelectorAll('input[type=\"number\"]');
+      numericInputs.forEach(syncRawNumericValue);
     });
   "))),
   
@@ -647,7 +678,7 @@ ui <- fluidPage(
                      helpText("Aantal waarnemingen/cases in uw dataset (bijv., 10 buurten, 20 studenten). Grotere steekproeven = meer berekeningen."),
                      
                      textInput("seed", "Datasetcode (seed, optioneel)", value = ""),
-                     helpText(HTML("<b>Optioneel nummer voor reproduceerbaarheid.</b> Zelfde code = elke keer dezelfde dataset. Type een willekeurig nummer, u krijgt elke keer dezelfde dataset wanneer u hetzelfde nummer typt")),
+                     helpText(HTML("<b>Optioneel nummer voor reproduceerbaarheid.</b> Zelfde code = elke keer dezelfde dataset. Typ een willekeurig nummer; bij dezelfde code krijgt u steeds dezelfde dataset.")),
                      
                      fluidRow(
                        column(5, actionButton("gen", "Genereer dataset", class="btn btn-success btn-wide")),
@@ -689,8 +720,7 @@ ui <- fluidPage(
           div(class="muted", "Bereken het rekenkundig gemiddelde van X en Y."),
           uiOutput("labels_vars"),
           uiOutput("means_only_ui"),
-          uiOutput("step1_feedback"),
-          uiOutput("step1_detail_feedback")
+          uiOutput("step1_feedback")
       ),
       br(),
       
@@ -709,18 +739,16 @@ ui <- fluidPage(
           br(),
           uiOutput("feedback_block"),
           uiOutput("totals_ui"),
-          uiOutput("step4_feedback"),
-          uiOutput("step4_detail_feedback")
+          uiOutput("step4_feedback")
       ),
       br(),
       
       # Part IV — Steps 5-6: Variances and Standard Deviations
       div(class="card",
-          h4("Deel IV — Stappen 5-6: Varianties & Standaarddeviaties (4 decimalen)"),
+          h4("Deel IV — Stappen 5-6: Varianties & Standaardafwijkingen (4 decimalen)"),
           div(class="muted", "Bereken Var(X) en Var(Y) door sommen te delen door (n-1), neem vervolgens vierkantswortels voor SD(X) en SD(Y)."),
           uiOutput("variance_sd_ui"),
-          uiOutput("step56_feedback"),
-          uiOutput("step56_detail_feedback")
+          uiOutput("step56_feedback")
       ),
       br(),
       
@@ -729,8 +757,7 @@ ui <- fluidPage(
           h4("Deel V — Stappen 7-9: Covariatie & Voorbereiding (4 decimalen)"),
           div(class="muted", "Bereken covariantie uit kruisproductsom en bereken SD(X) × SD(Y) voor correlatievoorbereiding."),
           uiOutput("covariation_ui"),
-          uiOutput("step79_feedback"),
-          uiOutput("step79_detail_feedback")
+          uiOutput("step79_feedback")
       ),
       br(),
       
@@ -739,8 +766,7 @@ ui <- fluidPage(
           uiOutput("final_results_heading"),
           uiOutput("final_results_intro"),
           uiOutput("final_regression_ui"),
-          uiOutput("step1012_feedback"),
-          uiOutput("step1012_detail_feedback")
+          uiOutput("step1012_feedback")
       ),
       br(),
       
@@ -766,8 +792,7 @@ ui <- fluidPage(
             h4("Deel VIII — Stappen 14-15: Determinatiecoëfficiënt & Samenvatting (4 decimalen)"),
             div(class="muted", "Bereken R² en vervreemdingscoëfficiënt om de analyse te voltooien."),
             uiOutput("coefficients_ui"),
-            uiOutput("step1415_feedback"),
-            uiOutput("step1415_detail_feedback")
+            uiOutput("step1415_feedback")
         ),
         br()
       ),
@@ -967,7 +992,7 @@ server <- function(input, output, session){
             <li><b>Deel I:</b> Bekijk dataset</li>
             <li><b>Deel II:</b> Stap 1 (Rekenkundige gemiddelden)</li>
             <li><b>Deel III:</b> Stappen 2-4 (Afwijkingen en sommen)</li>
-            <li><b>Deel IV:</b> Stappen 5-6 (Standaarddeviaties)</li>
+            <li><b>Deel IV:</b> Stappen 5-6 (Standaardafwijkingen)</li>
             <li><b>Deel V:</b> Stappen 7-9 (Bereken correlatiecoëfficiënt r)</li>
           </ul>
         </li>
@@ -984,7 +1009,7 @@ server <- function(input, output, session){
             <li><b>Deel I:</b> Bekijk dataset</li>
             <li><b>Deel II:</b> Stap 1 (Rekenkundige gemiddelden)</li>
             <li><b>Deel III:</b> Stappen 2-4 (Afwijkingen en sommen)</li>
-            <li><b>Deel IV:</b> Stappen 5-6 (Standaarddeviaties)</li>
+            <li><b>Deel IV:</b> Stappen 5-6 (Standaardafwijkingen)</li>
             <li><b>Deel V:</b> Stappen 7-9 (Correlatiecoëfficiënt)</li>
             <li><b>Deel VI:</b> Stappen 10-12 (Regressievergelijking: regressiecoëfficiënt en intercept)</li>
             <li><b>Deel VII:</b> Stap 13 (Voorspellingen met Ŷ = a + b·X)</li>
@@ -1026,6 +1051,12 @@ server <- function(input, output, session){
     user_num <- suppressWarnings(as.numeric(user_val))
     if (!has_attempted(user_val)) return(NA)
     check_decimals(user_num, true_val, decimals)
+  }
+
+  raw_numeric_input <- function(id) {
+    raw_val <- input[[paste0(id, "__raw")]]
+    if (!is.null(raw_val) && nzchar(trimws(as.character(raw_val)))) return(raw_val)
+    input[[id]]
   }
   
   combine_ok <- function(okv) all(isTRUE(okv) | is.na(okv))
@@ -1282,7 +1313,7 @@ server <- function(input, output, session){
     
     if (!all_attempted) return(list(ok = FALSE, attempted = FALSE, message = NULL))
     if (!all_correct) {
-      return(list(ok = FALSE, attempted = TRUE, message = "Controleer Stappen 5-6: alle varianties en standaarddeviaties moeten overeenkomen op 4 decimalen."))
+      return(list(ok = FALSE, attempted = TRUE, message = "Controleer Stappen 5-6: alle varianties en standaardafwijkingen moeten overeenkomen op 4 decimalen."))
     }
     
     list(ok = TRUE, attempted = TRUE, message = NULL)
@@ -1613,7 +1644,7 @@ server <- function(input, output, session){
           })
       ),
       div(style="margin-top: 15px; font-size: 14px; color: #666;",
-          "Opmerking: Standaarddeviaties worden berekend in Stap 6 nadat we varianties in Stap 5 hebben berekend.")
+          "Opmerking: Standaardafwijkingen worden berekend in Stap 6 nadat we varianties in Stap 5 hebben berekend.")
     )
   })
   
@@ -2049,6 +2080,17 @@ server <- function(input, output, session){
   })
   
   # Feedback and validation helpers
+  field_status_ui <- function(state) {
+    if (!state %in% c("valid", "invalid")) return(NULL)
+    col <- if (identical(state, "valid")) "#00C853" else "#D50000"
+    label <- if (identical(state, "valid")) "OK" else "X"
+    div(
+      class = "traffic",
+      span(class = "light", style = paste0("background:", col, ";")),
+      span(style = paste0("color:", col, ";font-weight:700;"), label)
+    )
+  }
+
   mark_field <- function(id, ok, msg_id, ok_msg = "", err_msg = "", true_val = NULL) {
     st <- if (isTRUE(ok)) "valid" else if (identical(ok, FALSE)) "invalid" else "neutral"
     
@@ -2056,7 +2098,7 @@ server <- function(input, output, session){
     
     em <- if (!isTRUE(ok) && !is.null(true_val)) {
       u_num <- suppressWarnings(as.numeric(input[[id]]))
-      if (!is.na(u_num) && is_decimal_miss(u_num, true_val))
+      if (!is.na(u_num) && is_decimal_miss(u_num, true_val, raw_input = raw_numeric_input(id)))
         "Afrondingsfout: gebruik 4 decimalen (uw waarde is inhoudelijk correct)."
       else
         as.character(err_msg)
@@ -2069,10 +2111,19 @@ server <- function(input, output, session){
     output[[msg_id]] <- renderUI({
       tryCatch({
         if (identical(st_local, "invalid")) {
-          feedback_ui(msg_id, em, compact = TRUE)
+          tagList(
+            field_status_ui("invalid"),
+            feedback_ui(msg_id, em, compact = TRUE)
+          )
         } else if (identical(st_local, "valid") && nzchar(om)) {
           set_feedback_msg(msg_id, NULL)
-          div(class = "ok", om)
+          tagList(
+            field_status_ui("valid"),
+            div(class = "ok", om)
+          )
+        } else if (identical(st_local, "valid")) {
+          set_feedback_msg(msg_id, NULL)
+          field_status_ui("valid")
         } else {
           set_feedback_msg(msg_id, NULL)
           HTML("")
@@ -2124,7 +2175,7 @@ server <- function(input, output, session){
     if (!result$ok && !is.null(result$message)) {
       div(class = "err", HTML(result$message))
     } else if (result$ok) {
-      div(class = "ok", "✅ Deel III voltooid! Alle berekeningen correct.")
+      div(class = "ok", "✅ Deel III voltooid! Alle berekeningen zijn correct.")
     } else {
       NULL
     }
@@ -2142,7 +2193,7 @@ server <- function(input, output, session){
       step3_result <- validate_step3()
       step4_result <- validate_step4(step4_started)
       if (isTRUE(step3_result$ok) && step4_result$ok) {
-        div(class = "ok", "✅ Deel III (Stappen 2-4) voltooid! Alle afwijkingen, kwadraten en sommen correct.")
+        div(class = "ok", "✅ Deel III (Stappen 2-4) voltooid! Alle afwijkingen, kwadraten en sommen zijn correct.")
       } else {
         NULL
       }
@@ -2182,7 +2233,7 @@ server <- function(input, output, session){
     if (!result$ok && !is.null(result$message)) {
       div(class = "err", result$message)
     } else if (result$ok) {
-      div(class = "ok", "✅ Deel IV (Stappen 5-6) voltooid! Alle varianties en standaarddeviaties zijn correct.")
+      div(class = "ok", "✅ Deel IV (Stappen 5-6) voltooid! Alle varianties en standaardafwijkingen zijn correct.")
     } else {
       NULL
     }
@@ -2202,7 +2253,7 @@ server <- function(input, output, session){
     if (is.null(df) || nrow(df) == 0) return(NULL)
     feedback_panel_ui(
       c("Var(X)" = "msg_var_X", "Var(Y)" = "msg_var_Y", "SD(X)" = "msg_sd_X", "SD(Y)" = "msg_sd_Y"),
-      "Uitgebreide feedback bij varianties en standaarddeviaties"
+      "Uitgebreide feedback bij varianties en standaardafwijkingen"
     )
   })
   
@@ -2619,45 +2670,45 @@ server <- function(input, output, session){
         if (has_attempted(input$var_X)) {
           mark_field("var_X", check_decimals(to_num("var_X"), var_X_exp, 4), "msg_var_X",
             err_msg = diag(input$var_X, list(
-              list(value = round(sum_dX2 / n, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U deelde door n (= %d) in plaats van n&#8722;1.<br/><b>Oorzaak:</b> Steekproefvariantie vereist de Bessel-correctie (n&#8722;1).<br/><b>Correctie:</b> Var(X) = &#x03a3;(X&#x2212;X&#x0305;)&#178; / (n&#8722;1) = &#x03a3;(X&#x2212;X&#x0305;)&#178; / %d", n, n - 1)),
-              list(value = sd_X_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde SD(X) (= %.4f) in &#8212; dit veld vraagt de <em>variantie</em>.<br/><b>Correctie:</b> Var(X) = SD(X)&#178; &#8212; kwadrateer uw SD, of bereken &#x03a3;(X&#x2212;X&#x0305;)&#178; / (n&#8722;1) opnieuw.", sd_X_exp)),
-              list(value = var_Y_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde Var(Y) (= %.4f) in bij Var(X) &#8212; controleer welke kolom X is.", var_Y_exp))
+              list(value = round(sum_dX2 / n, 4), tip =
+                "<b>Waarom fout:</b> U deelde door n in plaats van n&#8722;1.<br/><b>Oorzaak:</b> Steekproefvariantie vereist de Bessel-correctie (n&#8722;1).<br/><b>Correctie:</b> Var(X) = &#x03a3;(X&#x2212;X&#x0305;)&#178; / (n&#8722;1)."),
+              list(value = sd_X_exp, tip =
+                "<b>Waarom fout:</b> U vulde SD(X) in &#8212; dit veld vraagt de <em>variantie</em>.<br/><b>Correctie:</b> Var(X) = SD(X)&#178; &#8212; kwadrateer uw SD, of bereken &#x03a3;(X&#x2212;X&#x0305;)&#178; / (n&#8722;1) opnieuw."),
+              list(value = var_Y_exp, tip =
+                "<b>Waarom fout:</b> U vulde Var(Y) in bij Var(X) &#8212; controleer welke kolom X is.")
             ), "Var(X) onjuist. Var(X) = &#x03a3;(X&#x2212;X&#x0305;)&#178; / (n&#8722;1)."))
         }
         if (has_attempted(input$var_Y)) {
           mark_field("var_Y", check_decimals(to_num("var_Y"), var_Y_exp, 4), "msg_var_Y",
             err_msg = diag(input$var_Y, list(
-              list(value = round(sum_dY2 / n, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U deelde door n (= %d) in plaats van n&#8722;1.<br/><b>Oorzaak:</b> Steekproefvariantie vereist de Bessel-correctie (n&#8722;1).<br/><b>Correctie:</b> Var(Y) = &#x03a3;(Y&#x2212;Y&#x0305;)&#178; / (n&#8722;1) = &#x03a3;(Y&#x2212;Y&#x0305;)&#178; / %d", n, n - 1)),
-              list(value = sd_Y_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde SD(Y) (= %.4f) in &#8212; dit veld vraagt de <em>variantie</em>.<br/><b>Correctie:</b> Var(Y) = SD(Y)&#178; &#8212; kwadrateer uw SD, of bereken &#x03a3;(Y&#x2212;Y&#x0305;)&#178; / (n&#8722;1) opnieuw.", sd_Y_exp)),
-              list(value = var_X_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde Var(X) (= %.4f) in bij Var(Y) &#8212; controleer welke kolom Y is.", var_X_exp))
+              list(value = round(sum_dY2 / n, 4), tip =
+                "<b>Waarom fout:</b> U deelde door n in plaats van n&#8722;1.<br/><b>Oorzaak:</b> Steekproefvariantie vereist de Bessel-correctie (n&#8722;1).<br/><b>Correctie:</b> Var(Y) = &#x03a3;(Y&#x2212;Y&#x0305;)&#178; / (n&#8722;1)."),
+              list(value = sd_Y_exp, tip =
+                "<b>Waarom fout:</b> U vulde SD(Y) in &#8212; dit veld vraagt de <em>variantie</em>.<br/><b>Correctie:</b> Var(Y) = SD(Y)&#178; &#8212; kwadrateer uw SD, of bereken &#x03a3;(Y&#x2212;Y&#x0305;)&#178; / (n&#8722;1) opnieuw."),
+              list(value = var_X_exp, tip =
+                "<b>Waarom fout:</b> U vulde Var(X) in bij Var(Y) &#8212; controleer welke kolom Y is.")
             ), "Var(Y) onjuist. Var(Y) = &#x03a3;(Y&#x2212;Y&#x0305;)&#178; / (n&#8722;1)."))
         }
         if (has_attempted(input$sd_X)) {
           mark_field("sd_X", check_decimals(to_num("sd_X"), sd_X_exp, 4), "msg_sd_X",
             err_msg = diag(input$sd_X, list(
-              list(value = var_X_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde Var(X) (= %.4f) in &#8212; dit veld vraagt de standaarddeviatie.<br/><b>Correctie:</b> SD(X) = &#x221a;Var(X) &#8212; neem de vierkantswortel van uw variantie.", var_X_exp)),
-              list(value = round(sqrt(sum_dX2 / n), 4), tip = sprintf(
-                "<b>Waarom fout:</b> U gebruikte de populatie-SD (deelde door n = %d).<br/><b>Correctie:</b> Gebruik de steekproef-SD: &#x221a;(&#x03a3;(X&#x2212;X&#x0305;)&#178; / (n&#8722;1)) &#8212; deel door n&#8722;1 = %d, dan de wortel.", n, n - 1)),
-              list(value = sd_Y_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde SD(Y) (= %.4f) in bij SD(X) &#8212; controleer welke kolom X is.", sd_Y_exp))
+              list(value = var_X_exp, tip =
+                "<b>Waarom fout:</b> U vulde Var(X) in &#8212; dit veld vraagt de standaardafwijking.<br/><b>Correctie:</b> SD(X) = &#x221a;Var(X) &#8212; neem de vierkantswortel van uw variantie."),
+              list(value = round(sqrt(sum_dX2 / n), 4), tip =
+                "<b>Waarom fout:</b> U gebruikte de populatie-SD.<br/><b>Correctie:</b> Gebruik de steekproef-SD: &#x221a;(&#x03a3;(X&#x2212;X&#x0305;)&#178; / (n&#8722;1)) &#8212; deel door n&#8722;1 en neem dan de wortel."),
+              list(value = sd_Y_exp, tip =
+                "<b>Waarom fout:</b> U vulde SD(Y) in bij SD(X) &#8212; controleer welke kolom X is.")
             ), "SD(X) onjuist. SD(X) = &#x221a;Var(X)."))
         }
         if (has_attempted(input$sd_Y)) {
           mark_field("sd_Y", check_decimals(to_num("sd_Y"), sd_Y_exp, 4), "msg_sd_Y",
             err_msg = diag(input$sd_Y, list(
-              list(value = var_Y_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde Var(Y) (= %.4f) in &#8212; dit veld vraagt de standaarddeviatie.<br/><b>Correctie:</b> SD(Y) = &#x221a;Var(Y) &#8212; neem de vierkantswortel van uw variantie.", var_Y_exp)),
-              list(value = round(sqrt(sum_dY2 / n), 4), tip = sprintf(
-                "<b>Waarom fout:</b> U gebruikte de populatie-SD (deelde door n = %d).<br/><b>Correctie:</b> Gebruik de steekproef-SD: &#x221a;(&#x03a3;(Y&#x2212;Y&#x0305;)&#178; / (n&#8722;1)) &#8212; deel door n&#8722;1 = %d, dan de wortel.", n, n - 1)),
-              list(value = sd_X_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde SD(X) (= %.4f) in bij SD(Y) &#8212; controleer welke kolom Y is.", sd_X_exp))
+              list(value = var_Y_exp, tip =
+                "<b>Waarom fout:</b> U vulde Var(Y) in &#8212; dit veld vraagt de standaardafwijking.<br/><b>Correctie:</b> SD(Y) = &#x221a;Var(Y) &#8212; neem de vierkantswortel van uw variantie."),
+              list(value = round(sqrt(sum_dY2 / n), 4), tip =
+                "<b>Waarom fout:</b> U gebruikte de populatie-SD.<br/><b>Correctie:</b> Gebruik de steekproef-SD: &#x221a;(&#x03a3;(Y&#x2212;Y&#x0305;)&#178; / (n&#8722;1)) &#8212; deel door n&#8722;1 en neem dan de wortel."),
+              list(value = sd_X_exp, tip =
+                "<b>Waarom fout:</b> U vulde SD(X) in bij SD(Y) &#8212; controleer welke kolom Y is.")
             ), "SD(Y) onjuist. SD(Y) = &#x221a;Var(Y)."))
         }
         
@@ -2665,32 +2716,32 @@ server <- function(input, output, session){
         if (has_attempted(input$cross_product_sum)) {
           mark_field("cross_product_sum", check_decimals(to_num("cross_product_sum"), cross_product_sum_exp, 4), "msg_cross_product_sum",
             err_msg = diag(input$cross_product_sum, list(
-              list(value = covariance_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde de covariantie (= %.4f) in &#8212; dit veld vraagt de kruisproductsom <em>v&#243;&#243;r</em> deling door n&#8722;1.<br/><b>Correctie:</b> Tel de kolom (X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;) op &#8212; deel <em>niet</em> door n&#8722;1.", covariance_exp)),
-              list(value = sum_dX2, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde &#x03a3;(X&#x2212;X&#x0305;)&#178; (= %.4f) in &#8212; dit veld vraagt het <em>kruisproduct</em> &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;).", sum_dX2)),
-              list(value = sum_dY2, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde &#x03a3;(Y&#x2212;Y&#x0305;)&#178; (= %.4f) in &#8212; dit veld vraagt het <em>kruisproduct</em> &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;).", sum_dY2))
+              list(value = covariance_exp, tip =
+                "<b>Waarom fout:</b> U vulde de covariantie in &#8212; dit veld vraagt de kruisproductsom <em>v&#243;&#243;r</em> deling door n&#8722;1.<br/><b>Correctie:</b> Tel de kolom (X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;) op &#8212; deel <em>niet</em> door n&#8722;1."),
+              list(value = sum_dX2, tip =
+                "<b>Waarom fout:</b> U vulde &#x03a3;(X&#x2212;X&#x0305;)&#178; in &#8212; dit veld vraagt het <em>kruisproduct</em> &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;)."),
+              list(value = sum_dY2, tip =
+                "<b>Waarom fout:</b> U vulde &#x03a3;(Y&#x2212;Y&#x0305;)&#178; in &#8212; dit veld vraagt het <em>kruisproduct</em> &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;).")
             ), "Kruisproductsom onjuist. &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;)"))
         }
         if (has_attempted(input$covariance)) {
           mark_field("covariance", check_decimals(to_num("covariance"), covariance_exp, 4), "msg_covariance",
             err_msg = diag(input$covariance, list(
-              list(value = cross_product_sum_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde de kruisproductsom (= %.4f) in &#8212; deel nog door n&#8722;1.<br/><b>Correctie:</b> Cov(X,Y) = &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;) / (n&#8722;1) = kruisproductsom / %d", cross_product_sum_exp, n - 1)),
-              list(value = round(sum_dXdY / n, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U deelde door n (= %d) in plaats van n&#8722;1.<br/><b>Correctie:</b> Cov(X,Y) = &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;) / (n&#8722;1) &#8212; gebruik %d als deler.", n, n - 1)),
-              list(value = correlation_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde de correlatie r (= %.4f) in &#8212; covariantie is r &#215; SD(X) &#215; SD(Y), niet hetzelfde als r.", correlation_exp))
+              list(value = cross_product_sum_exp, tip =
+                "<b>Waarom fout:</b> U vulde de kruisproductsom in &#8212; deel nog door n&#8722;1.<br/><b>Correctie:</b> Cov(X,Y) = &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;) / (n&#8722;1)."),
+              list(value = round(sum_dXdY / n, 4), tip =
+                "<b>Waarom fout:</b> U deelde door n in plaats van n&#8722;1.<br/><b>Correctie:</b> Cov(X,Y) = &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;) / (n&#8722;1)."),
+              list(value = correlation_exp, tip =
+                "<b>Waarom fout:</b> U vulde de correlatie r in &#8212; covariantie is r &#215; SD(X) &#215; SD(Y), niet hetzelfde als r.")
             ), "Cov(X,Y) onjuist. Cov(X,Y) = &#x03a3;(X&#x2212;X&#x0305;)(Y&#x2212;Y&#x0305;) / (n&#8722;1)."))
         }
         if (has_attempted(input$sd_product)) {
           mark_field("sd_product", check_decimals(to_num("sd_product"), sd_product_exp, 4), "msg_sd_product",
             err_msg = diag(input$sd_product, list(
-              list(value = round(sd_X_exp + sd_Y_exp, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U berekende SD(X) + SD(Y) (= %.4f) &#8212; gebruik <em>vermenigvuldiging</em>.<br/><b>Correctie:</b> SD(X) &#215; SD(Y) &#8212; vermenigvuldig de twee standaarddeviaties.", sd_X_exp + sd_Y_exp)),
-              list(value = round(var_X_exp * var_Y_exp, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U gebruikte varianties (Var(X) &#215; Var(Y) = %.4f).<br/><b>Correctie:</b> Gebruik de <em>standaarddeviaties</em>: SD(X) &#215; SD(Y), niet de varianties.", var_X_exp * var_Y_exp))
+              list(value = round(sd_X_exp + sd_Y_exp, 4), tip =
+                "<b>Waarom fout:</b> U berekende SD(X) + SD(Y) &#8212; gebruik <em>vermenigvuldiging</em>.<br/><b>Correctie:</b> SD(X) &#215; SD(Y) &#8212; vermenigvuldig de twee standaardafwijkingen."),
+              list(value = round(var_X_exp * var_Y_exp, 4), tip =
+                "<b>Waarom fout:</b> U gebruikte varianties.<br/><b>Correctie:</b> Gebruik de <em>standaardafwijkingen</em>: SD(X) &#215; SD(Y), niet de varianties.")
             ), "SD-product onjuist. SD(X) &#215; SD(Y)"))
         }
         
@@ -2698,46 +2749,46 @@ server <- function(input, output, session){
         if (has_attempted(input$correlation)) {
           mark_field("correlation", check_decimals(to_num("correlation"), correlation_exp, 4), "msg_correlation",
             err_msg = diag(input$correlation, list(
-              list(value = slope_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde de regressiehelling b (= %.4f) in &#8212; dat is Cov/Var(X), niet Cov/(SD(X)&#215;SD(Y)).<br/><b>Correctie:</b> r = Cov(X,Y) / (SD(X) &#215; SD(Y)) &#8212; deel door het SD-product.", slope_exp)),
-              list(value = round(cross_product_sum_exp / sd_product_exp, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U deelde de kruisproductsom rechtstreeks door het SD-product.<br/><b>Oorzaak:</b> U sloeg de deling door n&#8722;1 over.<br/><b>Correctie:</b> Bereken eerst Cov = kruisproductsom / %d, deel dan door SD(X)&#215;SD(Y).", n - 1))
+              list(value = slope_exp, tip =
+                "<b>Waarom fout:</b> U vulde de regressiehelling b in &#8212; dat is Cov/Var(X), niet Cov/(SD(X)&#215;SD(Y)).<br/><b>Correctie:</b> r = Cov(X,Y) / (SD(X) &#215; SD(Y)) &#8212; deel door het SD-product."),
+              list(value = round(cross_product_sum_exp / sd_product_exp, 4), tip =
+                "<b>Waarom fout:</b> U deelde de kruisproductsom rechtstreeks door het SD-product.<br/><b>Oorzaak:</b> U sloeg de deling door n&#8722;1 over.<br/><b>Correctie:</b> Bereken eerst Cov = kruisproductsom / (n&#8722;1), deel dan door SD(X)&#215;SD(Y).")
             ), "Correlatie r onjuist. r = Cov(X,Y) / (SD(X) &#215; SD(Y))."))
         }
         if (has_attempted(input$slope)) {
           mark_field("slope", check_decimals(to_num("slope"), slope_exp, 4), "msg_slope",
             err_msg = diag(input$slope, list(
-              list(value = round(sd_Y_exp / sd_X_exp, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U gebruikte SD(Y)/SD(X) (= %.4f) &#8212; de correcte formule gebruikt covariantie en variantie.<br/><b>Correctie:</b> b = Cov(X,Y) / Var(X) &#8212; deel de covariantie door de variantie van X.", sd_Y_exp / sd_X_exp)),
-              list(value = correlation_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde de correlatie r (= %.4f) in &#8212; de helling b &#8800; r.<br/><b>Correctie:</b> b = Cov(X,Y) / Var(X) &#8212; deel de covariantie door Var(X).", correlation_exp)),
-              list(value = round(covariance_exp / var_Y_exp, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U deelde door Var(Y) (= %.4f) in plaats van Var(X) (= %.4f).<br/><b>Correctie:</b> b = Cov(X,Y) / <em>Var(X)</em> &#8212; controleer door welke variantie u deelt.", var_Y_exp, var_X_exp))
+              list(value = round(sd_Y_exp / sd_X_exp, 4), tip =
+                "<b>Waarom fout:</b> U gebruikte SD(Y)/SD(X) &#8212; de correcte formule gebruikt covariantie en variantie.<br/><b>Correctie:</b> b = Cov(X,Y) / Var(X) &#8212; deel de covariantie door de variantie van X."),
+              list(value = correlation_exp, tip =
+                "<b>Waarom fout:</b> U vulde de correlatie r in &#8212; de helling b &#8800; r.<br/><b>Correctie:</b> b = Cov(X,Y) / Var(X) &#8212; deel de covariantie door Var(X)."),
+              list(value = round(covariance_exp / var_Y_exp, 4), tip =
+                "<b>Waarom fout:</b> U deelde door Var(Y) in plaats van Var(X).<br/><b>Correctie:</b> b = Cov(X,Y) / <em>Var(X)</em> &#8212; controleer door welke variantie u deelt.")
             ), "Regressieco&#235;ffici&#235;nt b onjuist. b = Cov(X,Y) / Var(X)."))
         }
         if (has_attempted(input$intercept)) {
           mark_field("intercept", check_decimals(to_num("intercept"), intercept_exp, 4), "msg_intercept",
             err_msg = diag(input$intercept, list(
-              list(value = round(mX - slope_exp * mY, 4), tip = sprintf(
-                "<b>Waarom fout:</b> U gebruikte a = X&#x0305; &#8722; b&#183;Y&#x0305; &#8212; de formule vereist Y&#x0305; links.<br/><b>Correctie:</b> a = Y&#x0305; &#8722; b&#183;X&#x0305; &#8212; zet de Y-waarden links in de formule.", round(mX - slope_exp * mY, 4)))
+              list(value = round(mX - slope_exp * mY, 4), tip =
+                "<b>Waarom fout:</b> U gebruikte a = X&#x0305; &#8722; b&#183;Y&#x0305; &#8212; de formule vereist Y&#x0305; links.<br/><b>Correctie:</b> a = Y&#x0305; &#8722; b&#183;X&#x0305; &#8212; zet de Y-waarden links in de formule.")
             ), "Intercept a onjuist. a = Y&#x0305; &#8722; b&#183;X&#x0305;."))
         }
         if (has_attempted(input$r_squared)) {
           mark_field("r_squared", check_decimals(to_num("r_squared"), r_squared_exp, 4), "msg_r_squared",
             err_msg = diag(input$r_squared, list(
-              list(value = correlation_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde r (= %.4f) in &#8212; R&#178; is het <em>kwadraat</em> van r.<br/><b>Correctie:</b> R&#178; = r&#178; &#8212; kwadrateer uw correlatiewaarde.", correlation_exp)),
-              list(value = alienation_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde de vervreemdingsco&#235;ffici&#235;nt (1&#8722;R&#178; = %.4f) in &#8212; dat is het omgekeerde.<br/><b>Correctie:</b> R&#178; = r&#178;, niet 1&#8722;r&#178;.", alienation_exp))
+              list(value = correlation_exp, tip =
+                "<b>Waarom fout:</b> U vulde r in &#8212; R&#178; is het <em>kwadraat</em> van r.<br/><b>Correctie:</b> R&#178; = r&#178; &#8212; kwadrateer uw correlatiewaarde."),
+              list(value = alienation_exp, tip =
+                "<b>Waarom fout:</b> U vulde de vervreemdingsco&#235;ffici&#235;nt in &#8212; dat is het omgekeerde.<br/><b>Correctie:</b> R&#178; = r&#178;, niet 1&#8722;r&#178;.")
             ), "R&#178; onjuist. R&#178; = r&#178;."))
         }
         if (has_attempted(input$alienation)) {
           mark_field("alienation", check_decimals(to_num("alienation"), alienation_exp, 4), "msg_alienation",
             err_msg = diag(input$alienation, list(
-              list(value = r_squared_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde R&#178; (= %.4f) in &#8212; vervreemding = 1 &#8722; R&#178;, niet R&#178; zelf.<br/><b>Correctie:</b> Trek R&#178; af van 1: 1 &#8722; R&#178;.", r_squared_exp)),
-              list(value = correlation_exp, tip = sprintf(
-                "<b>Waarom fout:</b> U vulde r (= %.4f) in &#8212; vervreemding = 1 &#8722; r&#178;.<br/><b>Correctie:</b> Kwadrateer eerst r, trek dan af van 1: 1 &#8722; r&#178;.", correlation_exp))
+              list(value = r_squared_exp, tip =
+                "<b>Waarom fout:</b> U vulde R&#178; in &#8212; vervreemding = 1 &#8722; R&#178;, niet R&#178; zelf.<br/><b>Correctie:</b> Trek R&#178; af van 1: 1 &#8722; R&#178;."),
+              list(value = correlation_exp, tip =
+                "<b>Waarom fout:</b> U vulde r in &#8212; vervreemding = 1 &#8722; r&#178;.<br/><b>Correctie:</b> Kwadrateer eerst r, trek dan af van 1: 1 &#8722; r&#178;.")
             ), "Vervreemdingsco&#235;ffici&#235;nt onjuist. 1 &#8722; R&#178;."))
         }
 

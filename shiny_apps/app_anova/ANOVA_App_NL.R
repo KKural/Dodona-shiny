@@ -961,17 +961,16 @@ server <- function(input, output, session) {
             grp_sum <- if (!is.na(nj_grp)) t_cur$grp_means[grp] * nj_grp else NA_real_
             msg <- if (!is.na(v)) {
               if (!is.na(t_cur$grand_mean) && abs(v - t_cur$grand_mean) <= tol(t_cur$grand_mean))
-                sprintf("<b>Waarom fout:</b> U vulde het grootgemiddelde (Y&#x0305;.. = %.4f) in als groepsgemiddelde.<br/><b>Oorzaak:</b> Het groepsgemiddelde gebruikt alleen de waarden bínnen groep '%s', niet alle N = %d waarnemingen.<br/><b>Correctie:</b> Y&#x0305;_%s = &#x03a3;(Y voor groep %s) / n_%s", t_cur$grand_mean, grp, t_cur$n, grp, grp, grp)
+                sprintf("<b>Waarom fout:</b> U vulde het grootgemiddelde in als groepsgemiddelde.<br/><b>Oorzaak:</b> Het groepsgemiddelde gebruikt alleen de waarden binnen groep '%s', niet alle waarnemingen samen.<br/><b>Correctie:</b> Y&#x0305;_%s = &#x03a3;(Y voor groep %s) / n_%s", grp, grp, grp, grp)
               else if (!is.na(t_cur$MSW) && abs(v - t_cur$MSW) <= tol(t_cur$MSW))
-                sprintf("<b>Waarom fout:</b> U vulde MSW (%.4f) in &#8212; dat is een gemiddeld kwadraat, geen rekenkundig gemiddelde.<br/><b>Correctie:</b> Y&#x0305;_%s = &#x03a3;(Y_i voor groep %s) / n_%s &#8212; gebruik alleen de Y-waarden binnen groep '%s'.", t_cur$MSW, grp, grp, grp, grp)
+                sprintf("<b>Waarom fout:</b> U vulde MSW in &#8212; dat is een gemiddeld kwadraat, geen rekenkundig gemiddelde.<br/><b>Correctie:</b> Y&#x0305;_%s = &#x03a3;(Y_i voor groep %s) / n_%s &#8212; gebruik alleen de Y-waarden binnen groep '%s'.", grp, grp, grp, grp)
               else if (!is.na(grp_sum) && !is.na(nj_grp) && nj_grp > 1 && abs(v - grp_sum) <= max(0.5, tol(grp_sum)))
-                sprintf("<b>Waarom fout:</b> U heeft de som van Y-waarden in groep '%s' ingevuld zonder te delen door n.<br/><b>Correctie:</b> Y&#x0305;_%s = &#x03a3;Y / n_%s &#8212; deel de som (%.4f) door n_%s (= %d).", grp, grp, grp, grp_sum, grp, as.integer(nj_grp))
+                sprintf("<b>Waarom fout:</b> U heeft de som van Y-waarden in groep '%s' ingevuld zonder te delen door n.<br/><b>Correctie:</b> Y&#x0305;_%s = &#x03a3;Y / n_%s &#8212; deel de groepssom door het aantal waarnemingen in die groep.", grp, grp, grp)
               else NULL
             } else NULL
             full_msg <- if (!is.null(msg)) msg else sprintf(
-              "Groepsgemiddelde onjuist. Y&#x0305;_%s = &#x03a3;(Y voor groep %s) / n_%s%s.",
-              grp, grp, grp,
-              if (!is.na(nj_grp)) sprintf(" (n_%s = %d)", grp, as.integer(nj_grp)) else ""
+              "Groepsgemiddelde onjuist. Y&#x0305;_%s = &#x03a3;(Y voor groep %s) / n_%s.",
+              grp, grp, grp
             )
             feedback_ui(mid, full_msg, compact = TRUE)
           }, error = function(e) {
@@ -1022,7 +1021,7 @@ server <- function(input, output, session) {
       msg <- if (!is.na(v)) {
         if (!is.na(unweighted_mean) && abs(v - unweighted_mean) <= tol(unweighted_mean) &&
             abs(v - t$grand_mean) > 0.005)
-          sprintf("<b>Waarom fout:</b> U berekende het ongewogen gemiddelde van de groepsgemiddelden (= %.4f) in plaats van het grootgemiddelde.<br/><b>Oorzaak:</b> Bij ongelijke groepsgrootten is het gemiddelde van groepsgemiddelden &#8800; &#x03a3;(Y)/N.<br/><b>Correctie:</b> Tel alle N = %d Y-waarden op en deel door N.", unweighted_mean, t$n)
+          "<b>Waarom fout:</b> U berekende het ongewogen gemiddelde van de groepsgemiddelden in plaats van het grootgemiddelde.<br/><b>Oorzaak:</b> Bij ongelijke groepsgrootten is het gemiddelde van groepsgemiddelden niet gelijk aan &#x03a3;(Y)/N.<br/><b>Correctie:</b> Tel alle Y-waarden op en deel door N."
         else {
           grp_match <- tryCatch({
             idx <- which.min(abs(t$grp_means - v))
@@ -1030,14 +1029,12 @@ server <- function(input, output, session) {
               t$groups[idx] else NULL
           }, error = function(e) NULL)
           if (!is.null(grp_match))
-            sprintf("<b>Waarom fout:</b> U vulde het groepsgemiddelde van groep '%s' (= %.4f) in.<br/><b>Correctie:</b> Het grootgemiddelde is het gemiddelde van ALLE N = %d Y-waarden &#8212; voeg alle groepen samen en deel door N.", grp_match, t$grp_means[grp_match], t$n)
+            sprintf("<b>Waarom fout:</b> U vulde het groepsgemiddelde van groep '%s' in.<br/><b>Correctie:</b> Het grootgemiddelde is het gemiddelde van alle Y-waarden samen &#8212; voeg alle groepen samen en deel door N.", grp_match)
           else NULL
         }
       } else NULL
-      full_msg <- if (!is.null(msg)) msg else sprintf(
-        "Grootgemiddelde onjuist. Y&#x0305;.. = &#x03a3;(alle Y-waarden) / N. Gebruik alle N = %d waarnemingen, niet alleen &#233;&#233;n groep.",
-        t$n
-      )
+      full_msg <- if (!is.null(msg)) msg else
+        "Grootgemiddelde onjuist. Y&#x0305;.. = &#x03a3;(alle Y-waarden) / N. Gebruik alle waarnemingen, niet alleen &#233;&#233;n groep."
       feedback_ui("msg_grand_mean", full_msg, compact = TRUE)
     }, error = function(e) {
       set_feedback_msg("msg_grand_mean", NULL)
@@ -1054,7 +1051,7 @@ server <- function(input, output, session) {
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     n_tot <- length(checks)
-    if (n_ok == n_tot) div(class="ok", paste0("V Alle gemiddelden juist! (", n_ok, "/", n_tot, ")"))
+    if (n_ok == n_tot) div(class="ok", paste0("V Alle gemiddelden zijn juist! (", n_ok, "/", n_tot, ")")), 
     else div(class="muted", paste0(n_ok, "/", n_tot, " correct"))
   })
 
@@ -1163,7 +1160,7 @@ server <- function(input, output, session) {
     all_chk <- c(dW_chk, dW2_chk, dB_chk[entry_rows], dB2_chk[entry_rows])
     n_ok  <- sum(all_chk == TRUE, na.rm = TRUE); n_tot <- n * 2L + length(entry_rows) * 2L
     if (n_ok == n_tot)
-      div(class="ok", paste0("V Afwijkingtabel volledig juist! (", n_ok, "/", n_tot, " cellen)"))
+      div(class="ok", paste0("V Afwijkingtabel is volledig juist! (", n_ok, "/", n_tot, " cellen)"))
     else {
       wrong_cols <- c(
         if (any(dW_chk  == FALSE, na.rm = TRUE)) "(Y\u2212Yj)",
@@ -1306,32 +1303,32 @@ server <- function(input, output, session) {
       else NULL
     })
   show_field_msg("msg_df_between", "df_between", function(t) t$df_between,
-    sprintf("<b>Waarom fout:</b> df<sub>tussen</sub> is onjuist.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1 (aantal groepen min 1). U heeft k = %d groepen, dus df<sub>tussen</sub> = %d.", 0, 0),
+    "<b>Waarom fout:</b> df<sub>tussen</sub> is onjuist.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1 (aantal groepen min 1).",
     diag_fn = function(val, t) {
       v <- suppressWarnings(as.numeric(val))
       if (!is.na(v) && v == t$k)
-        sprintf("<b>Waarom fout:</b> U vulde k (= %d) in plaats van k &#8722; 1.<br/><b>Oorzaak:</b> df<sub>tussen</sub> is het aantal <em>vrijheidsgraden</em> tussen groepen, niet het aantal groepen zelf.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1 = %d &#8722; 1 = %d.", t$k, t$k, t$k - 1L)
+        "<b>Waarom fout:</b> U vulde k in plaats van k &#8722; 1.<br/><b>Oorzaak:</b> df<sub>tussen</sub> is het aantal <em>vrijheidsgraden</em> tussen groepen, niet het aantal groepen zelf.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1."
       else if (!is.na(v) && v == t$k + 1L)
-        sprintf("<b>Waarom fout:</b> U telde 1 op bij k (= %d) in plaats van 1 af te trekken.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1 = %d.", t$k, t$k - 1L)
+        "<b>Waarom fout:</b> U telde 1 op bij k in plaats van 1 af te trekken.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1."
       else if (!is.na(v) && v == t$df_within)
-        sprintf("<b>Waarom fout:</b> U vulde df<sub>binnen</sub> (= %d) in bij df<sub>tussen</sub> &#8212; verwisseld.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1 = %d; df<sub>binnen</sub> = N &#8722; k = %d.", t$df_within, t$k - 1L, t$df_within)
+        "<b>Waarom fout:</b> U vulde df<sub>binnen</sub> in bij df<sub>tussen</sub> &#8212; verwisseld.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1; df<sub>binnen</sub> = N &#8722; k."
       else if (!is.na(v) && v == t$df_total)
-        sprintf("<b>Waarom fout:</b> U vulde df<sub>totaal</sub> (= %d) in bij df<sub>tussen</sub>.<br/><b>Oorzaak:</b> df<sub>totaal</sub> = N &#8722; 1; df<sub>tussen</sub> = k &#8722; 1.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1 = %d.", t$df_total, t$k - 1L)
+        "<b>Waarom fout:</b> U vulde df<sub>totaal</sub> in bij df<sub>tussen</sub>.<br/><b>Oorzaak:</b> df<sub>totaal</sub> = N &#8722; 1; df<sub>tussen</sub> = k &#8722; 1.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1."
       else
-        sprintf("<b>Waarom fout:</b> df<sub>tussen</sub> is onjuist.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1 (aantal groepen min 1). U heeft k = %d groepen, dus df<sub>tussen</sub> = %d.", t$k, t$k - 1L)
+        "<b>Waarom fout:</b> df<sub>tussen</sub> is onjuist.<br/><b>Correctie:</b> df<sub>tussen</sub> = k &#8722; 1 (aantal groepen min 1)."
     })
   show_field_msg("msg_df_within", "df_within", function(t) t$df_within,
     "<b>Waarom fout:</b> df<sub>binnen</sub> is onjuist.<br/><b>Formule:</b> df<sub>binnen</sub> = N &#8722; k (totaal waarnemingen min aantal groepen).",
     diag_fn = function(val, t) {
       v <- suppressWarnings(as.numeric(val))
       if (!is.na(v) && v == t$n)
-        sprintf("<b>Waarom fout:</b> U vulde N (= %d) in zonder k af te trekken.<br/><b>Oorzaak:</b> df<sub>binnen</sub> = N &#8722; k, niet N.<br/><b>Formule:</b> df<sub>binnen</sub> = N &#8722; k.", t$n)
+        "<b>Waarom fout:</b> U vulde N in zonder k af te trekken.<br/><b>Oorzaak:</b> df<sub>binnen</sub> = N &#8722; k, niet N.<br/><b>Formule:</b> df<sub>binnen</sub> = N &#8722; k."
       else if (!is.na(v) && v == t$n - 1L)
         "<b>Waarom fout:</b> U berekende N &#8722; 1 &#8212; dat is df<sub>totaal</sub>, niet df<sub>binnen</sub>.<br/><b>Formule:</b> df<sub>binnen</sub> = N &#8722; k."
       else if (!is.na(v) && v == t$df_between)
         "<b>Waarom fout:</b> U vulde df<sub>tussen</sub> in bij df<sub>binnen</sub> &#8212; verwisseld.<br/><b>Formule:</b> df<sub>binnen</sub> = N &#8722; k; df<sub>tussen</sub> = k &#8722; 1."
       else if (!is.na(v) && v == t$k)
-        sprintf("<b>Waarom fout:</b> U vulde k (= %d) in bij df<sub>binnen</sub>.<br/><b>Formule:</b> df<sub>binnen</sub> = N &#8722; k, niet k.", t$k)
+        "<b>Waarom fout:</b> U vulde k in bij df<sub>binnen</sub>.<br/><b>Formule:</b> df<sub>binnen</sub> = N &#8722; k, niet k."
       else
         "<b>Waarom fout:</b> df<sub>binnen</sub> is onjuist.<br/><b>Formule:</b> df<sub>binnen</sub> = N &#8722; k."
     })
@@ -1340,7 +1337,7 @@ server <- function(input, output, session) {
     diag_fn = function(val, t) {
       v <- suppressWarnings(as.numeric(val))
       if (!is.na(v) && v == t$n)
-        sprintf("<b>Waarom fout:</b> U vulde N (= %d) in zonder 1 af te trekken.<br/><b>Formule:</b> df<sub>totaal</sub> = N &#8722; 1.", t$n)
+        "<b>Waarom fout:</b> U vulde N in zonder 1 af te trekken.<br/><b>Formule:</b> df<sub>totaal</sub> = N &#8722; 1."
       else if (!is.na(v) && v == t$df_within + t$df_between - 1L)
         "<b>Waarom fout:</b> U berekende df<sub>tussen</sub> + df<sub>binnen</sub> &#8722; 1 &#8212; de &#8722;1 is hier niet nodig.<br/><b>Formule:</b> df<sub>totaal</sub> = df<sub>tussen</sub> + df<sub>binnen</sub> = N &#8722; 1."
       else if (!is.na(v) && v == t$df_between)
@@ -1361,7 +1358,7 @@ server <- function(input, output, session) {
         "<b>Waarom fout:</b> U vulde MSW in bij MSB &#8212; verwisseld.<br/><b>Formule:</b> MSB = SSB / df<sub>tussen</sub>; MSW = SSW / df<sub>binnen</sub>."
       else if (!is.na(v) && !is.na(t$SSB) && t$df_within > 0 &&
                abs(v - round(t$SSB / t$df_within, 4)) <= tol(round(t$SSB / t$df_within, 4)))
-        sprintf("<b>Waarom fout:</b> U deelde SSB door df<sub>binnen</sub> (= %d) in plaats van df<sub>tussen</sub> (= %d).<br/><b>Formule:</b> MSB = SSB / df<sub>tussen</sub>.", t$df_within, t$df_between)
+        "<b>Waarom fout:</b> U deelde SSB door df<sub>binnen</sub> in plaats van df<sub>tussen</sub>.<br/><b>Formule:</b> MSB = SSB / df<sub>tussen</sub>."
       else NULL
     })
   show_field_msg("msg_msw", "msw", function(t) t$MSW,
@@ -1375,7 +1372,7 @@ server <- function(input, output, session) {
         "<b>Waarom fout:</b> U vulde MSB in bij MSW &#8212; verwisseld.<br/><b>Formule:</b> MSW = SSW / df<sub>binnen</sub>; MSB = SSB / df<sub>tussen</sub>."
       else if (!is.na(v) && !is.na(t$SSW) && t$df_between > 0 &&
                abs(v - round(t$SSW / t$df_between, 4)) <= tol(round(t$SSW / t$df_between, 4)))
-        sprintf("<b>Waarom fout:</b> U deelde SSW door df<sub>tussen</sub> (= %d) in plaats van df<sub>binnen</sub> (= %d).<br/><b>Formule:</b> MSW = SSW / df<sub>binnen</sub>.", t$df_between, t$df_within)
+        "<b>Waarom fout:</b> U deelde SSW door df<sub>tussen</sub> in plaats van df<sub>binnen</sub>.<br/><b>Formule:</b> MSW = SSW / df<sub>binnen</sub>."
       else NULL
     })
   show_field_msg("msg_f_ratio", "f_ratio", function(t) t$F_ratio,
@@ -1401,7 +1398,7 @@ server <- function(input, output, session) {
     t <- rv$truth; if (is.null(t)) return(NULL)
     checks <- c(ssw=safe_check(input$ssw,t$SSW), ssb=safe_check(input$ssb,t$SSB), sst=safe_check(input$sst,t$SST))
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 3L) div(class="ok","V Alle kwadratensommen juist! SST = SSW + SSB")
+    if (n_ok == 3L) div(class="ok","V Alle kwadratensommen zijn juist! SST = SSW + SSB")
     else div(class="muted", paste0(n_ok,"/3 juist - Gebruik kolomsommen uit de afwijkingtabel."))
   })
 
@@ -1437,7 +1434,7 @@ server <- function(input, output, session) {
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     if (n_ok == 7L)
-      div(class="ok", paste0("V ANOVA-tabel juist! F(",t$df_between,",",t$df_within,") = ",round(t$F_ratio,4),
+      div(class="ok", paste0("V ANOVA-tabel is juist! F(",t$df_between,",",t$df_within,") = ",round(t$F_ratio,4),
                              " | \u03b7\u00b2 = ",round(t$eta_sq,4)))
     else
       div(class="muted", paste0(n_ok,"/7 juist"))

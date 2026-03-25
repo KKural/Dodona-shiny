@@ -995,7 +995,7 @@ server <- function(input, output, session) {
           abs(v - round(t$denom_partial / t$num_partial, 4)) <= max(0.005, 0.01 * abs(t$denom_partial / t$num_partial)))
         "<b>Waarom fout:</b> U heeft noemer/teller berekend &#8212; draai de deling om.<br/><b>Correctie:</b> r_xy.z = teller / noemer &#8212; deel uw teller door uw noemer."
       else if (!is.na(t$r_xy) && abs(v - t$r_xy) <= max(0.005, 0.01 * abs(t$r_xy)))
-        sprintf("<b>Waarom fout:</b> U vulde r_xy (= %.4f) in &#8212; dat is de ongecorrigeerde correlatie, niet de parti&#235;le.<br/><b>Correctie:</b> r_xy.z = teller / noemer &#8212; gebruik uw berekende teller en noemer.", t$r_xy)
+        "<b>Waarom fout:</b> U vulde r_xy in &#8212; dat is de ongecorrigeerde correlatie, niet de parti&#235;le.<br/><b>Correctie:</b> r_xy.z = teller / noemer &#8212; gebruik uw berekende teller en noemer."
       else NULL
     })
 
@@ -1036,7 +1036,7 @@ server <- function(input, output, session) {
                 y = safe_check(input$y_bar, t$y_bar),
                 z = safe_check(input$z_bar, t$z_bar))
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 3L) div(class="ok","V Alle gemiddelden juist!")
+    if (n_ok == 3L) div(class="ok","V Alle gemiddelden zijn juist!")
     else div(class="muted", paste0(n_ok, "/3 correct"))
   })
 
@@ -1269,7 +1269,7 @@ server <- function(input, output, session) {
     }))
     n_ok <- sum(all_chk == TRUE, na.rm = TRUE); n_tot <- n * 9L
     if (n_ok == n_tot)
-      div(class="ok", paste0("V Afwijkingtabel volledig juist! (", n_ok, "/", n_tot, " cellen)"))
+      div(class="ok", paste0("V Afwijkingtabel is volledig juist! (", n_ok, "/", n_tot, " cellen)"))
     else
       div(class="muted", paste0(n_ok, "/", n_tot, " cellen correct"))
   })
@@ -1278,7 +1278,7 @@ server <- function(input, output, session) {
     t <- rv$truth; if (is.null(t)) return(NULL)
     checks <- check_summary_table(user_var_sd(), build_var_sd_truth_table(t), c("X", "Y", "Z"))
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 9L) div(class="ok","V Varianties en standaarddeviaties juist!")
+    if (n_ok == 9L) div(class="ok","V Varianties en standaarddeviaties zijn juist!")
     else div(class="muted", paste0(n_ok, "/9 juist"))
   })
 
@@ -1286,7 +1286,7 @@ server <- function(input, output, session) {
     t <- rv$truth; if (is.null(t)) return(NULL)
     checks <- check_summary_table(user_cov_r(), build_cov_r_truth_table(t), c("XY", "XZ", "YZ"))
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 9L) div(class="ok","V Covarianties en bivariate correlaties juist!")
+    if (n_ok == 9L) div(class="ok","V Covarianties en bivariate correlaties zijn juist!")
     else div(class="muted", paste0(n_ok, "/9 juist"))
   })
 
