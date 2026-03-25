@@ -552,7 +552,7 @@ ui <- fluidPage(
             selectInput("scenario", "Scenario", choices = scenario_choices),
             helpText("Kies een criminologische context met 3 variabelen (X, Y, Z)."),
             numericInput("n", paste0("Steekproefgrootte N (4–", MAX_SAMPLE_SIZE, ")"),
-                         value = 15, min = 4, max = MAX_SAMPLE_SIZE, step = 1),
+                         value = 10, min = 4, max = MAX_SAMPLE_SIZE, step = 1),
             textInput("seed", "Datasetcode (seed, optioneel)", value = ""),
             helpText(HTML("<b>Zelfde code = elke keer dezelfde dataset.</b>")),
             fluidRow(
@@ -839,7 +839,7 @@ server <- function(input, output, session) {
   # ---- Generate ----
   observeEvent(input$gen, {
     sc <- get_sc(input$scenario); if (is.null(sc)) return()
-    n  <- max(4L, min(as.integer(MAX_SAMPLE_SIZE), as.integer(input$n %||% 15)))
+    n  <- max(4L, min(as.integer(MAX_SAMPLE_SIZE), as.integer(input$n %||% 10)))
     df <- make_partial_data(sc, n = n, seed = safe_seed(input$seed))
     rv$df    <- df
     rv$truth <- calc_partial_truth(df, sc$vars$x$name, sc$vars$y$name, sc$vars$z$name)
@@ -854,7 +854,7 @@ server <- function(input, output, session) {
     updateSelectInput(session, "scenario", selected = chosen)
     updateTextInput(session, "seed", value = as.character(sample(1:9999, 1)))
     sc <- get_sc(chosen); if (is.null(sc)) return()
-    n  <- max(4L, min(as.integer(MAX_SAMPLE_SIZE), as.integer(input$n %||% 15)))
+    n  <- max(4L, min(as.integer(MAX_SAMPLE_SIZE), as.integer(input$n %||% 10)))
     df <- make_partial_data(sc, n = n, seed = NULL)
     rv$df    <- df
     rv$truth <- calc_partial_truth(df, sc$vars$x$name, sc$vars$y$name, sc$vars$z$name)
