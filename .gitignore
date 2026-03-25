@@ -28,6 +28,7 @@ rsconnect/
 .secrets
 .Renviron
 .env
+*.env
 
 # OS artefacts
 .DS_Store

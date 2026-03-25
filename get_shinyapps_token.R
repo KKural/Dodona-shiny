@@ -29,10 +29,17 @@ library(rsconnect)
 # ── STEP 3: Authenticate locally ──────────────────────────────────────────────
 # Paste your actual values here (do NOT commit this file once filled in):
 
+# Recommended: store credentials in ~/.Renviron (never in this file):
+#   SHINYAPPS_ACCOUNT=statistiek-in-de-criminologie
+#   SHINYAPPS_TOKEN=your_new_token_here
+#   SHINYAPPS_SECRET=your_new_secret_here
+# Then restart R so readRenviron takes effect, and run:
+readRenviron("~/.Renviron")
+
 rsconnect::setAccountInfo(
-  name   = "YOUR_ACCOUNT_NAME",   # e.g. "statistiek-in-de-criminologie"
-  token  = "YOUR_TOKEN",
-  secret = "YOUR_SECRET"
+  name   = Sys.getenv("SHINYAPPS_ACCOUNT"),  # statistiek-in-de-criminologie
+  token  = Sys.getenv("SHINYAPPS_TOKEN"),
+  secret = Sys.getenv("SHINYAPPS_SECRET")
 )
 
 
@@ -42,8 +49,8 @@ rsconnect::setAccountInfo(
 
 rsconnect::deployApp(
   appDir         = "shiny_app",          # relative to this script's location
-  appName        = "my-shiny-app",       # URL slug on shinyapps.io
-  account        = "YOUR_ACCOUNT_NAME",
+  appName        = "my-shiny-app",       # URL slug on shinyapps.io — rename as desired
+  account        = Sys.getenv("SHINYAPPS_ACCOUNT"),  # statistiek-in-de-criminologie
   forceUpdate    = TRUE,
   launch.browser = TRUE                  # opens the deployed app when done
 )

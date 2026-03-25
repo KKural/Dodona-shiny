@@ -80,8 +80,8 @@ jobs:
           )
           rsconnect::deployApp(
             appDir        = "shiny_app",
-            appName       = "my-shiny-app",
-            account       = Sys.getenv("SHINYAPPS_ACCOUNT"),
+            appName       = "my-shiny-app",   # <-- rename this to your desired URL slug
+            account       = Sys.getenv("SHINYAPPS_ACCOUNT"),  # statistiek-in-de-criminologie
             forceUpdate   = TRUE,
             launch.browser = FALSE
           )
