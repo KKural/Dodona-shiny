@@ -55,7 +55,7 @@ jobs:
           rsconnect::deployApp(
             appDir         = "shiny_apps/app_partiele_correlatie",
             appPrimaryDoc  = "Partiele_Correlatie_App_NL.R",
-            appName        = "Partial_Correlation",
+            appName        = "partiele-correlatie",
             account        = Sys.getenv("SHINYAPPS_ACCOUNT"),
             forceUpdate    = TRUE,
             launch.browser = FALSE
