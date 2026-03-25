@@ -1107,8 +1107,7 @@ server <- function(input, output, session) {
       tol_f <- function(ref) max(0.005, 0.01 * abs(ref))
       if (!is.na(t$n) && !is.na(t$x_bar) &&
           abs(v - t$x_bar * t$n) <= max(0.5, tol_f(t$x_bar * t$n)))
-        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;X in zonder te delen door n.<br/><b>Formule:</b> X&#x0305; = &#x03a3;X / n.",
-                t$x_bar * t$n, t$x_bar * t$n, t$n)
+        "<b>Waarom fout:</b> U vulde de som &#x03a3;X in zonder te delen door n.<br/><b>Formule:</b> X&#x0305; = &#x03a3;X / n."
       else if (!is.na(t$y_bar) && abs(v - t$y_bar) <= tol_f(t$y_bar))
         "<b>Waarom fout:</b> U vulde Y&#x0305; in bij X&#x0305; &#8212; controleer welke variabele X is."
       else if (!is.na(t$z_bar) && abs(v - t$z_bar) <= tol_f(t$z_bar))
@@ -1123,8 +1122,7 @@ server <- function(input, output, session) {
       tol_f <- function(ref) max(0.005, 0.01 * abs(ref))
       if (!is.na(t$n) && !is.na(t$y_bar) &&
           abs(v - t$y_bar * t$n) <= max(0.5, tol_f(t$y_bar * t$n)))
-        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;Y in zonder te delen door n.<br/><b>Formule:</b> Y&#x0305; = &#x03a3;Y / n.",
-                t$y_bar * t$n, t$y_bar * t$n, t$n)
+        "<b>Waarom fout:</b> U vulde de som &#x03a3;Y in zonder te delen door n.<br/><b>Formule:</b> Y&#x0305; = &#x03a3;Y / n."
       else if (!is.na(t$x_bar) && abs(v - t$x_bar) <= tol_f(t$x_bar))
         "<b>Waarom fout:</b> U vulde X&#x0305; in bij Y&#x0305; &#8212; controleer welke variabele Y is."
       else if (!is.na(t$z_bar) && abs(v - t$z_bar) <= tol_f(t$z_bar))
@@ -1139,8 +1137,7 @@ server <- function(input, output, session) {
       tol_f <- function(ref) max(0.005, 0.01 * abs(ref))
       if (!is.na(t$n) && !is.na(t$z_bar) &&
           abs(v - t$z_bar * t$n) <= max(0.5, tol_f(t$z_bar * t$n)))
-        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;Z in zonder te delen door n.<br/><b>Formule:</b> Z&#x0305; = &#x03a3;Z / n.",
-                t$z_bar * t$n, t$z_bar * t$n, t$n)
+        "<b>Waarom fout:</b> U vulde de som &#x03a3;Z in zonder te delen door n.<br/><b>Formule:</b> Z&#x0305; = &#x03a3;Z / n."
       else if (!is.na(t$x_bar) && abs(v - t$x_bar) <= tol_f(t$x_bar))
         "<b>Waarom fout:</b> U vulde X&#x0305; in bij Z&#x0305; &#8212; controleer welke variabele Z is."
       else if (!is.na(t$y_bar) && abs(v - t$y_bar) <= tol_f(t$y_bar))

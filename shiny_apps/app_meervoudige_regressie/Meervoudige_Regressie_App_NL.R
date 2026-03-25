@@ -38,6 +38,12 @@ check_decimals <- function(user_val, true_val, target_decimals = 4) {
   round(user_val, target_decimals) == round(true_val, target_decimals)
 }
 
+is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
+  if (is.na(user_val) || is.na(true_val)) return(FALSE)
+  if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
+  any(sapply(seq(0, target_decimals - 1), function(d) round(user_val, d) == round(true_val, d)))
+}
+
 has_attempted <- function(val) {
   !is.null(val) && nzchar(trimws(as.character(val))) && !is.na(suppressWarnings(as.numeric(val)))
 }
@@ -1263,11 +1269,19 @@ server <- function(input, output, session) {
     if (!is.null(input$prediction_table)) prediction_tbl(hot_to_r(input$prediction_table))
   })
 
-  mark_field <- function(id, ok, msg_id, ok_msg = "", err_msg = "") {
+  mark_field <- function(id, ok, msg_id, ok_msg = "", err_msg = "", true_val = NULL) {
     st <- if (isTRUE(ok)) "valid" else if (identical(ok, FALSE)) "invalid" else "neutral"
     session$sendCustomMessage("markField", list(id = id, state = st))
 
-    em <- as.character(err_msg)
+    em <- if (!isTRUE(ok) && !is.null(true_val)) {
+      u_num <- suppressWarnings(as.numeric(input[[id]]))
+      if (!is.na(u_num) && is_decimal_miss(u_num, true_val))
+        "Afrondingsfout: gebruik 4 decimalen (uw waarde is inhoudelijk correct)."
+      else
+        as.character(err_msg)
+    } else {
+      as.character(err_msg)
+    }
     om <- as.character(ok_msg)
     st_local <- st
 
@@ -1294,123 +1308,150 @@ server <- function(input, output, session) {
     # Step 1 means - only mark if attempted
     if (has_attempted(input$mean_X1)) {
       mark_field("mean_X1", check_decimals(to_num("mean_X1"), truth$x1_bar, 4), "msg_mean_X1",
-                 err_msg = "Gemiddelde x₁ is fout (4 decimalen vereist).")
+                 true_val = truth$x1_bar,
+                 err_msg = "Gemiddelde x₁ is onjuist.")
     }
     if (has_attempted(input$mean_X2)) {
       mark_field("mean_X2", check_decimals(to_num("mean_X2"), truth$x2_bar, 4), "msg_mean_X2",
-                 err_msg = "Gemiddelde x₂ is fout (4 decimalen vereist).")
+                 true_val = truth$x2_bar,
+                 err_msg = "Gemiddelde x₂ is onjuist.")
     }
     if (has_attempted(input$mean_Y)) {
       mark_field("mean_Y", check_decimals(to_num("mean_Y"), truth$y_bar, 4), "msg_mean_Y",
-                 err_msg = "Gemiddelde Y is fout (4 decimalen vereist).")
+                 true_val = truth$y_bar,
+                 err_msg = "Gemiddelde Y is onjuist.")
     }
 
     # Cross-product totals
     if (has_attempted(input$tot_X1_2)) {
       mark_field("tot_X1_2", check_decimals(to_num("tot_X1_2"), truth$S11, 4), "msg_tot_X1_2",
-                 err_msg = "Σ(x₁−x̄₁)² is fout.")
+                 true_val = truth$S11,
+                 err_msg = "Σ(x₁−x̄₁)² is onjuist.")
     }
     if (has_attempted(input$tot_X2_2)) {
       mark_field("tot_X2_2", check_decimals(to_num("tot_X2_2"), truth$S22, 4), "msg_tot_X2_2",
-                 err_msg = "Σ(x₂−x̄₂)² is fout.")
+                 true_val = truth$S22,
+                 err_msg = "Σ(x₂−x̄₂)² is onjuist.")
     }
     if (has_attempted(input$tot_X1X2)) {
       mark_field("tot_X1X2", check_decimals(to_num("tot_X1X2"), truth$S12, 4), "msg_tot_X1X2",
-                 err_msg = "Σ(x₁−x̄₁)(x₂−x̄₂) is fout.")
+                 true_val = truth$S12,
+                 err_msg = "Σ(x₁−x̄₁)(x₂−x̄₂) is onjuist.")
     }
     if (has_attempted(input$tot_X1Y)) {
       mark_field("tot_X1Y", check_decimals(to_num("tot_X1Y"), truth$S1y, 4), "msg_tot_X1Y",
-                 err_msg = "Σ(x₁−x̄₁)(Y−Ȳ) is fout.")
+                 true_val = truth$S1y,
+                 err_msg = "Σ(x₁−x̄₁)(Y−Ȳ) is onjuist.")
     }
     if (has_attempted(input$tot_X2Y)) {
       mark_field("tot_X2Y", check_decimals(to_num("tot_X2Y"), truth$S2y, 4), "msg_tot_X2Y",
-                 err_msg = "Σ(x₂−x̄₂)(Y−Ȳ) is fout.")
+                 true_val = truth$S2y,
+                 err_msg = "Σ(x₂−x̄₂)(Y−Ȳ) is onjuist.")
     }
     if (has_attempted(input$tot_Y2)) {
       mark_field("tot_Y2", check_decimals(to_num("tot_Y2"), truth$SST, 4), "msg_tot_Y2",
-                 err_msg = "Σ(Y−Ȳ)² is fout.")
+                 true_val = truth$SST,
+                 err_msg = "Σ(Y−Ȳ)² is onjuist.")
     }
 
     # Variances / SDs
     if (has_attempted(input$var_X1)) {
       mark_field("var_X1", check_decimals(to_num("var_X1"), truth$var_X1, 4), "msg_var_X1",
-                 err_msg = "Var(x₁) is fout.")
+                 true_val = truth$var_X1,
+                 err_msg = "Var(x₁) is onjuist.")
     }
     if (has_attempted(input$sd_X1)) {
       mark_field("sd_X1", check_decimals(to_num("sd_X1"), truth$sd_X1, 4), "msg_sd_X1",
-                 err_msg = "SD(x₁) is fout.")
+                 true_val = truth$sd_X1,
+                 err_msg = "SD(x₁) is onjuist.")
     }
     if (has_attempted(input$var_X2)) {
       mark_field("var_X2", check_decimals(to_num("var_X2"), truth$var_X2, 4), "msg_var_X2",
-                 err_msg = "Var(x₂) is fout.")
+                 true_val = truth$var_X2,
+                 err_msg = "Var(x₂) is onjuist.")
     }
     if (has_attempted(input$sd_X2)) {
       mark_field("sd_X2", check_decimals(to_num("sd_X2"), truth$sd_X2, 4), "msg_sd_X2",
-                 err_msg = "SD(x₂) is fout.")
+                 true_val = truth$sd_X2,
+                 err_msg = "SD(x₂) is onjuist.")
     }
     if (has_attempted(input$var_Y)) {
       mark_field("var_Y", check_decimals(to_num("var_Y"), truth$var_Y, 4), "msg_var_Y",
-                 err_msg = "Var(Y) is fout.")
+                 true_val = truth$var_Y,
+                 err_msg = "Var(Y) is onjuist.")
     }
     if (has_attempted(input$sd_Y)) {
       mark_field("sd_Y", check_decimals(to_num("sd_Y"), truth$sd_Y, 4), "msg_sd_Y",
-                 err_msg = "SD(Y) is fout.")
+                 true_val = truth$sd_Y,
+                 err_msg = "SD(Y) is onjuist.")
     }
 
     # Covariances
     if (has_attempted(input$cov_x1y)) {
       mark_field("cov_x1y", check_decimals(to_num("cov_x1y"), truth$cov_x1y, 4), "msg_cov_x1y",
-                 err_msg = "Cov(x₁,Y) is fout.")
+                 true_val = truth$cov_x1y,
+                 err_msg = "Cov(x₁,Y) is onjuist.")
     }
     if (has_attempted(input$cov_x2y)) {
       mark_field("cov_x2y", check_decimals(to_num("cov_x2y"), truth$cov_x2y, 4), "msg_cov_x2y",
-                 err_msg = "Cov(x₂,Y) is fout.")
+                 true_val = truth$cov_x2y,
+                 err_msg = "Cov(x₂,Y) is onjuist.")
     }
     if (has_attempted(input$cov_x1x2)) {
       mark_field("cov_x1x2", check_decimals(to_num("cov_x1x2"), truth$cov_x1x2, 4), "msg_cov_x1x2",
-                 err_msg = "Cov(x₁,x₂) is fout.")
+                 true_val = truth$cov_x1x2,
+                 err_msg = "Cov(x₁,x₂) is onjuist.")
     }
 
     # Correlations
     if (has_attempted(input$r_x1y)) {
       mark_field("r_x1y", check_decimals(to_num("r_x1y"), truth$r_x1y, 4), "msg_r_x1y",
-                 err_msg = "Correlatie r(x₁,Y) is fout.")
+                 true_val = truth$r_x1y,
+                 err_msg = "Correlatie r(x₁,Y) is onjuist.")
     }
     if (has_attempted(input$r_x2y)) {
       mark_field("r_x2y", check_decimals(to_num("r_x2y"), truth$r_x2y, 4), "msg_r_x2y",
-                 err_msg = "Correlatie r(x₂,Y) is fout.")
+                 true_val = truth$r_x2y,
+                 err_msg = "Correlatie r(x₂,Y) is onjuist.")
     }
     if (has_attempted(input$r_x1x2)) {
       mark_field("r_x1x2", check_decimals(to_num("r_x1x2"), truth$r_x1x2, 4), "msg_r_x1x2",
-                 err_msg = "Correlatie r(x₁,x₂) is fout.")
+                 true_val = truth$r_x1x2,
+                 err_msg = "Correlatie r(x₁,x₂) is onjuist.")
     }
 
     # Coefficients
     if (has_attempted(input$multi_det)) {
       mark_field("multi_det", check_decimals(to_num("multi_det"), truth$det, 4), "msg_multi_det",
-                 err_msg = "Determinant (det) is fout.")
+                 true_val = truth$det,
+                 err_msg = "Determinant (det) is onjuist.")
     }
     if (has_attempted(input$multi_b1)) {
       mark_field("multi_b1", check_decimals(to_num("multi_b1"), truth$b1, 4), "msg_multi_b1",
-                 err_msg = "b₁ is fout.")
+                 true_val = truth$b1,
+                 err_msg = "b₁ is onjuist.")
     }
     if (has_attempted(input$multi_b2)) {
       mark_field("multi_b2", check_decimals(to_num("multi_b2"), truth$b2, 4), "msg_multi_b2",
-                 err_msg = "b₂ is fout.")
+                 true_val = truth$b2,
+                 err_msg = "b₂ is onjuist.")
     }
     if (has_attempted(input$multi_intercept)) {
       mark_field("multi_intercept", check_decimals(to_num("multi_intercept"), truth$intercept, 4), "msg_multi_intercept",
-                 err_msg = "Intercept a is fout.")
+                 true_val = truth$intercept,
+                 err_msg = "Intercept a is onjuist.")
     }
 
     # Fit
     if (has_attempted(input$multi_r_squared)) {
       mark_field("multi_r_squared", check_decimals(to_num("multi_r_squared"), truth$R_squared, 4), "msg_multi_r_squared",
-                 err_msg = "R² is fout.")
+                 true_val = truth$R_squared,
+                 err_msg = "R² is onjuist.")
     }
     if (has_attempted(input$multi_alienation)) {
       mark_field("multi_alienation", check_decimals(to_num("multi_alienation"), truth$alienation, 4), "msg_multi_alienation",
-                 err_msg = "Vervreemdingscoëfficiënt is fout.")
+                 true_val = truth$alienation,
+                 err_msg = "Vervreemdingscoëfficiënt is onjuist.")
     }
 
     # Prediction table (validate attempted cells only using TRUTH predictions)

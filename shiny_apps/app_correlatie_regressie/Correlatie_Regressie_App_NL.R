@@ -45,6 +45,12 @@ check_decimals <- function(user_val, true_val, target_decimals = 4, tol = NULL) 
   round(user_val, target_decimals) == round(true_val, target_decimals)
 }
 
+is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
+  if (is.na(user_val) || is.na(true_val)) return(FALSE)
+  if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
+  any(sapply(seq(0, target_decimals - 1), function(d) round(user_val, d) == round(true_val, d)))
+}
+
 # Enhanced column vector checking
 check_col_vec <- function(user_vec, true_vec, target_decimals = 4, tol = NULL) {
   if (is.null(user_vec) || is.null(true_vec)) return(rep(FALSE, length(true_vec)))
@@ -1163,15 +1169,16 @@ server <- function(input, output, session){
       x_check <- safe_check(input$mean_X, X_truth$mean, 4)
       x_ok <- isTRUE(x_check)
       mark_field("mean_X", x_check, "msg_mean_X",
+                 true_val = X_truth$mean,
                  err_msg = {
                    v <- suppressWarnings(as.numeric(input$mean_X))
                    tol_m <- max(0.005, 0.01 * abs(X_truth$mean))
                    n_rows <- length(round(df[[xcol]], 2))
                    sum_X  <- round(sum(round(df[[xcol]], 2)), 4)
                    if (!is.na(v) && abs(v - sum_X) <= max(0.5, 0.01 * abs(sum_X)))
-                     sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;X (= %.4f) in, maar deelde niet door n.<br/><b>Correctie:</b> X&#x0305; = &#x03a3;X / n &#8212; deel de som (%.4f) door n (= %d).", sum_X, sum_X, n_rows)
+                     "<b>Waarom fout:</b> U vulde de som &#x03a3;X in, maar deelde niet door n.<br/><b>Formule:</b> X&#x0305; = &#x03a3;X / n."
                    else if (!is.na(v) && !is.na(Y_truth$mean) && abs(v - Y_truth$mean) <= tol_m)
-                     sprintf("<b>Waarom fout:</b> U vulde Y&#x0305; (= %.4f) in bij X&#x0305; &#8212; controleer welke kolom X is.", Y_truth$mean)
+                     "<b>Waarom fout:</b> U vulde Y&#x0305; in bij X&#x0305; &#8212; controleer welke kolom X is."
                    else
                      "Gemiddelde van X onjuist. Bereken X&#x0305; = &#x03a3;X / n met 4 decimalen."
                  })
@@ -1181,15 +1188,16 @@ server <- function(input, output, session){
       y_check <- safe_check(input$mean_Y, Y_truth$mean, 4)
       y_ok <- isTRUE(y_check)
       mark_field("mean_Y", y_check, "msg_mean_Y",
+                 true_val = Y_truth$mean,
                  err_msg = {
                    v   <- suppressWarnings(as.numeric(input$mean_Y))
                    tol_m <- max(0.005, 0.01 * abs(Y_truth$mean))
                    n_rows <- length(round(df[[y]], 2))
                    sum_Y  <- round(sum(round(df[[y]], 2)), 4)
                    if (!is.na(v) && abs(v - sum_Y) <= max(0.5, 0.01 * abs(sum_Y)))
-                     sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;Y (= %.4f) in, maar deelde niet door n.<br/><b>Correctie:</b> Y&#x0305; = &#x03a3;Y / n &#8212; deel de som (%.4f) door n (= %d).", sum_Y, sum_Y, n_rows)
+                     "<b>Waarom fout:</b> U vulde de som &#x03a3;Y in, maar deelde niet door n.<br/><b>Formule:</b> Y&#x0305; = &#x03a3;Y / n."
                    else if (!is.na(v) && !is.na(X_truth$mean) && abs(v - X_truth$mean) <= tol_m)
-                     sprintf("<b>Waarom fout:</b> U vulde X&#x0305; (= %.4f) in bij Y&#x0305; &#8212; controleer welke kolom Y is.", X_truth$mean)
+                     "<b>Waarom fout:</b> U vulde X&#x0305; in bij Y&#x0305; &#8212; controleer welke kolom Y is."
                    else
                      "Gemiddelde van Y onjuist. Bereken Y&#x0305; = &#x03a3;Y / n met 4 decimalen."
                  })
@@ -1969,12 +1977,20 @@ server <- function(input, output, session){
   })
   
   # Feedback and validation helpers
-  mark_field <- function(id, ok, msg_id, ok_msg = "", err_msg = "") {
+  mark_field <- function(id, ok, msg_id, ok_msg = "", err_msg = "", true_val = NULL) {
     st <- if (isTRUE(ok)) "valid" else if (identical(ok, FALSE)) "invalid" else "neutral"
     
     session$sendCustomMessage("markField", list(id = id, state = st))
     
-    em <- as.character(err_msg)
+    em <- if (!isTRUE(ok) && !is.null(true_val)) {
+      u_num <- suppressWarnings(as.numeric(input[[id]]))
+      if (!is.na(u_num) && is_decimal_miss(u_num, true_val))
+        "Afrondingsfout: gebruik 4 decimalen (uw waarde is inhoudelijk correct)."
+      else
+        as.character(err_msg)
+    } else {
+      as.character(err_msg)
+    }
     om <- as.character(ok_msg)
     st_local <- st
     
@@ -2305,6 +2321,7 @@ server <- function(input, output, session){
         oks <- check_decimals(to_num(paste0("sd_",   id)), tru$sd,   4)
         
         mark_field(parade0("mean_", id), okm, paste0("msg_mean_", id),
+                   true_val = tru$mean,
                    err_msg = {
                      v_m  <- to_num(paste0("mean_", id))
                      idx  <- match(id, xs_ids)
@@ -2315,7 +2332,7 @@ server <- function(input, output, session){
                        n_m    <- length(round(vec_m, 2))
                        tol_mm <- max(0.005, 0.01 * abs(tru_m$mean))
                        if (!is.na(v_m) && abs(v_m - sum_v) <= max(0.5, 0.01 * abs(sum_v)))
-                         sprintf("<b>Waarom fout:</b> U vulde de som (= %.4f) in zonder te delen door n.<br/><b>Correctie:</b> %s&#x0305; = &#x03a3;%s / n &#8212; deel de som (%.4f) door n (= %d).", sum_v, lab_map[[id]], lab_map[[id]], sum_v, n_m)
+                         sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;%s in zonder te delen door n.<br/><b>Formule:</b> %s&#x0305; = &#x03a3;%s / n.", lab_map[[id]], lab_map[[id]], lab_map[[id]])
                        else
                          sprintf("Gemiddelde van %s onjuist. Gebruik 4 decimalen voor tussentijdse berekeningen.", lab_map[[id]])
                      } else sprintf("Gemiddelde van %s onjuist. Gebruik 4 decimalen voor tussentijdse berekeningen.", lab_map[[id]])
