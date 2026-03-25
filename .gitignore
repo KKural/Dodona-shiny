@@ -1,0 +1,45 @@
+# R Project .gitignore
+# ──────────────────────────────────────────────────────────────────────────────
+
+# R session artefacts
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# Cached/generated data files
+*.rds
+*.RDS
+*.rda
+*.RDa
+data/
+outputs/
+
+# R Markdown / Quarto cache and output folders
+*_cache/
+*_files/
+*.html           # rendered output (not source)
+*.pdf            # rendered output (keep if you want to track PDFs)
+
+# rsconnect deployment manifests (regenerated on each deploy)
+rsconnect/
+
+# Secrets and credentials — NEVER commit these
+.secrets
+.Renviron
+.env
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Large binary files unlikely to need version control
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+# Exceptions: keep R scripts and markdown in media/ folders
+!**/media/*.R
+!**/media/*.md
