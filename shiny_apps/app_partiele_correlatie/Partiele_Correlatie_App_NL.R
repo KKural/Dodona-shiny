@@ -33,6 +33,14 @@ check_decimals <- function(user_val, true_val, target_decimals = 4) {
   round(user_val, target_decimals) == round(true_val, target_decimals)
 }
 
+is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
+  if (is.na(user_val) || is.na(true_val)) return(FALSE)
+  if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
+  any(sapply(seq_len(target_decimals - 1), function(d)
+    round(user_val, d) == round(true_val, d)
+  ))
+}
+
 check_col_vec <- function(user_vec, true_vec, target_decimals = 4) {
   if (is.null(user_vec) || is.null(true_vec)) return(rep(NA, length(true_vec)))
   mapply(function(u, t) {
@@ -878,9 +886,19 @@ server <- function(input, output, session) {
           set_feedback_msg(msg_id, NULL)
           return(NULL)
         }
+        v_num <- suppressWarnings(as.numeric(input[[input_id]]))
+        if (is_decimal_miss(v_num, true_val_fn(t))) {
+          dec_msg <- "<b>Afrondingsfout:</b> Uw waarde is correct maar heeft te weinig decimalen. Gebruik 4 decimalen."
+          set_feedback_msg(msg_id, dec_msg)
+          return(div(class = "feedback feedback-compact", HTML("Afrondingsfout &#8212; gebruik 4 decimalen.")))
+        }
         if (!is.null(diag_fn)) {
           diag_msg <- tryCatch(diag_fn(input[[input_id]], t), error = function(e) NULL)
-          if (!is.null(diag_msg)) return(feedback_ui(msg_id, diag_msg, compact = TRUE))
+          if (!is.null(diag_msg)) {
+            set_feedback_msg(msg_id, diag_msg)
+            first_part <- gsub("^<b>([^<]+)</b>.*", "\\1", diag_msg)
+            return(div(class = "feedback feedback-compact", HTML(first_part)))
+          }
         }
         feedback_ui(msg_id, err_msg, compact = TRUE)
       }, error = function(e) {
@@ -896,9 +914,9 @@ server <- function(input, output, session) {
       v <- suppressWarnings(as.numeric(val))
       if (is.na(v)) return(NULL)
       if (!is.na(t$denom) && abs(v - t$denom) < max(0.01, 0.02 * abs(t$denom)))
-        sprintf("<b>Waarom fout:</b> U vulde de noemer (= %.4f) in bij de teller.<br/><b>Correctie:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; trek het product r_xz&#215;r_yz af van r_xy.", t$denom)
+        "<b>Waarom fout:</b> U vulde de noemer in bij de teller.<br/><b>Formule:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; trek het product r_xz&#215;r_yz af van r_xy."
       else if (!is.na(t$r_xy) && abs(v - t$r_xy) < max(0.005, 0.01 * abs(t$r_xy)))
-        sprintf("<b>Waarom fout:</b> U vulde alleen r_xy (= %.4f) in, maar vergat r_xz &#215; r_yz af te trekken.<br/><b>Correctie:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; bereken ook het product en trek dit af.", t$r_xy)
+        "<b>Waarom fout:</b> U vulde alleen r_xy in, maar vergat r_xz &#215; r_yz af te trekken.<br/><b>Formule:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; bereken ook het product en trek dit af."
       else NULL
     })
   show_ct_msg("msg_ct_denom", "ct_denom", function(t) t$denom,
@@ -907,7 +925,7 @@ server <- function(input, output, session) {
       v <- suppressWarnings(as.numeric(val))
       if (is.na(v)) return(NULL)
       if (!is.na(t$num) && abs(v - t$num) < max(0.01, 0.02 * abs(t$num)))
-        sprintf("<b>Waarom fout:</b> U vulde de teller (= %.4f) in bij de noemer.<br/><b>Correctie:</b> Noemer = &#x221a;((1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)) &#8212; bereken het product van de twee factoren en neem de wortel.", t$num)
+        "<b>Waarom fout:</b> U vulde de teller in bij de noemer.<br/><b>Formule:</b> Noemer = &#x221a;((1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)) &#8212; bereken het product van de twee factoren en neem de wortel."
       else NULL
     })
   show_ct_msg("msg_ct_result", "ct_result", function(t) t$r_xy_z,
@@ -917,9 +935,9 @@ server <- function(input, output, session) {
       if (is.na(v)) return(NULL)
       if (!is.na(t$r_xy_z) && t$r_xy_z != 0 &&
           abs(v - round(1 / t$r_xy_z, 4)) < max(0.01, 0.02 * abs(1 / t$r_xy_z)))
-        "<b>Waarom fout:</b> U heeft noemer/teller berekend &#8212; draai de deling om.<br/><b>Correctie:</b> r_xy.z = teller / noemer."
+        "<b>Waarom fout:</b> U heeft noemer/teller berekend &#8212; draai de deling om.<br/><b>Formule:</b> r_xy.z = teller / noemer."
       else if (!is.na(t$r_xy) && abs(v - t$r_xy) < max(0.005, 0.01 * abs(t$r_xy)))
-        sprintf("<b>Waarom fout:</b> U vulde r_xy (= %.4f) in &#8212; dat is de ongecorrigeerde correlatie, niet de parti&#235;le.<br/><b>Correctie:</b> r_xy.z = teller / noemer &#8212; gebruik uw berekende teller en noemer.", t$r_xy)
+        "<b>Waarom fout:</b> U vulde r_xy in &#8212; dat is de ongecorrigeerde correlatie, niet de partiële.<br/><b>Formule:</b> r_xy.z = teller / noemer &#8212; gebruik uw berekende teller en noemer."
       else NULL
     })
 
@@ -1059,9 +1077,19 @@ server <- function(input, output, session) {
           set_feedback_msg(msg_id, NULL)
           return(NULL)
         }
+        v_num <- suppressWarnings(as.numeric(input[[input_id]]))
+        if (is_decimal_miss(v_num, true_val_fn(t))) {
+          dec_msg <- "<b>Afrondingsfout:</b> Uw waarde is correct maar heeft te weinig decimalen. Gebruik 4 decimalen."
+          set_feedback_msg(msg_id, dec_msg)
+          return(div(class = "feedback feedback-compact", HTML("Afrondingsfout &#8212; gebruik 4 decimalen.")))
+        }
         if (!is.null(diag_fn)) {
           diag_msg <- tryCatch(diag_fn(input[[input_id]], t), error = function(e) NULL)
-          if (!is.null(diag_msg)) return(feedback_ui(msg_id, diag_msg, compact = TRUE))
+          if (!is.null(diag_msg)) {
+            set_feedback_msg(msg_id, diag_msg)
+            first_part <- gsub("^<b>([^<]+)</b>.*", "\\1", diag_msg)
+            return(div(class = "feedback feedback-compact", HTML(first_part)))
+          }
         }
         feedback_ui(msg_id, err_msg, compact = TRUE)
       }, error = function(e) {
@@ -1079,12 +1107,12 @@ server <- function(input, output, session) {
       tol_f <- function(ref) max(0.005, 0.01 * abs(ref))
       if (!is.na(t$n) && !is.na(t$x_bar) &&
           abs(v - t$x_bar * t$n) <= max(0.5, tol_f(t$x_bar * t$n)))
-        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;X (= %.4f) in zonder te delen door n.<br/><b>Correctie:</b> X&#x0305; = &#x03a3;X / n &#8212; deel de som (%.4f) door n (= %d).",
+        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;X in zonder te delen door n.<br/><b>Formule:</b> X&#x0305; = &#x03a3;X / n.",
                 t$x_bar * t$n, t$x_bar * t$n, t$n)
       else if (!is.na(t$y_bar) && abs(v - t$y_bar) <= tol_f(t$y_bar))
-        sprintf("<b>Waarom fout:</b> U vulde Y&#x0305; (= %.4f) in bij X&#x0305; &#8212; controleer welke variabele X is.", t$y_bar)
+        "<b>Waarom fout:</b> U vulde Y&#x0305; in bij X&#x0305; &#8212; controleer welke variabele X is."
       else if (!is.na(t$z_bar) && abs(v - t$z_bar) <= tol_f(t$z_bar))
-        sprintf("<b>Waarom fout:</b> U vulde Z&#x0305; (= %.4f) in bij X&#x0305; &#8212; controleer welke variabele X is.", t$z_bar)
+        "<b>Waarom fout:</b> U vulde Z&#x0305; in bij X&#x0305; &#8212; controleer welke variabele X is."
       else NULL
     })
   show_field_msg("msg_y_bar", "y_bar", function(t) t$y_bar,
@@ -1095,12 +1123,12 @@ server <- function(input, output, session) {
       tol_f <- function(ref) max(0.005, 0.01 * abs(ref))
       if (!is.na(t$n) && !is.na(t$y_bar) &&
           abs(v - t$y_bar * t$n) <= max(0.5, tol_f(t$y_bar * t$n)))
-        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;Y (= %.4f) in zonder te delen door n.<br/><b>Correctie:</b> Y&#x0305; = &#x03a3;Y / n &#8212; deel de som (%.4f) door n (= %d).",
+        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;Y in zonder te delen door n.<br/><b>Formule:</b> Y&#x0305; = &#x03a3;Y / n.",
                 t$y_bar * t$n, t$y_bar * t$n, t$n)
       else if (!is.na(t$x_bar) && abs(v - t$x_bar) <= tol_f(t$x_bar))
-        sprintf("<b>Waarom fout:</b> U vulde X&#x0305; (= %.4f) in bij Y&#x0305; &#8212; controleer welke variabele Y is.", t$x_bar)
+        "<b>Waarom fout:</b> U vulde X&#x0305; in bij Y&#x0305; &#8212; controleer welke variabele Y is."
       else if (!is.na(t$z_bar) && abs(v - t$z_bar) <= tol_f(t$z_bar))
-        sprintf("<b>Waarom fout:</b> U vulde Z&#x0305; (= %.4f) in bij Y&#x0305; &#8212; controleer welke variabele Y is.", t$z_bar)
+        "<b>Waarom fout:</b> U vulde Z&#x0305; in bij Y&#x0305; &#8212; controleer welke variabele Y is."
       else NULL
     })
   show_field_msg("msg_z_bar", "z_bar", function(t) t$z_bar,
@@ -1111,12 +1139,12 @@ server <- function(input, output, session) {
       tol_f <- function(ref) max(0.005, 0.01 * abs(ref))
       if (!is.na(t$n) && !is.na(t$z_bar) &&
           abs(v - t$z_bar * t$n) <= max(0.5, tol_f(t$z_bar * t$n)))
-        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;Z (= %.4f) in zonder te delen door n.<br/><b>Correctie:</b> Z&#x0305; = &#x03a3;Z / n &#8212; deel de som (%.4f) door n (= %d).",
+        sprintf("<b>Waarom fout:</b> U vulde de som &#x03a3;Z in zonder te delen door n.<br/><b>Formule:</b> Z&#x0305; = &#x03a3;Z / n.",
                 t$z_bar * t$n, t$z_bar * t$n, t$n)
       else if (!is.na(t$x_bar) && abs(v - t$x_bar) <= tol_f(t$x_bar))
-        sprintf("<b>Waarom fout:</b> U vulde X&#x0305; (= %.4f) in bij Z&#x0305; &#8212; controleer welke variabele Z is.", t$x_bar)
+        "<b>Waarom fout:</b> U vulde X&#x0305; in bij Z&#x0305; &#8212; controleer welke variabele Z is."
       else if (!is.na(t$y_bar) && abs(v - t$y_bar) <= tol_f(t$y_bar))
-        sprintf("<b>Waarom fout:</b> U vulde Y&#x0305; (= %.4f) in bij Z&#x0305; &#8212; controleer welke variabele Z is.", t$y_bar)
+        "<b>Waarom fout:</b> U vulde Y&#x0305; in bij Z&#x0305; &#8212; controleer welke variabele Z is."
       else NULL
     })
 
@@ -1126,16 +1154,15 @@ server <- function(input, output, session) {
       v <- suppressWarnings(as.numeric(val))
       if (is.na(v)) return(NULL)
       if (!is.na(t$denom_partial) && abs(v - t$denom_partial) <= max(0.005, 0.01 * abs(t$denom_partial)))
-        sprintf("<b>Waarom fout:</b> U vulde de noemer (= %.4f) in bij de teller.<br/><b>Correctie:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; bereken het product r_xz&#215;r_yz en trek dit af van r_xy.",
-                t$denom_partial)
+        "<b>Waarom fout:</b> U vulde de noemer in bij de teller.<br/><b>Formule:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; bereken het product r_xz&#215;r_yz en trek dit af van r_xy."
       else if (!is.na(t$r_xy) && abs(v - t$r_xy) <= max(0.005, 0.01 * abs(t$r_xy)))
-        sprintf("<b>Waarom fout:</b> U vulde alleen r_xy (= %.4f) in, maar vergat r_xz &#215; r_yz af te trekken.<br/><b>Correctie:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; trek het product ook af.", t$r_xy)
+        "<b>Waarom fout:</b> U vulde alleen r_xy in, maar vergat r_xz &#215; r_yz af te trekken.<br/><b>Formule:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; trek het product ook af."
       else if (!is.na(t$r_xz) && !is.na(t$r_yz) &&
                abs(v - t$r_xz * t$r_yz) <= max(0.005, 0.01 * abs(t$r_xz * t$r_yz)))
-        sprintf("<b>Waarom fout:</b> U berekende alleen r_xz &#215; r_yz (= %.4f), maar vergat dit van r_xy af te trekken.<br/><b>Correctie:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; trek dit product af van r_xy.", t$r_xz * t$r_yz)
+        "<b>Waarom fout:</b> U berekende alleen het product r_xz &#215; r_yz, maar vergat dit van r_xy af te trekken.<br/><b>Formule:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; trek dit product af van r_xy."
       else if (!is.na(t$r_xy) && !is.na(t$r_xz) && !is.na(t$r_yz) &&
                abs(v - (t$r_xy + t$r_xz * t$r_yz)) <= max(0.005, 0.01 * abs(t$r_xy + t$r_xz * t$r_yz)))
-        sprintf("<b>Waarom fout:</b> U <em>telde</em> r_xz &#215; r_yz bij r_xy op (= %.4f) in plaats van af te trekken.<br/><b>Correctie:</b> Teller = r_xy <em>&#8722;</em> r_xz &#215; r_yz &#8212; gebruik min, niet plus.", t$r_xy + t$r_xz * t$r_yz)
+        "<b>Waarom fout:</b> U <em>telde</em> r_xz &#215; r_yz bij r_xy op in plaats van af te trekken.<br/><b>Formule:</b> Teller = r_xy <em>&#8722;</em> r_xz &#215; r_yz &#8212; gebruik min, niet plus."
       else NULL
     })
   show_field_msg("msg_partial_denom", "partial_denom", function(t) t$denom_partial,
@@ -1145,13 +1172,13 @@ server <- function(input, output, session) {
       if (is.na(v)) return(NULL)
       tol_d <- max(0.005, 0.01 * abs(t$denom_partial))
       if (!is.na(t$num_partial) && abs(v - t$num_partial) <= max(0.005, 0.01 * abs(t$num_partial)))
-        sprintf("<b>Waarom fout:</b> U vulde de teller (= %.4f) in bij de noemer.<br/><b>Correctie:</b> Noemer = &#x221a;((1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)) &#8212; bereken het product van de twee factoren en neem de wortel.", t$num_partial)
+        "<b>Waarom fout:</b> U vulde de teller in bij de noemer.<br/><b>Formule:</b> Noemer = &#x221a;((1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)) &#8212; bereken het product van de twee factoren en neem de wortel."
       else if (!is.na(t$r_xz) && !is.na(t$r_yz)) {
         raw_product <- (1 - t$r_xz^2) * (1 - t$r_yz^2)
         if (abs(v - raw_product) <= max(0.005, 0.01 * abs(raw_product)))
-          sprintf("<b>Waarom fout:</b> U vergat de vierkantswortel te nemen over het product (= %.4f).<br/><b>Correctie:</b> Noemer = &#x221a;(product) &#8212; neem nog de vierkantswortel van %.4f.", raw_product, raw_product)
+          "<b>Waarom fout:</b> U vergat de vierkantswortel te nemen over het product.<br/><b>Formule:</b> Noemer = &#x221a;(product) &#8212; neem nog de vierkantswortel van (1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)."
         else if (abs(v - sqrt((1 - t$r_xz) * (1 - t$r_yz))) <= tol_d)
-          sprintf("<b>Waarom fout:</b> U kwadrateert r_xz en r_yz niet &#8212; gebruik (1&#8722;r_xz&#178;) niet (1&#8722;r_xz).<br/><b>Correctie:</b> Noemer = &#x221a;((1&#8722;%.4f&#178;)(1&#8722;%.4f&#178;)) &#8212; kwadrateer r_xz en r_yz v&#243;&#243;r de aftrekking.", t$r_xz, t$r_yz)
+          "<b>Waarom fout:</b> U kwadrateert r_xz en r_yz niet &#8212; gebruik (1&#8722;r_xz&#178;) niet (1&#8722;r_xz).<br/><b>Formule:</b> Noemer = &#x221a;((1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)) &#8212; kwadrateer r_xz en r_yz v&#243;&#243;r de aftrekking."
         else if (abs(v - sqrt(1 - t$r_xz^2)) <= tol_d || abs(v - sqrt(1 - t$r_yz^2)) <= tol_d)
           "<b>Waarom fout:</b> U gebruikte slechts &#233;&#233;n factor in de wortel &#8212; het product van beide factoren is nodig.<br/><b>Correctie:</b> Noemer = &#x221a;((1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)) &#8212; vermenigvuldig beide factoren v&#243;&#243;r u de wortel neemt."
         else NULL
