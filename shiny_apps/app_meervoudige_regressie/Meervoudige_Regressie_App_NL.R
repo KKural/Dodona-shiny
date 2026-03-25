@@ -38,20 +38,29 @@ check_decimals <- function(user_val, true_val, target_decimals = 4) {
   round(user_val, target_decimals) == round(true_val, target_decimals)
 }
 
-is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
+normalize_raw_numeric <- function(raw_val) {
+  if (is.null(raw_val) || length(raw_val) == 0) return(NA_character_)
+  raw <- trimws(as.character(raw_val)[1])
+  if (!nzchar(raw)) return(NA_character_)
+  chartr(",", ".", raw)
+}
+
+count_decimal_places <- function(raw_val) {
+  raw <- normalize_raw_numeric(raw_val)
+  if (is.na(raw) || grepl("[eE]", raw)) return(NA_integer_)
+  raw <- sub("^[+-]", "", raw)
+  if (!grepl("\\.", raw)) return(0L)
+  nchar(sub("^[^.]*\\.", "", raw))
+}
+
+is_decimal_miss <- function(user_val, true_val, target_decimals = 4, raw_input = NULL) {
   if (is.na(user_val) || is.na(true_val)) return(FALSE)
   if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
-  user_precision <- target_decimals
-  for (k in seq_len(target_decimals)) {
-    if (abs(round(user_val, k) - user_val) < 1e-9) {
-      user_precision <- k
-      break
-    }
-  }
-  if (user_precision >= target_decimals) return(FALSE)
-  any(sapply(seq_len(user_precision), function(d)
+  user_precision <- count_decimal_places(if (is.null(raw_input)) as.character(user_val) else raw_input)
+  if (is.na(user_precision) || user_precision >= target_decimals) return(FALSE)
+  any(vapply(seq_len(user_precision), function(d) {
     round(user_val, d) == round(true_val, d)
-  ))
+  }, logical(1)))
 }
 
 has_attempted <- function(val) {
@@ -493,6 +502,25 @@ ui <- fluidPage(
         el.classList.add('valid');
       }
     });
+
+    function syncRawNumericValue(el) {
+      if (!el || !el.id || !window.Shiny) return;
+      Shiny.setInputValue(el.id + '__raw', el.value, {priority: 'event'});
+    }
+
+    document.addEventListener('input', function(evt) {
+      var el = evt.target;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') {
+        syncRawNumericValue(el);
+      }
+    });
+
+    document.addEventListener('change', function(evt) {
+      var el = evt.target;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') {
+        syncRawNumericValue(el);
+      }
+    });
     
     // Add subtle hover effects for better UX
     document.addEventListener('DOMContentLoaded', function() {
@@ -506,6 +534,9 @@ ui <- fluidPage(
           this.style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)';
         });
       });
+
+      var numericInputs = document.querySelectorAll('input[type=\"number\"]');
+      numericInputs.forEach(syncRawNumericValue);
     });
   "))),
 
@@ -524,7 +555,7 @@ ui <- fluidPage(
                 <li><b>Deel I:</b> Dataset bekijken</li>
                 <li><b>Deel II:</b> Stap 1 (Rekenkundige gemiddelden voor x₁, x₂ en Y)</li>
                 <li><b>Deel III:</b> Stappen 2-6 (Afwijkingen, kwadraten en kruisproducten: Σ(x₁−x̄₁)², Σ(x₂−x̄₂)², Σ(Y−Ȳ)², Σ(x₁−x̄₁)(x₂−x̄₂), Σ(x₁−x̄₁)(Y−Ȳ), Σ(x₂−x̄₂)(Y−Ȳ))</li>
-                <li><b>Deel IV:</b> Stappen 7-8 (Varianties en standaarddeviaties)</li>
+                <li><b>Deel IV:</b> Stappen 7-8 (Varianties en standaardafwijkingen)</li>
                 <li><b>Deel V:</b> Stappen 15-18 (Determinant, b₁, b₂ en intercept a)</li>
                 <li><b>Deel VI:</b> Voorspellingen met Ŷ = a + b₁·x₁ + b₂·x₂</li>
                 <li><b>Deel VII:</b> R² en vervreemdingscoëfficiënt</li>
@@ -651,8 +682,8 @@ ui <- fluidPage(
       br(),
 
       div(class = "card",
-          h4("Deel IV — Stappen 7-8: Varianties & Standaarddeviaties (4 decimalen)"),
-          div(class = "muted", "Bereken eerst de varianties door elke som van kwadraten te delen door (n−1). De standaarddeviaties SD(x₁), SD(x₂), SD(Y) volgen uit SD = √Var."),
+          h4("Deel IV — Stappen 7-8: Varianties & Standaardafwijkingen (4 decimalen)"),
+          div(class = "muted", "Bereken eerst de varianties door elke som van kwadraten te delen door (n−1). De standaardafwijkingen SD(x₁), SD(x₂), SD(Y) volgen uit SD = √Var."),
           numericInput("var_X1", HTML("Var(x₁) = Σ(x₁−x̄₁)²/(n−1)"), value = NA, step = 0.0001),
           uiOutput("msg_var_X1"),
           numericInput("sd_X1", HTML("SD(x₁) = √Var(x₁)"), value = NA, step = 0.0001),
@@ -684,7 +715,7 @@ ui <- fluidPage(
       div(class = "card",
           h4("Deel IV-B — Stappen 12-14: Correlatiecoëfficiënten (4 decimalen)"),
           div(class = "muted", "Standaardiseer covarianties om correlaties te verkrijgen. Elke correlatie r = Cov / [SD×SD]."),
-          helpText("Gebruik je covarianties uit Deel IV-A en standaarddeviaties uit Deel IV."),
+          helpText("Gebruik je covarianties uit Deel IV-A en standaardafwijkingen uit Deel IV."),
           numericInput("r_x1y", HTML("r<sub>x₁,Y</sub> = Cov(x₁,Y) / [SD(x₁)×SD(Y)]"), value = NA, step = 0.0001),
           uiOutput("msg_r_x1y"),
           numericInput("r_x2y", HTML("r<sub>x₂,Y</sub> = Cov(x₂,Y) / [SD(x₂)×SD(Y)]"), value = NA, step = 0.0001),
@@ -1279,13 +1310,30 @@ server <- function(input, output, session) {
     if (!is.null(input$prediction_table)) prediction_tbl(hot_to_r(input$prediction_table))
   })
 
+  raw_numeric_input <- function(id) {
+    raw_val <- input[[paste0(id, "__raw")]]
+    if (!is.null(raw_val) && nzchar(trimws(as.character(raw_val)))) return(raw_val)
+    input[[id]]
+  }
+
+  field_status_ui <- function(state) {
+    if (!state %in% c("valid", "invalid")) return(NULL)
+    col <- if (identical(state, "valid")) "#00C853" else "#D50000"
+    label <- if (identical(state, "valid")) "OK" else "X"
+    div(
+      class = "traffic",
+      span(class = "light", style = paste0("background:", col, ";")),
+      span(style = paste0("color:", col, ";font-weight:700;"), label)
+    )
+  }
+
   mark_field <- function(id, ok, msg_id, ok_msg = "", err_msg = "", true_val = NULL) {
     st <- if (isTRUE(ok)) "valid" else if (identical(ok, FALSE)) "invalid" else "neutral"
     session$sendCustomMessage("markField", list(id = id, state = st))
 
     em <- if (!isTRUE(ok) && !is.null(true_val)) {
       u_num <- suppressWarnings(as.numeric(input[[id]]))
-      if (!is.na(u_num) && is_decimal_miss(u_num, true_val))
+      if (!is.na(u_num) && is_decimal_miss(u_num, true_val, raw_input = raw_numeric_input(id)))
         "Afrondingsfout: gebruik 4 decimalen (uw waarde is inhoudelijk correct)."
       else
         as.character(err_msg)
@@ -1296,9 +1344,21 @@ server <- function(input, output, session) {
     st_local <- st
 
     output[[msg_id]] <- renderUI({
-      if (identical(st_local, "invalid")) div(class = "feedback", em)
-      else if (identical(st_local, "valid") && nzchar(om)) div(class = "ok", om)
-      else HTML("")
+      if (identical(st_local, "invalid")) {
+        tagList(
+          field_status_ui("invalid"),
+          div(class = "feedback", em)
+        )
+      } else if (identical(st_local, "valid") && nzchar(om)) {
+        tagList(
+          field_status_ui("valid"),
+          div(class = "ok", om)
+        )
+      } else if (identical(st_local, "valid")) {
+        field_status_ui("valid")
+      } else {
+        HTML("")
+      }
     })
   }
 
