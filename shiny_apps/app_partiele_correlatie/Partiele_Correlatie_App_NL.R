@@ -346,16 +346,6 @@ calc_partial_truth <- function(df, x_name, y_name, z_name) {
   )
 }
 
-# Also: truth from a given correlation matrix (Mode 2)
-calc_partial_from_r <- function(r_xy, r_xz, r_yz) {
-  r_xy <- round(r_xy, 4); r_xz <- round(r_xz, 4); r_yz <- round(r_yz, 4)
-  num   <- round(r_xy - r_xz * r_yz, 4)
-  denom <- round(sqrt((1 - r_xz^2) * (1 - r_yz^2)), 4)
-  r_xy_z <- if (!is.na(denom) && denom > 0) round(num / denom, 4) else NA_real_
-  list(r_xy = r_xy, r_xz = r_xz, r_yz = r_yz,
-       num = num, denom = denom, r_xy_z = r_xy_z)
-}
-
 # ============================================================
 # BLANK DEVIATION TABLE (rhandsontable, Deel III)
 # ============================================================
@@ -515,12 +505,7 @@ ui <- fluidPage(
           h4("Hoe deze webpagina werkt"),
           HTML("<ul style='margin:6px 0 0 0px; padding-left: 20px;'>
             <li>Oefen <b>partiële correlatie</b> met criminologische datasets (3 variabelen: X, Y en controlevariabele Z).</li>
-            <li>Kies een <b>invoermodus</b>:
-              <ul style='margin-top:4px;'>
-                <li><b>Ruwe data:</b> bereken alle correlaties stap voor stap vanuit de dataset</li>
-                <li><b>Correlatietabel:</b> bereken r_xy.z direct vanuit gegeven r_xy, r_xz en r_yz</li>
-              </ul>
-            </li>
+            <li>Bereken alle correlaties <b>stap voor stap</b> vanuit de dataset.</li>
             <li>Voltooi de stappen verdeeld over de Delen:
               <ul style='margin-top:4px;'>
                 <li><b>Deel I:</b> Dataset bekijken</li>
@@ -543,13 +528,7 @@ ui <- fluidPage(
               HTML("<b>Twee manieren om data te verkrijgen:</b><br/>
               <b>1. Selecteer een specifiek scenario</b> uit de dropdown en klik 'Genereer dataset'<br/>
               <b>2. Kies een willekeurig scenario</b> via 'Willekeurig scenario'")),
-          radioButtons("mode", "Invoermodus",
-                       choices = c("Ruwe data (stap voor stap)" = "raw",
-                                   "Correlatietabel (formule)" = "corrtable"),
-                       selected = "raw", inline = FALSE),
-          br(),
-          conditionalPanel("input.mode == 'raw'",
-            selectInput("scenario", "Scenario", choices = scenario_choices),
+          selectInput("scenario", "Scenario", choices = scenario_choices),
             helpText("Kies een criminologische context met 3 variabelen (X, Y, Z)."),
             numericInput("n", paste0("Steekproefgrootte N (4–", MAX_SAMPLE_SIZE, ")"),
                          value = 10, min = 4, max = MAX_SAMPLE_SIZE, step = 1),
@@ -560,16 +539,6 @@ ui <- fluidPage(
               column(5, actionButton("new_same", "Willekeurig scenario", class = "btn btn-default btn-wide"))
             ),
             uiOutput("seed_echo")
-          ),
-          conditionalPanel("input.mode == 'corrtable'",
-            helpText(HTML("<b>Voer de drie bivariate correlaties in en klik 'Bereken'.</b><br/>
-              Formule: r<sub>xy.z</sub> = (r<sub>xy</sub> − r<sub>xz</sub>·r<sub>yz</sub>) /
-              √((1−r<sub>xz</sub>²)(1−r<sub>yz</sub>²))")),
-            numericInput("ct_rxy", "r_xy (correlatie X en Y)", value = NA, min = -1, max = 1, step = 0.01),
-            numericInput("ct_rxz", "r_xz (correlatie X en Z)", value = NA, min = -1, max = 1, step = 0.01),
-            numericInput("ct_ryz", "r_yz (correlatie Y en Z)", value = NA, min = -1, max = 1, step = 0.01),
-            actionButton("calc_ct", "Bereken partiële correlatie", class = "btn btn-success"),
-            uiOutput("ct_truth_echo")
           )
       ),
       br(),
@@ -593,8 +562,6 @@ ui <- fluidPage(
     ),
 
     mainPanel(
-      # MODE: Raw data steps
-      conditionalPanel("input.mode == 'raw'",
 
         div(class = "card",
             h4("Deel I — Dataset"),
@@ -610,8 +577,7 @@ ui <- fluidPage(
             h4("Deel II — Stap 1: Rekenkundige Gemiddelden (4 decimalen)"),
             div(class = "muted", "Bereken het gemiddelde voor X, Y en Z."),
             uiOutput("means_ui"),
-            uiOutput("means_feedback"),
-            uiOutput("means_detail_feedback")
+            uiOutput("means_feedback")
         ),
         br(),
 
@@ -666,7 +632,6 @@ ui <- fluidPage(
                      uiOutput("r_xy_z_light"), uiOutput("msg_r_xy_z"))
             ),
             uiOutput("partial_status"),
-            uiOutput("partial_detail_feedback"),
             br(),
             div(
               strong("Conclusie: wat zegt de parti\u00eble correlatie over het verband?"),
@@ -694,38 +659,7 @@ ui <- fluidPage(
             div(id = "viz_block", class = "disabled",
                 uiOutput("viz_content"))
         )
-      ),
 
-      # MODE: Correlation table (formula only)
-      conditionalPanel("input.mode == 'corrtable'",
-        div(class = "card",
-            h4("Correlatietabel — Partiële Correlatie via Formule"),
-            div(class = "muted", "Voer de drie bivariate correlaties in via de zijbalk en klik 'Bereken'. Vul daarna de teller, noemer en het eindresultaat in."),
-            uiOutput("ct_formula_display"),
-            br(),
-            div(class = "formula-box",
-                HTML("r<sub>xy.z</sub> = (r<sub>xy</sub> \u2212 r<sub>xz</sub> &middot; r<sub>yz</sub>) &nbsp;/&nbsp; &radic;((1 \u2212 r<sub>xz</sub>&sup2;)(1 \u2212 r<sub>yz</sub>&sup2;))")),
-            br(),
-            fluidRow(
-              column(4, strong("Teller: r_xy \u2212 r_xz\u00B7r_yz"),
-                     numericInput("ct_num", NULL, value = NA, step = .0001),
-                     uiOutput("ct_num_light"),
-                     uiOutput("msg_ct_num")),
-              column(4, strong("Noemer: \u221A((1\u2212r_xz\u00B2)(1\u2212r_yz\u00B2))"),
-                     numericInput("ct_denom", NULL, value = NA, step = .0001),
-                     uiOutput("ct_denom_light"),
-                     uiOutput("msg_ct_denom")),
-              column(4, strong("r_xy.z"),
-                     numericInput("ct_result", NULL, value = NA, step = .0001, min = -1, max = 1),
-                     uiOutput("ct_result_light"),
-                     uiOutput("msg_ct_result"))
-            ),
-            uiOutput("ct_status"),
-            uiOutput("ct_detail_feedback"),
-            br(),
-            uiOutput("ct_interpretation")
-        )
-      )
     )
   )
 )
@@ -737,7 +671,6 @@ ui <- fluidPage(
 server <- function(input, output, session) {
 
   rv        <- reactiveValues(df = NULL, truth = NULL, sc = NULL)
-  ct_truth  <- reactiveVal(NULL)
   user_calc <- reactiveVal(NULL)
   user_var_sd <- reactiveVal(NULL)
   user_cov_r  <- reactiveVal(NULL)
@@ -860,172 +793,6 @@ server <- function(input, output, session) {
     rv$truth <- calc_partial_truth(df, sc$vars$x$name, sc$vars$y$name, sc$vars$z$name)
     rv$sc    <- sc
     reset_raw_inputs()
-  })
-
-  # ---- Correlation table mode ----
-  observeEvent(input$calc_ct, {
-    r_xy <- input$ct_rxy; r_xz <- input$ct_rxz; r_yz <- input$ct_ryz
-    if (any(is.na(c(r_xy, r_xz, r_yz)))) return()
-    ct_truth(calc_partial_from_r(r_xy, r_xz, r_yz))
-    updateNumericInput(session, "ct_num",    value = NA)
-    updateNumericInput(session, "ct_denom",  value = NA)
-    updateNumericInput(session, "ct_result", value = NA)
-    clear_feedback_store()
-  })
-
-  output$ct_truth_echo <- renderUI({
-    t <- ct_truth(); if (is.null(t)) return(NULL)
-    div(class = "accent", style = "margin-top:8px;",
-        HTML(paste0("<b>Ingevoerd:</b> r_xy = ", t$r_xy,
-                    " | r_xz = ", t$r_xz, " | r_yz = ", t$r_yz,
-                    "<br/><b>Vul teller, noemer en r_xy.z in hiernaast.</b>")))
-  })
-
-  output$ct_formula_display <- renderUI({
-    t <- ct_truth(); if (is.null(t)) return(div(class="muted","Voer correlaties in via de zijbalk en klik 'Bereken'."))
-    div(class="accent",
-        HTML(paste0(
-          "<b>Ingevoerd:</b> r_xy = <b>", t$r_xy, "</b> | r_xz = <b>", t$r_xz,"</b> | r_yz = <b>", t$r_yz,"</b><br/>",
-          "Vul teller, noemer en eindresultaat in met 4 decimalen."
-        )))
-  })
-
-  make_ct_light <- function(output_id, input_id, true_val_fn) {
-    output[[output_id]] <- renderUI({
-      t <- ct_truth(); if (is.null(t)) return(NULL)
-      chk <- safe_check(input[[input_id]], true_val_fn(t))
-      col <- if (is.na(chk)) "#BDBDBD" else if (chk) "#00C853" else "#D50000"
-      div(class="traffic",
-          span(id=paste0("dot_ct_",input_id), class="light", style=paste0("background:",col,";")),
-          span(style=paste0("color:",col,";font-weight:700;"),
-               if(!is.na(chk)&&chk)"OK" else if(!is.na(chk))"X" else ""))
-    })
-    observe({
-      t <- ct_truth(); if (is.null(t)) return()
-      chk <- safe_check(input[[input_id]], true_val_fn(t))
-      session$sendCustomMessage("markField", list(id=input_id,
-        state=if(is.na(chk))"neutral" else if(chk)"valid" else "invalid"))
-    })
-  }
-
-  make_ct_light("ct_num_light",    "ct_num",    function(t) t$num)
-  make_ct_light("ct_denom_light",  "ct_denom",  function(t) t$denom)
-  make_ct_light("ct_result_light", "ct_result", function(t) t$r_xy_z)
-
-  show_ct_msg <- function(msg_id, input_id, true_val_fn, err_msg, diag_fn = NULL) {
-    output[[msg_id]] <- renderUI({
-      tryCatch({
-        t <- ct_truth(); if (is.null(t)) return(NULL)
-        if (!has_attempted(input[[input_id]])) {
-          set_feedback_msg(msg_id, NULL)
-          return(NULL)
-        }
-        chk <- safe_check(input[[input_id]], true_val_fn(t))
-        if (isTRUE(chk)) {
-          set_feedback_msg(msg_id, NULL)
-          return(NULL)
-        }
-        v_num <- suppressWarnings(as.numeric(input[[input_id]]))
-        if (is_decimal_miss(v_num, true_val_fn(t), raw_input = raw_numeric_input(input_id))) {
-          dec_msg <- "<b>Afrondingsfout:</b> Uw waarde is correct maar heeft te weinig decimalen. Gebruik 4 decimalen."
-          set_feedback_msg(msg_id, dec_msg)
-          return(div(class = "feedback feedback-compact", HTML("Afrondingsfout &#8212; gebruik 4 decimalen.")))
-        }
-        if (!is.null(diag_fn)) {
-          diag_msg <- tryCatch(diag_fn(input[[input_id]], t), error = function(e) NULL)
-          if (!is.null(diag_msg)) {
-            set_feedback_msg(msg_id, diag_msg)
-            return(div(class = "feedback feedback-compact", HTML(diag_msg)))
-          }
-        }
-        feedback_ui(msg_id, err_msg, compact = TRUE)
-      }, error = function(e) {
-        set_feedback_msg(msg_id, NULL)
-        NULL
-      })
-    })
-  }
-
-  show_ct_msg("msg_ct_num", "ct_num", function(t) t$num,
-    "<b>Teller onjuist.</b> Teller = r_xy &#8722; r_xz &#215; r_yz.",
-    diag_fn = function(val, t) {
-      v <- suppressWarnings(as.numeric(val))
-      if (is.na(v)) return(NULL)
-      if (!is.na(t$denom) && abs(v - t$denom) < max(0.01, 0.02 * abs(t$denom)))
-        "<b>Waarom fout:</b> U vulde de noemer in bij de teller.<br/><b>Formule:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; trek het product r_xz&#215;r_yz af van r_xy."
-      else if (!is.na(t$r_xy) && abs(v - t$r_xy) < max(0.005, 0.01 * abs(t$r_xy)))
-        "<b>Waarom fout:</b> U vulde alleen r_xy in, maar vergat r_xz &#215; r_yz af te trekken.<br/><b>Formule:</b> Teller = r_xy &#8722; r_xz &#215; r_yz &#8212; bereken ook het product en trek dit af."
-      else NULL
-    })
-  show_ct_msg("msg_ct_denom", "ct_denom", function(t) t$denom,
-    "<b>Noemer onjuist.</b> Noemer = &#x221a;((1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)).",
-    diag_fn = function(val, t) {
-      v <- suppressWarnings(as.numeric(val))
-      if (is.na(v)) return(NULL)
-      if (!is.na(t$num) && abs(v - t$num) < max(0.01, 0.02 * abs(t$num)))
-        "<b>Waarom fout:</b> U vulde de teller in bij de noemer.<br/><b>Formule:</b> Noemer = &#x221a;((1&#8722;r_xz&#178;)(1&#8722;r_yz&#178;)) &#8212; bereken het product van de twee factoren en neem de wortel."
-      else NULL
-    })
-  show_ct_msg("msg_ct_result", "ct_result", function(t) t$r_xy_z,
-    "<b>r_xy.z onjuist.</b> r_xy.z = teller / noemer.",
-    diag_fn = function(val, t) {
-      v <- suppressWarnings(as.numeric(val))
-      if (is.na(v)) return(NULL)
-      if (!is.na(t$r_xy_z) && t$r_xy_z != 0 &&
-          abs(v - round(1 / t$r_xy_z, 4)) < max(0.01, 0.02 * abs(1 / t$r_xy_z)))
-        "<b>Waarom fout:</b> U heeft noemer/teller berekend &#8212; draai de deling om.<br/><b>Formule:</b> r_xy.z = teller / noemer."
-      else if (!is.na(t$r_xy) && abs(v - t$r_xy) < max(0.005, 0.01 * abs(t$r_xy)))
-        "<b>Waarom fout:</b> U vulde r_xy in &#8212; dat is de ongecorrigeerde correlatie, niet de partiële.<br/><b>Formule:</b> r_xy.z = teller / noemer &#8212; gebruik uw berekende teller en noemer."
-      else NULL
-    })
-
-  output$ct_status <- renderUI({
-    t <- ct_truth(); if (is.null(t)) return(NULL)
-    checks <- c(
-      num    = safe_check(input$ct_num,    t$num),
-      denom  = safe_check(input$ct_denom,  t$denom),
-      result = safe_check(input$ct_result, t$r_xy_z)
-    )
-    n_ok <- sum(checks == TRUE, na.rm = TRUE)
-    if (n_ok == 3L)
-      div(class="ok", paste0("V Juist! r_xy.z = ", round(t$r_xy_z, 4)))
-    else
-      div(class="muted", paste0(n_ok, "/3 juist"))
-  })
-
-  output$ct_detail_feedback <- renderUI({
-    if (is.null(ct_truth())) return(NULL)
-    feedback_panel_ui(
-      c("Teller" = "msg_ct_num", "Noemer" = "msg_ct_denom", "r_xy.z" = "msg_ct_result"),
-      "Uitgebreide feedback bij de formule"
-    )
-  })
-
-  output$ct_interpretation <- renderUI({
-    t <- ct_truth(); if (is.null(t)) return(NULL)
-    all_ok <- isTRUE(safe_check(input$ct_num,    t$num)) &&
-              isTRUE(safe_check(input$ct_denom,  t$denom)) &&
-              isTRUE(safe_check(input$ct_result, t$r_xy_z))
-    if (!all_ok) return(NULL)
-    r_raw  <- t$r_xy
-    r_part <- t$r_xy_z
-    richting <- if (r_part > 0) "positief" else if (r_part < 0) "negatief" else "nul"
-    suppressie <- if (r_raw != 0 && r_part != 0 && sign(r_raw) != sign(r_part))
-                    "van teken gewisseld \u2014 de richting van het verband keert na controle voor Z"
-                  else if (abs(r_part) < abs(r_raw)) "zwakker \u2014 Z is een confoundvariabele (verklaart deels het X-Y verband)"
-                  else if (abs(r_part) > abs(r_raw)) "sterker \u2014 Z is een suppressorvariabele (onderdrukte het werkelijke X-Y verband)"
-                  else "nagenoeg onveranderd \u2014 het is een direct verband"
-    div(class="card",
-        h5("Interpretatie"),
-        HTML(paste0(
-          "<ul>",
-          "<li><b>Ongecontroleerde correlatie r_xy:</b> ", r_raw, "</li>",
-          "<li><b>Parti\u00eble correlatie r_xy.z:</b> ", r_part, " (na controle voor Z)</li>",
-          "<li>De relatie tussen X en Y is na controle voor Z <b>", suppressie, "</b>.</li>",
-          "<li>Richting: de parti\u00eble correlatie is <b>", richting, "</b>.</li>",
-          "</ul>"
-        ))
-    )
   })
 
   # ---- Dataset outputs ----
@@ -1569,11 +1336,11 @@ server <- function(input, output, session) {
   })
 
   observe({
-    if (input$mode == "raw") session$sendCustomMessage("toggleViz", all_correct())
+    session$sendCustomMessage("toggleViz", all_correct())
   })
 
   output$final_success_message <- renderUI({
-    if (input$mode != "raw" || !all_correct()) return(NULL)
+    if (!all_correct()) return(NULL)
     t <- rv$truth
     div(class = "card", style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
         h3(style = "color: #2E7D32; margin-top: 0;", "Uitstekend werk! Alle stappen juist!"),
