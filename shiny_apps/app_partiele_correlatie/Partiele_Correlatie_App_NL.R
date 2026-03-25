@@ -1342,7 +1342,7 @@ server <- function(input, output, session) {
     if (!all_correct()) return(NULL)
     t <- rv$truth
     div(class = "card", style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
-        h3(style = "color: #2E7D32; margin-top: 0;", "Uitstekend werk! Alle stappen juist!"),
+        h3(style = "color: #2E7D32; margin-top: 0;", "Uitstekend werk! Alle stappen zijn juist!"),
         p(style = "font-size: 15px; margin: 10px 0; color: #1B5E20;", HTML(paste0("r_xy.z = ",
                         round(t$r_xy_z, 4), " — bekijk de visualisaties hieronder."))))
   })

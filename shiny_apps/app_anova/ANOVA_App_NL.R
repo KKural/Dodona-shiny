@@ -34,25 +34,29 @@ check_decimals <- function(user_val, true_val, target_decimals = 4) {
 }
 
 # Returns TRUE if value is correct at fewer decimals than required (rounding/truncation error)
-is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
+normalize_raw_numeric <- function(raw_val) {
+  if (is.null(raw_val) || length(raw_val) == 0) return(NA_character_)
+  raw <- trimws(as.character(raw_val)[1])
+  if (!nzchar(raw)) return(NA_character_)
+  chartr(",", ".", raw)
+}
+
+count_decimal_places <- function(raw_val) {
+  raw <- normalize_raw_numeric(raw_val)
+  if (is.na(raw) || grepl("[eE]", raw)) return(NA_integer_)
+  raw <- sub("^[+-]", "", raw)
+  if (!grepl("\\.", raw)) return(0L)
+  nchar(sub("^[^.]*\\.", "", raw))
+}
+
+is_decimal_miss <- function(user_val, true_val, target_decimals = 4, raw_input = NULL) {
   if (is.na(user_val) || is.na(true_val)) return(FALSE)
   if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
-  # Detect how many decimal places the user actually entered.
-  # If they entered full precision (e.g. 0.2436 for a 4-decimal field), it is a
-  # genuine calculation error, not a rounding/truncation miss.
-  user_precision <- target_decimals
-  for (k in seq_len(target_decimals)) {
-    if (abs(round(user_val, k) - user_val) < 1e-9) {
-      user_precision <- k
-      break
-    }
-  }
-  if (user_precision >= target_decimals) return(FALSE)
-  # User entered fewer decimals; check if their value agrees with the truth at
-  # that lower precision (they computed correctly but stopped rounding too early).
-  any(sapply(seq_len(user_precision), function(d)
+  user_precision <- count_decimal_places(if (is.null(raw_input)) as.character(user_val) else raw_input)
+  if (is.na(user_precision) || user_precision >= target_decimals) return(FALSE)
+  any(vapply(seq_len(user_precision), function(d) {
     round(user_val, d) == round(true_val, d)
-  ))
+  }, logical(1)))
 }
 
 check_col_vec <- function(user_vec, true_vec, target_decimals = 4) {
@@ -481,6 +485,18 @@ ui <- fluidPage(
       if (msg.state==='invalid') el.classList.add('invalid');
       else if (msg.state==='valid') el.classList.add('valid');
     });
+    function syncRawNumericValue(el){
+      if (!el || !el.id || !window.Shiny) return;
+      Shiny.setInputValue(el.id + '__raw', el.value, {priority:'event'});
+    }
+    document.addEventListener('input', function(evt){
+      var el = evt.target;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') syncRawNumericValue(el);
+    });
+    document.addEventListener('change', function(evt){
+      var el = evt.target;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') syncRawNumericValue(el);
+    });
     document.addEventListener('DOMContentLoaded', function(){
       var cards = document.querySelectorAll('.card');
       cards.forEach(function(card){
@@ -488,6 +504,8 @@ ui <- fluidPage(
         card.addEventListener('mouseenter',function(){ this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'; });
         card.addEventListener('mouseleave',function(){ this.style.boxShadow='0 6px 18px rgba(0,0,0,0.08)'; });
       });
+      var numericInputs = document.querySelectorAll('input[type=\"number\"]');
+      numericInputs.forEach(syncRawNumericValue);
     });
   "))),
 
@@ -577,8 +595,7 @@ ui <- fluidPage(
           h4("Deel II — Stap 1: Groepsgemiddelden en grootgemiddelde (4 decimalen)"),
           div(class = "muted", "Bereken het gemiddelde voor elke groep (Yj) en het grootgemiddelde Y.."),
           uiOutput("means_ui"),
-          uiOutput("means_feedback"),
-          uiOutput("means_detail_feedback")
+          uiOutput("means_feedback")
       ),
       br(),
 
@@ -619,8 +636,7 @@ ui <- fluidPage(
                    uiOutput("msg_sst")
             )
           ),
-          uiOutput("ss_status"),
-          uiOutput("ss_detail_feedback")
+          uiOutput("ss_status")
       ),
       br(),
 
@@ -690,7 +706,6 @@ ui <- fluidPage(
               )
           ),
           uiOutput("anova_table_status"),
-          uiOutput("anova_table_detail_feedback"),
           uiOutput("anova_sig_note")
       ),
       br(),
@@ -737,6 +752,12 @@ server <- function(input, output, session) {
     current_ids <- names(reactiveValuesToList(feedback_store))
     if (!length(current_ids)) return(invisible(NULL))
     for (id in current_ids) feedback_store[[id]] <- NULL
+  }
+
+  raw_numeric_input <- function(id) {
+    raw_val <- input[[paste0(id, "__raw")]]
+    if (!is.null(raw_val) && nzchar(trimws(as.character(raw_val)))) return(raw_val)
+    input[[id]]
   }
 
   feedback_ui <- function(id, msg, compact = TRUE) {
@@ -1224,7 +1245,7 @@ server <- function(input, output, session) {
         }
         # Check for decimal rounding miss first
         v_num <- suppressWarnings(as.numeric(input[[input_id]]))
-        if (is_decimal_miss(v_num, true_val_fn(t))) {
+        if (is_decimal_miss(v_num, true_val_fn(t), raw_input = raw_numeric_input(input_id))) {
           dec_msg <- "<b>Afrondingsfout:</b> Uw waarde is correct maar heeft te weinig decimalen. Gebruik 4 decimalen."
           set_feedback_msg(msg_id, dec_msg)
           return(div(class = "feedback feedback-compact", HTML("Afrondingsfout &#8212; gebruik 4 decimalen.")))
@@ -1502,7 +1523,7 @@ server <- function(input, output, session) {
       style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
       h3(
         style = "color: #2E7D32; margin-top: 0;",
-        "Uitstekend werk! Alle stappen juist!"
+        "Uitstekend werk! Alle stappen zijn juist!"
       ),
       p(
         style = "font-size: 15px; margin: 10px 0; color: #1B5E20;",
