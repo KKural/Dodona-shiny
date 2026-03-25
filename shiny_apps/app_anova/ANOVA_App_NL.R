@@ -1233,9 +1233,7 @@ server <- function(input, output, session) {
           diag_msg <- tryCatch(diag_fn(input[[input_id]], t), error = function(e) NULL)
           if (!is.null(diag_msg)) {
             set_feedback_msg(msg_id, diag_msg)
-            # Show only the first bold phrase inline; full detail goes in the panel
-            first_part <- gsub("^<b>([^<]+)</b>.*", "\\1", diag_msg)
-            return(div(class = "feedback feedback-compact", HTML(first_part)))
+            return(div(class = "feedback feedback-compact", HTML(diag_msg)))
           }
         }
         feedback_ui(msg_id, err_msg, compact = TRUE)
@@ -1499,13 +1497,24 @@ server <- function(input, output, session) {
   output$final_success_message <- renderUI({
     if (!all_correct()) return(NULL)
     t <- rv$truth
-    div(class="card",
-        div(class="ok", style="font-size:1.2em;",
-            HTML(paste0("Uitstekend! Alle stappen correct! F(",
-                        t$df_between, ", ", t$df_within, ") = ",
-                        round(t$F_ratio, 4),
-                        " | \u03b7\u00b2 = ", round(t$eta_sq, 4),
-                        " \u2014 bekijk de visualisaties hieronder."))))
+    div(
+      class = "card",
+      style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
+      h3(
+        style = "color: #2E7D32; margin-top: 0;",
+        "Uitstekend werk! Alle stappen correct!"
+      ),
+      p(
+        style = "font-size: 15px; margin: 10px 0; color: #1B5E20;",
+        HTML(paste0(
+          "F(",
+          t$df_between, ", ", t$df_within, ") = ",
+          round(t$F_ratio, 4),
+          " | \u03b7\u00b2 = ", round(t$eta_sq, 4),
+          " \u2014 bekijk de visualisaties hieronder."
+        ))
+      )
+    )
   })
 
   # ---- DEEL VI: Visualisaties ----

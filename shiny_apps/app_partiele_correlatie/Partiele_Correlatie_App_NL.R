@@ -312,9 +312,10 @@ calc_partial_truth <- function(df, x_name, y_name, z_name) {
   denom <- round(sqrt((1 - r_xz^2) * (1 - r_yz^2)), 4)
   r_xy_z <- if (!is.na(denom) && denom > 0) round(num / denom, 4) else NA_real_
 
-  # Conclusie type: 1=schijnverband, 2=indirect/confounding, 3=suppressor, 4=direct
+  # Conclusie type: 1=schijnverband, 2=indirect/confounding, 3=suppressor, 4=direct, 5=tekenwisseling
   conclusie_type <- if (is.na(r_xy_z) || is.na(r_xy)) NA_integer_
     else if (abs(r_xy_z) < 0.08) 1L
+    else if (r_xy != 0 && r_xy_z != 0 && sign(r_xy) != sign(r_xy_z)) 5L
     else if (abs(r_xy_z) < abs(r_xy) - 0.05) 2L
     else if (abs(r_xy_z) > abs(r_xy) + 0.05) 3L
     else 4L
@@ -653,7 +654,8 @@ ui <- fluidPage(
                   "1 \u2014 Schijnverband: r_xy.z \u2248 0, het verband was volledig door Z verklaard" = "1",
                   "2 \u2014 Indirect verband: r_xy.z daalt maar blijft zinvol (Z is derde variabele)" = "2",
                   "3 \u2014 Suppressor: r_xy.z stijgt na controle voor Z" = "3",
-                  "4 \u2014 Direct verband: r_xy.z verandert nauwelijks" = "4"
+                  "4 \u2014 Direct verband: r_xy.z verandert nauwelijks" = "4",
+                  "5 \u2014 Tekenwisseling: het teken van r_xy.z is omgekeerd t.o.v. r_xy" = "5"
                 ),
                 selected = character(0)
               ),
@@ -904,8 +906,7 @@ server <- function(input, output, session) {
           diag_msg <- tryCatch(diag_fn(input[[input_id]], t), error = function(e) NULL)
           if (!is.null(diag_msg)) {
             set_feedback_msg(msg_id, diag_msg)
-            first_part <- gsub("^<b>([^<]+)</b>.*", "\\1", diag_msg)
-            return(div(class = "feedback feedback-compact", HTML(first_part)))
+            return(div(class = "feedback feedback-compact", HTML(diag_msg)))
           }
         }
         feedback_ui(msg_id, err_msg, compact = TRUE)
@@ -980,17 +981,19 @@ server <- function(input, output, session) {
     r_raw  <- t$r_xy
     r_part <- t$r_xy_z
     richting <- if (r_part > 0) "positief" else if (r_part < 0) "negatief" else "nul"
-    suppressie <- if (abs(r_part) < abs(r_raw)) "zwakker (suppressor/verwarring door Z)"
-                  else if (abs(r_part) > abs(r_raw)) "sterker (Z onderdrukte de relatie)"
-                  else "onveranderd"
+    suppressie <- if (r_raw != 0 && r_part != 0 && sign(r_raw) != sign(r_part))
+                    "van teken gewisseld \u2014 de richting van het verband keert na controle voor Z"
+                  else if (abs(r_part) < abs(r_raw)) "zwakker \u2014 Z is een confoundvariabele (verklaart deels het X-Y verband)"
+                  else if (abs(r_part) > abs(r_raw)) "sterker \u2014 Z is een suppressorvariabele (onderdrukte het werkelijke X-Y verband)"
+                  else "nagenoeg onveranderd \u2014 het is een direct verband"
     div(class="card",
         h5("Interpretatie"),
         HTML(paste0(
           "<ul>",
           "<li><b>Ongecontroleerde correlatie r_xy:</b> ", r_raw, "</li>",
-          "<li><b>Partiële correlatie r_xy.z:</b> ", r_part, " (na controle voor Z)</li>",
+          "<li><b>Parti\u00eble correlatie r_xy.z:</b> ", r_part, " (na controle voor Z)</li>",
           "<li>De relatie tussen X en Y is na controle voor Z <b>", suppressie, "</b>.</li>",
-          "<li>Richting: de partiële correlatie is <b>", richting, "</b>.</li>",
+          "<li>Richting: de parti\u00eble correlatie is <b>", richting, "</b>.</li>",
           "</ul>"
         ))
     )
@@ -1095,8 +1098,7 @@ server <- function(input, output, session) {
           diag_msg <- tryCatch(diag_fn(input[[input_id]], t), error = function(e) NULL)
           if (!is.null(diag_msg)) {
             set_feedback_msg(msg_id, diag_msg)
-            first_part <- gsub("^<b>([^<]+)</b>.*", "\\1", diag_msg)
-            return(div(class = "feedback feedback-compact", HTML(first_part)))
+            return(div(class = "feedback feedback-compact", HTML(diag_msg)))
           }
         }
         feedback_ui(msg_id, err_msg, compact = TRUE)
@@ -1215,11 +1217,16 @@ server <- function(input, output, session) {
           "1" = "Schijnverband: r_xy.z \u2248 0, Z verklaart het gehele verband.",
           "2" = "Indirect verband: r_xy.z daalt, Z is een derde (confounding) variabele.",
           "3" = "Suppressor: r_xy.z stijgt, Z onderdrukte de werkelijke relatie.",
-          "4" = "Direct verband: r_xy.z verandert nauwelijks na controle voor Z.")))
+          "4" = "Direct verband: r_xy.z verandert nauwelijks na controle voor Z.",
+          "5" = "Tekenwisseling: het teken van r_xy.z is omgekeerd ten opzichte van r_xy.")))
     } else {
       r_diff <- if (!is.na(t$r_xy) && !is.na(t$r_xy_z))
         round(abs(t$r_xy_z) - abs(t$r_xy), 4) else NA
-      hint <- if (!is.na(r_diff)) {
+      sign_flip <- !is.na(t$r_xy) && !is.na(t$r_xy_z) &&
+        t$r_xy != 0 && t$r_xy_z != 0 && sign(t$r_xy) != sign(t$r_xy_z)
+      hint <- if (sign_flip && abs(t$r_xy_z) >= 0.08)
+        paste0("r_xy = ", t$r_xy, " vs r_xy.z = ", t$r_xy_z, " \u2014 het teken van de correlatie wisselt na controle.")
+      else if (!is.na(r_diff)) {
         if (r_diff < -0.05) paste0("r_xy = ", t$r_xy, " vs r_xy.z = ", t$r_xy_z, " \u2014 de correlatie daalt na controle.")
         else if (r_diff > 0.05) paste0("r_xy = ", t$r_xy, " vs r_xy.z = ", t$r_xy_z, " \u2014 de correlatie stijgt na controle.")
         else paste0("r_xy = ", t$r_xy, " vs r_xy.z = ", t$r_xy_z, " \u2014 de correlatie verandert nauwelijks.")
@@ -1595,9 +1602,11 @@ server <- function(input, output, session) {
     t <- rv$truth; sc <- rv$sc
     r_raw  <- t$r_xy
     r_part <- t$r_xy_z
-    suppressie <- if (abs(r_part) < abs(r_raw)) "zwakker (suppressor/verwarring door Z)"
-                  else if (abs(r_part) > abs(r_raw)) "sterker (Z onderdrukte de relatie)"
-                  else "onveranderd"
+    suppressie <- if (r_raw != 0 && r_part != 0 && sign(r_raw) != sign(r_part))
+                    "van teken gewisseld \u2014 de richting van het verband keert na controle voor Z"
+                  else if (abs(r_part) < abs(r_raw)) "zwakker \u2014 Z is een confoundvariabele (verklaart deels het X-Y verband)"
+                  else if (abs(r_part) > abs(r_raw)) "sterker \u2014 Z is een suppressorvariabele (onderdrukte het werkelijke X-Y verband)"
+                  else "nagenoeg onveranderd \u2014 het is een direct verband"
     richting <- if (r_part > 0) "positief" else if (r_part < 0) "negatief" else "nul"
     div(class="card",
         h5("Interpretatie"),

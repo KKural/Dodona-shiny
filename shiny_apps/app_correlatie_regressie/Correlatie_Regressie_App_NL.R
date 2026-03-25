@@ -1076,37 +1076,52 @@ server <- function(input, output, session){
     exp_dX12  <- round(dX14^2,     4)
     exp_dX1dY <- round(dX14*dY4,   4)
     
-    tried_any <- FALSE
-    ok_all <- TRUE
-    
+    tried_any  <- FALSE
+    wrong_cols <- character(0)
+
     if ("dY" %in% names(tbl)) {
       u <- suppressWarnings(as.numeric(tbl$dY))
-      tried_any <- tried_any || any(!is.na(u))
-      ok_all <- ok_all && all_true_or_na(check_col_vec(round(u,4), exp_dY, 4))
+      has_data  <- any(!is.na(u))
+      tried_any <- tried_any || has_data
+      if (has_data && !all_true_or_na(check_col_vec(round(u,4), exp_dY, 4)))
+        wrong_cols <- c(wrong_cols, "y \u2212 \u0233")
     }
     if ("dY2" %in% names(tbl)) {
       u <- suppressWarnings(as.numeric(tbl$dY2))
-      tried_any <- tried_any || any(!is.na(u))
-      ok_all <- ok_all && all_true_or_na(check_col_vec(round(u,4), exp_dY2, 4))
+      has_data  <- any(!is.na(u))
+      tried_any <- tried_any || has_data
+      if (has_data && !all_true_or_na(check_col_vec(round(u,4), exp_dY2, 4)))
+        wrong_cols <- c(wrong_cols, "(y \u2212 \u0233)\u00b2")
     }
     if ("dX1" %in% names(tbl)) {
       u <- suppressWarnings(as.numeric(tbl$dX1))
-      tried_any <- tried_any || any(!is.na(u))
-      ok_all <- ok_all && all_true_or_na(check_col_vec(round(u,4), exp_dX1, 4))
+      has_data  <- any(!is.na(u))
+      tried_any <- tried_any || has_data
+      if (has_data && !all_true_or_na(check_col_vec(round(u,4), exp_dX1, 4)))
+        wrong_cols <- c(wrong_cols, "x \u2212 x\u0304")
     }
     if ("dX12" %in% names(tbl)) {
       u <- suppressWarnings(as.numeric(tbl$dX12))
-      tried_any <- tried_any || any(!is.na(u))
-      ok_all <- ok_all && all_true_or_na(check_col_vec(round(u,4), exp_dX12, 4))
+      has_data  <- any(!is.na(u))
+      tried_any <- tried_any || has_data
+      if (has_data && !all_true_or_na(check_col_vec(round(u,4), exp_dX12, 4)))
+        wrong_cols <- c(wrong_cols, "(x \u2212 x\u0304)\u00b2")
     }
     if ("dX1dY" %in% names(tbl)) {
       u <- suppressWarnings(as.numeric(tbl$dX1dY))
-      tried_any <- tried_any || any(!is.na(u))
-      ok_all <- ok_all && all_true_or_na(check_col_vec(round(u,4), exp_dX1dY, 4))
+      has_data  <- any(!is.na(u))
+      tried_any <- tried_any || has_data
+      if (has_data && !all_true_or_na(check_col_vec(round(u,4), exp_dX1dY, 4)))
+        wrong_cols <- c(wrong_cols, "(x \u2212 x\u0304)(y \u2212 \u0233)")
     }
-    
+
     if (!tried_any) return(list(ok = FALSE, message = NULL))
-    if (!ok_all)  return(list(ok = FALSE, message = "Controleer Deel III berekeningen: alle rij-gewijze berekeningen moeten nauwkeurig zijn tot 4 decimalen."))
+    if (length(wrong_cols) > 0)
+      return(list(ok = FALSE, message = paste0(
+        "Controleer kolom(men): <b>",
+        paste(wrong_cols, collapse = ", "),
+        "</b>. Reken na op 4 decimalen."
+      )))
     list(ok = TRUE, message = NULL)
   }
   
@@ -2060,7 +2075,7 @@ server <- function(input, output, session){
     
     result <- validate_step3()
     if (!result$ok && !is.null(result$message)) {
-      div(class = "err", result$message)
+      div(class = "err", HTML(result$message))
     } else if (result$ok) {
       div(class = "ok", "✅ Deel III voltooid! Alle berekeningen correct.")
     } else {
