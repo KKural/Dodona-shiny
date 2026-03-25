@@ -33,20 +33,29 @@ check_decimals <- function(user_val, true_val, target_decimals = 4) {
   round(user_val, target_decimals) == round(true_val, target_decimals)
 }
 
-is_decimal_miss <- function(user_val, true_val, target_decimals = 4) {
+normalize_raw_numeric <- function(raw_val) {
+  if (is.null(raw_val) || length(raw_val) == 0) return(NA_character_)
+  raw <- trimws(as.character(raw_val)[1])
+  if (!nzchar(raw)) return(NA_character_)
+  chartr(",", ".", raw)
+}
+
+count_decimal_places <- function(raw_val) {
+  raw <- normalize_raw_numeric(raw_val)
+  if (is.na(raw) || grepl("[eE]", raw)) return(NA_integer_)
+  raw <- sub("^[+-]", "", raw)
+  if (!grepl("\\.", raw)) return(0L)
+  nchar(sub("^[^.]*\\.", "", raw))
+}
+
+is_decimal_miss <- function(user_val, true_val, target_decimals = 4, raw_input = NULL) {
   if (is.na(user_val) || is.na(true_val)) return(FALSE)
   if (round(user_val, target_decimals) == round(true_val, target_decimals)) return(FALSE)
-  user_precision <- target_decimals
-  for (k in seq_len(target_decimals)) {
-    if (abs(round(user_val, k) - user_val) < 1e-9) {
-      user_precision <- k
-      break
-    }
-  }
-  if (user_precision >= target_decimals) return(FALSE)
-  any(sapply(seq_len(user_precision), function(d)
+  user_precision <- count_decimal_places(if (is.null(raw_input)) as.character(user_val) else raw_input)
+  if (is.na(user_precision) || user_precision >= target_decimals) return(FALSE)
+  any(vapply(seq_len(user_precision), function(d) {
     round(user_val, d) == round(true_val, d)
-  ))
+  }, logical(1)))
 }
 
 check_col_vec <- function(user_vec, true_vec, target_decimals = 4) {
@@ -472,6 +481,18 @@ ui <- fluidPage(
       if (msg.state==='invalid') el.classList.add('invalid');
       else if (msg.state==='valid') el.classList.add('valid');
     });
+    function syncRawNumericValue(el){
+      if (!el || !el.id || !window.Shiny) return;
+      Shiny.setInputValue(el.id + '__raw', el.value, {priority:'event'});
+    }
+    document.addEventListener('input', function(evt){
+      var el = evt.target;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') syncRawNumericValue(el);
+    });
+    document.addEventListener('change', function(evt){
+      var el = evt.target;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') syncRawNumericValue(el);
+    });
     document.addEventListener('DOMContentLoaded', function(){
       var cards = document.querySelectorAll('.card');
       cards.forEach(function(card){
@@ -479,6 +500,8 @@ ui <- fluidPage(
         card.addEventListener('mouseenter',function(){ this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'; });
         card.addEventListener('mouseleave',function(){ this.style.boxShadow='0 6px 18px rgba(0,0,0,0.08)'; });
       });
+      var numericInputs = document.querySelectorAll('input[type=\"number\"]');
+      numericInputs.forEach(syncRawNumericValue);
     });
   "))),
 
@@ -763,6 +786,12 @@ server <- function(input, output, session) {
     invisible(NULL)
   }
 
+  raw_numeric_input <- function(id) {
+    raw_val <- input[[paste0(id, "__raw")]]
+    if (!is.null(raw_val) && nzchar(trimws(as.character(raw_val)))) return(raw_val)
+    input[[id]]
+  }
+
   feedback_ui <- function(id, msg, compact = TRUE) {
     set_feedback_msg(id, msg)
     short_msg <- short_feedback_html(msg)
@@ -897,7 +926,7 @@ server <- function(input, output, session) {
           return(NULL)
         }
         v_num <- suppressWarnings(as.numeric(input[[input_id]]))
-        if (is_decimal_miss(v_num, true_val_fn(t))) {
+        if (is_decimal_miss(v_num, true_val_fn(t), raw_input = raw_numeric_input(input_id))) {
           dec_msg <- "<b>Afrondingsfout:</b> Uw waarde is correct maar heeft te weinig decimalen. Gebruik 4 decimalen."
           set_feedback_msg(msg_id, dec_msg)
           return(div(class = "feedback feedback-compact", HTML("Afrondingsfout &#8212; gebruik 4 decimalen.")))
@@ -1089,7 +1118,7 @@ server <- function(input, output, session) {
           return(NULL)
         }
         v_num <- suppressWarnings(as.numeric(input[[input_id]]))
-        if (is_decimal_miss(v_num, true_val_fn(t))) {
+        if (is_decimal_miss(v_num, true_val_fn(t), raw_input = raw_numeric_input(input_id))) {
           dec_msg <- "<b>Afrondingsfout:</b> Uw waarde is correct maar heeft te weinig decimalen. Gebruik 4 decimalen."
           set_feedback_msg(msg_id, dec_msg)
           return(div(class = "feedback feedback-compact", HTML("Afrondingsfout &#8212; gebruik 4 decimalen.")))
@@ -1481,11 +1510,7 @@ server <- function(input, output, session) {
 
   output$var_sd_status <- renderUI({
     t <- rv$truth; if (is.null(t)) return(NULL)
-    checks <- c(
-      ss_x=safe_check(input$ss_x,t$SS_x), ss_y=safe_check(input$ss_y,t$SS_y), ss_z=safe_check(input$ss_z,t$SS_z),
-      var_x=safe_check(input$var_x,t$Var_x), var_y=safe_check(input$var_y,t$Var_y), var_z=safe_check(input$var_z,t$Var_z),
-      sd_x=safe_check(input$sd_x,t$SD_x), sd_y=safe_check(input$sd_y,t$SD_y), sd_z=safe_check(input$sd_z,t$SD_z)
-    )
+    checks <- check_summary_table(user_var_sd(), build_var_sd_truth_table(t), c("X", "Y", "Z"))
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     if (n_ok == 9L) div(class="ok","V Varianties en standaarddeviaties juist!")
     else div(class="muted", paste0(n_ok, "/9 juist"))
@@ -1493,11 +1518,7 @@ server <- function(input, output, session) {
 
   output$cov_r_status <- renderUI({
     t <- rv$truth; if (is.null(t)) return(NULL)
-    checks <- c(
-      scp_xy=safe_check(input$scp_xy,t$SCP_xy), scp_xz=safe_check(input$scp_xz,t$SCP_xz), scp_yz=safe_check(input$scp_yz,t$SCP_yz),
-      cov_xy=safe_check(input$cov_xy,t$Cov_xy), cov_xz=safe_check(input$cov_xz,t$Cov_xz), cov_yz=safe_check(input$cov_yz,t$Cov_yz),
-      r_xy=safe_check(input$r_xy,t$r_xy), r_xz=safe_check(input$r_xz,t$r_xz), r_yz=safe_check(input$r_yz,t$r_yz)
-    )
+    checks <- check_summary_table(user_cov_r(), build_cov_r_truth_table(t), c("XY", "XZ", "YZ"))
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     if (n_ok == 9L) div(class="ok","V Covarianties en bivariate correlaties juist!")
     else div(class="muted", paste0(n_ok, "/9 juist"))
@@ -1537,16 +1558,12 @@ server <- function(input, output, session) {
       check_col_vec(as.numeric(tbl[[4 + i]]), cols_true[[i]])))
     if (!all(all_tbl == TRUE, na.rm=TRUE) || any(is.na(all_tbl))) return(FALSE)
     all(
-      isTRUE(safe_check(input$ss_x,t$SS_x)),  isTRUE(safe_check(input$ss_y,t$SS_y)),  isTRUE(safe_check(input$ss_z,t$SS_z)),
-      isTRUE(safe_check(input$var_x,t$Var_x)), isTRUE(safe_check(input$var_y,t$Var_y)), isTRUE(safe_check(input$var_z,t$Var_z)),
-      isTRUE(safe_check(input$sd_x,t$SD_x)),  isTRUE(safe_check(input$sd_y,t$SD_y)),  isTRUE(safe_check(input$sd_z,t$SD_z)),
-      isTRUE(safe_check(input$scp_xy,t$SCP_xy)), isTRUE(safe_check(input$scp_xz,t$SCP_xz)), isTRUE(safe_check(input$scp_yz,t$SCP_yz)),
-      isTRUE(safe_check(input$cov_xy,t$Cov_xy)), isTRUE(safe_check(input$cov_xz,t$Cov_xz)), isTRUE(safe_check(input$cov_yz,t$Cov_yz)),
-      isTRUE(safe_check(input$r_xy,t$r_xy)),   isTRUE(safe_check(input$r_xz,t$r_xz)),   isTRUE(safe_check(input$r_yz,t$r_yz)),
+      isTRUE(all(check_summary_table(user_var_sd(), build_var_sd_truth_table(t), c("X","Y","Z")) == TRUE)),
+      isTRUE(all(check_summary_table(user_cov_r(),  build_cov_r_truth_table(t),  c("XY","XZ","YZ")) == TRUE)),
       isTRUE(safe_check(input$partial_num,   t$num_partial)),
       isTRUE(safe_check(input$partial_denom, t$denom_partial)),
       isTRUE(safe_check(input$r_xy_z,        t$r_xy_z)),
-      !is.null(input$conclusie_type) && input$conclusie_type != "" &&
+      length(input$conclusie_type) == 1 && nzchar(input$conclusie_type) &&
         isTRUE(suppressWarnings(as.integer(input$conclusie_type)) == t$conclusie_type)
     )
   })
@@ -1578,14 +1595,16 @@ server <- function(input, output, session) {
     if (!all_correct()) return(NULL)
     df <- rv$df; sc <- rv$sc; t <- rv$truth; if (is.null(df)) return(NULL)
     xn <- sc$vars$x$name; yn <- sc$vars$y$name; zn <- sc$vars$z$name
-    # Scatter X vs Y, colour-coded by Z (tertiles)
-    df$Z_grp <- cut(df[[zn]], breaks = quantile(df[[zn]], c(0, 1/3, 2/3, 1), na.rm=TRUE),
-                    include.lowest = TRUE,
-                    labels = c(paste0("Laag ", zn), paste0("Midden ", zn), paste0("Hoog ", zn)))
+    # Scatter X vs Y, colour-coded by Z (tertiles using unique quantile breaks)
+    z_breaks <- unique(quantile(df[[zn]], c(0, 1/3, 2/3, 1), na.rm = TRUE))
+    n_grp    <- length(z_breaks) - 1
+    all_lbl  <- c(paste0("Laag ", zn), paste0("Midden ", zn), paste0("Hoog ", zn))
+    df$Z_grp <- cut(df[[zn]], breaks = z_breaks, include.lowest = TRUE,
+                    labels = all_lbl[seq_len(n_grp)])
     ggplot(df, aes(x = .data[[xn]], y = .data[[yn]], colour = Z_grp)) +
       geom_point(size = 3, alpha = 0.8) +
       geom_smooth(method = "lm", se = FALSE, linetype = "dashed", linewidth = 0.8, colour = "#888") +
-      scale_colour_manual(values = c("#42A5F5","#FFA726","#66BB6A"), name = paste0(zn, " (tertiel)")) +
+      scale_colour_manual(values = c("#42A5F5","#FFA726","#66BB6A")[seq_len(n_grp)], name = paste0(zn, " (tertiel)")) +
       annotate("text", x = -Inf, y = Inf,
                label = paste0("r_xy = ", round(t$r_xy,4), "   r_xy.z = ", round(t$r_xy_z,4)),
                hjust = -0.05, vjust = 1.5, size = 4.5, colour = "#3F51B5", fontface = "bold") +
