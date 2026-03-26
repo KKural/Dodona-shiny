@@ -1470,7 +1470,7 @@ server <- function(input, output, session) {
         paste0(
           "<b>Significantie zonder p-waarde:</b> ",
           "zoek na het berekenen van F de kritieke F-waarde op in een ",
-          "<a href='https://www.statology.org/f-distribution-table/' target='_blank' rel='noopener noreferrer'>F-tabel</a> ",
+          "<a href='F_table.pdf' target='_blank' rel='noopener noreferrer'>F-tabel (PDF)</a> ",
           "bij alpha = 0,05 met teller-vrijheidsgraden <b>df_between</b> en noemer-vrijheidsgraden <b>df_within</b>.",
           "<ul style='margin:6px 0 0 18px;'>",
           "<li><b>F &gt; Fkrit</b> - significant</li>",
