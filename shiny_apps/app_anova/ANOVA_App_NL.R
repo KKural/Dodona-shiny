@@ -1051,8 +1051,11 @@ server <- function(input, output, session) {
     )
     n_ok <- sum(checks == TRUE, na.rm = TRUE)
     n_tot <- length(checks)
-    if (n_ok == n_tot) div(class="ok", paste0("V Alle gemiddelden zijn juist! (", n_ok, "/", n_tot, ")")), 
-    else div(class="muted", paste0(n_ok, "/", n_tot, " correct"))
+    if (n_ok == n_tot) {
+      div(class = "ok", paste0("V Alle gemiddelden zijn juist! (", n_ok, "/", n_tot, ")"))
+    } else {
+      div(class = "muted", paste0(n_ok, "/", n_tot, " correct"))
+    }
   })
 
   output$means_detail_feedback <- renderUI({
