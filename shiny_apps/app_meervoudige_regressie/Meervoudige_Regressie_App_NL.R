@@ -566,7 +566,7 @@ ui <- fluidPage(
           h4("Hoe deze webpagina werkt"),
           HTML("<ul style='margin:6px 0 0 0px; padding-left: 20px;'>
             <li>Oefen <b>multiple regressieanalyse</b> met 2 voorspellers (x₁, x₂) met criminologiedatasets.</li>
-            <li>Voltooi <b>8 delen</b> om handmatig multiple regressie uit te voeren (gebruik 4 decimalen).</li>
+            <li>Voltooi <b>7 delen</b> om handmatig multiple regressie uit te voeren (gebruik 4 decimalen).</li>
             <li>Bekijk de dataset (alleen-lezen). Vul daarna stap voor stap in:
               <ul style='margin-top:4px;'>
                 <li><b>Deel I:</b> Dataset bekijken</li>
@@ -576,11 +576,10 @@ ui <- fluidPage(
                 <li><b>Deel V:</b> Stappen 15-18 (Determinant, b₁, b₂ en intercept a)</li>
                 <li><b>Deel VI:</b> Voorspellingen met Ŷ = a + b₁·x₁ + b₂·x₂</li>
                 <li><b>Deel VII:</b> R² en vervreemdingscoëfficiënt</li>
-                <li><b>Deel VIII:</b> ANOVA/F (SSR, SSE, df, MSR, MSE, F en p-waarde)</li>
               </ul>
             </li>
             <li>Velden worden groen wanneer correct en rood wanneer fout.</li>
-            <li>Wanneer alle stappen correct zijn, verschijnen <b>visualisaties en interpretatie</b> in Deel IX.</li>
+            <li>Wanneer alle stappen correct zijn, verschijnen <b>visualisaties en interpretatie</b> in Deel VIII.</li>
           </ul>")
       ),
       br(),
@@ -635,9 +634,6 @@ ui <- fluidPage(
             "<li>Voorspelde waarde Ŷ = a + b₁·x₁ + b₂·x₂ (voor elke observatie).</li>",
             "<li>R² = 1 − SSE/SST (determinatiecoëfficiënt: aandeel verklaarde variantie).</li>",
             "<li>Vervreemdingscoëfficiënt = 1 − R² (onverklaarde variantie).</li>",
-            "<li>ANOVA: SSR = SST − SSE, df<sub>reg</sub> = p, df<sub>err</sub> = n − p − 1.</li>",
-            "<li>MSR = SSR/df<sub>reg</sub>, MSE = SSE/df<sub>err</sub>, F = MSR/MSE.</li>",
-            "<li>Model p-waarde = 1 − F<sub>cdf</sub>(F; df<sub>reg</sub>, df<sub>err</sub>).</li>",
             "</ol></div>"
           ))
       )
@@ -783,34 +779,11 @@ ui <- fluidPage(
       ),
       br(),
 
-      div(class = "card",
-          h4("Deel VIII — Stappen 22-29: ANOVA & F-toets (4 decimalen)"),
-          div(class = "muted", "Bereken de globale modeltoets op basis van de ANOVA-opdeling van variantie."),
-          helpText("Gebruik p = 2 voorspellers. Formules: SSR = SST − SSE, dfreg = p, dferr = n − p − 1, MSR = SSR/dfreg, MSE = SSE/dferr, F = MSR/MSE, p-waarde = 1 − Fcdf."),
-          numericInput("anova_ssr", HTML("SSR = SST − SSE"), value = NA, step = 0.0001),
-          uiOutput("msg_anova_ssr"),
-          numericInput("anova_sse", HTML("SSE = sum((Y − Ŷ)²)"), value = NA, step = 0.0001),
-          uiOutput("msg_anova_sse"),
-          numericInput("anova_df_reg", HTML("df<sub>reg</sub> = p"), value = NA, step = 1),
-          uiOutput("msg_anova_df_reg"),
-          numericInput("anova_df_err", HTML("df<sub>err</sub> = n − p − 1"), value = NA, step = 1),
-          uiOutput("msg_anova_df_err"),
-          numericInput("anova_msr", HTML("MSR = SSR/df<sub>reg</sub>"), value = NA, step = 0.0001),
-          uiOutput("msg_anova_msr"),
-          numericInput("anova_mse", HTML("MSE = SSE/df<sub>err</sub>"), value = NA, step = 0.0001),
-          uiOutput("msg_anova_mse"),
-          numericInput("anova_f", HTML("F = MSR/MSE"), value = NA, step = 0.0001),
-          uiOutput("msg_anova_f"),
-          numericInput("anova_p", HTML("Model p-waarde = 1 − F<sub>cdf</sub>(F; df<sub>reg</sub>, df<sub>err</sub>)"), value = NA, step = 0.0001),
-          uiOutput("msg_anova_p")
-      ),
-      br(),
-
       uiOutput("final_success_message"),
       br(),
 
       div(class = "card",
-          h4("Deel IX — Visualisaties & Samenvatting (ontgrendelt wanneer alles correct is)"),
+          h4("Deel VIII — Visualisaties & Samenvatting (ontgrendelt wanneer alles correct is)"),
           div(id = "viz_block", class = "disabled",
               uiOutput("plot_block"),
               uiOutput("stats_block"),
@@ -855,9 +828,7 @@ server <- function(input, output, session) {
       "cov_x1y", "cov_x2y", "cov_x1x2",
       "r_x1y", "r_x2y", "r_x1x2",
       "multi_det", "multi_b1", "multi_b2", "multi_intercept",
-      "multi_r_squared", "multi_alienation",
-      "anova_ssr", "anova_sse", "anova_df_reg", "anova_df_err",
-      "anova_msr", "anova_mse", "anova_f", "anova_p"
+      "multi_r_squared", "multi_alienation"
     )
     
     msg_ids <- c(
@@ -868,9 +839,7 @@ server <- function(input, output, session) {
       "msg_r_x1y", "msg_r_x2y", "msg_r_x1x2",
       "msg_multi_det", "msg_multi_b1", "msg_multi_b2", "msg_multi_intercept",
       "msg_predictions",
-      "msg_multi_r_squared", "msg_multi_alienation",
-      "msg_anova_ssr", "msg_anova_sse", "msg_anova_df_reg", "msg_anova_df_err",
-      "msg_anova_msr", "msg_anova_mse", "msg_anova_f", "msg_anova_p"
+      "msg_multi_r_squared", "msg_multi_alienation"
     )
     
     for (id in input_ids) {
@@ -1570,48 +1539,6 @@ server <- function(input, output, session) {
                  err_msg = "Vervreemdingscoëfficiënt is onjuist.")
     }
 
-    # ANOVA / F-test
-    if (has_attempted(input$anova_ssr)) {
-      mark_field("anova_ssr", check_decimals(to_num("anova_ssr"), truth$SSR, 4), "msg_anova_ssr",
-                 true_val = truth$SSR,
-                 err_msg = "SSR is onjuist.")
-    }
-    if (has_attempted(input$anova_sse)) {
-      mark_field("anova_sse", check_decimals(to_num("anova_sse"), truth$SSE, 4), "msg_anova_sse",
-                 true_val = truth$SSE,
-                 err_msg = "SSE is onjuist.")
-    }
-    if (has_attempted(input$anova_df_reg)) {
-      mark_field("anova_df_reg", check_decimals(to_num("anova_df_reg"), truth$df_reg, 4), "msg_anova_df_reg",
-                 true_val = truth$df_reg,
-                 err_msg = "df_reg is onjuist.")
-    }
-    if (has_attempted(input$anova_df_err)) {
-      mark_field("anova_df_err", check_decimals(to_num("anova_df_err"), truth$df_err, 4), "msg_anova_df_err",
-                 true_val = truth$df_err,
-                 err_msg = "df_err is onjuist.")
-    }
-    if (has_attempted(input$anova_msr)) {
-      mark_field("anova_msr", check_decimals(to_num("anova_msr"), truth$MSR, 4), "msg_anova_msr",
-                 true_val = truth$MSR,
-                 err_msg = "MSR is onjuist.")
-    }
-    if (has_attempted(input$anova_mse)) {
-      mark_field("anova_mse", check_decimals(to_num("anova_mse"), truth$MSE, 4), "msg_anova_mse",
-                 true_val = truth$MSE,
-                 err_msg = "MSE is onjuist.")
-    }
-    if (has_attempted(input$anova_f)) {
-      mark_field("anova_f", check_decimals(to_num("anova_f"), truth$F_stat, 4), "msg_anova_f",
-                 true_val = truth$F_stat,
-                 err_msg = "F-statistiek is onjuist.")
-    }
-    if (has_attempted(input$anova_p)) {
-      mark_field("anova_p", check_decimals(to_num("anova_p"), truth$model_p, 4), "msg_anova_p",
-                 true_val = truth$model_p,
-                 err_msg = "Model p-waarde is onjuist.")
-    }
-
     # Prediction table (validate attempted cells only using TRUTH predictions)
     pred_tbl <- prediction_tbl()
     pred_col_name <- "Ŷ = a + b₁·X₁ + b₂·X₂"
@@ -1633,8 +1560,8 @@ server <- function(input, output, session) {
       output$msg_predictions <- renderUI(HTML(""))
     }
 
-    # Unlock visuals when ALL 29 core steps are attempted AND correct
-    # Core 29 steps = means (3) + totals (6) + var/SD (6) + coefficients (4) + fit (2) + ANOVA/F (8)
+    # Unlock visuals when ALL 21 core steps are attempted AND correct
+    # Core 21 steps = means (3) + totals (6) + var/SD (6) + coefficients (4) + fit (2)
     # Covariances and correlations are intermediate calculations (validated but not required for unlock)
     # Predictions are optional
     
@@ -1649,11 +1576,7 @@ server <- function(input, output, session) {
       has_attempted(input$sd_Y) && has_attempted(input$multi_det) && 
       has_attempted(input$multi_b1) && has_attempted(input$multi_b2) && 
       has_attempted(input$multi_intercept) && has_attempted(input$multi_r_squared) && 
-      has_attempted(input$multi_alienation) &&
-      has_attempted(input$anova_ssr) && has_attempted(input$anova_sse) &&
-      has_attempted(input$anova_df_reg) && has_attempted(input$anova_df_err) &&
-      has_attempted(input$anova_msr) && has_attempted(input$anova_mse) &&
-      has_attempted(input$anova_f) && has_attempted(input$anova_p)
+      has_attempted(input$multi_alienation)
     
     # If not all attempted, don't unlock
     if (!all_attempted) {
@@ -1685,15 +1608,7 @@ server <- function(input, output, session) {
       isTRUE(check_decimals(to_num("multi_b2"),        truth$b2,        4)) &&
       isTRUE(check_decimals(to_num("multi_intercept"), truth$intercept,  4)) &&
       isTRUE(check_decimals(to_num("multi_r_squared"), truth$R_squared, 4)) &&
-      isTRUE(check_decimals(to_num("multi_alienation"), truth$alienation, 4)) &&
-      isTRUE(check_decimals(to_num("anova_ssr"), truth$SSR, 4)) &&
-      isTRUE(check_decimals(to_num("anova_sse"), truth$SSE, 4)) &&
-      isTRUE(check_decimals(to_num("anova_df_reg"), truth$df_reg, 4)) &&
-      isTRUE(check_decimals(to_num("anova_df_err"), truth$df_err, 4)) &&
-      isTRUE(check_decimals(to_num("anova_msr"), truth$MSR, 4)) &&
-      isTRUE(check_decimals(to_num("anova_mse"), truth$MSE, 4)) &&
-      isTRUE(check_decimals(to_num("anova_f"), truth$F_stat, 4)) &&
-      isTRUE(check_decimals(to_num("anova_p"), truth$model_p, 4))
+      isTRUE(check_decimals(to_num("multi_alienation"), truth$alienation, 4))
 
     unlocked(all_steps_ok)
     session$sendCustomMessage("toggleViz", all_steps_ok)
@@ -1704,10 +1619,10 @@ server <- function(input, output, session) {
     div(
       class = "card",
       style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
-      h3(style = "color: #2E7D32; margin-top: 0;", "🎉 Uitstekend werk! Alle 29 stappen voltooid!"),
+      h3(style = "color: #2E7D32; margin-top: 0;", "🎉 Uitstekend werk! Alle 21 stappen voltooid!"),
       p(style = "font-size: 16px; margin: 15px 0;",
         strong("Proficiat!"),
-        " Je hebt de volledige multiple regressieanalyse (29 stappen, met 2 voorspellers) succesvol afgerond."
+        " Je hebt de volledige multiple regressieanalyse (21 stappen, met 2 voorspellers) succesvol afgerond."
       ),
       p(style = "font-size: 15px; margin: 10px 0;",
         "Je kan nu de ",
@@ -1895,8 +1810,10 @@ server <- function(input, output, session) {
          <li><b>a (intercept):</b> %.4f &nbsp;&nbsp; <b>b₁:</b> %.4f &nbsp;&nbsp; <b>b₂:</b> %.4f</li>
          <li><b>det:</b> %.4f</li>
          <li><b>R²:</b> %.4f &nbsp;&nbsp; <b>Vervreemdingscoëfficiënt:</b> %.4f</li>
+         <li><b>ANOVA:</b> SSR = %.4f, SSE = %.4f, dfreg = %d, dferr = %d, F = %.4f, p = %.4f</li>
        </ul></div>",
-      truth$n, truth$intercept, truth$b1, truth$b2, truth$det, truth$R_squared, truth$alienation
+      truth$n, truth$intercept, truth$b1, truth$b2, truth$det, truth$R_squared, truth$alienation,
+      truth$SSR, truth$SSE, truth$df_reg, truth$df_err, truth$F_stat, truth$model_p
     ))
   })
 
