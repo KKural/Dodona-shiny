@@ -3003,6 +3003,10 @@ server <- function(input, output, session){
       b <- as.numeric(coef(fit)[2])
       r <- as.numeric(cor(df[[xs[1]]], df[[y]]))
       r2 <- r^2
+      n_obs <- nrow(df)
+      f_model <- round((r2 / 1) / ((1 - r2) / (n_obs - 2)), 4)
+      p_model <- round(stats::pf(f_model, 1, n_obs - 2, lower.tail = FALSE), 4)
+      is_sig <- p_model < 0.05
       
       direction <- if (r > 0.1) "positieve" else if (r < -0.1) "negatieve" else "zwakke"
       strength <- if (abs(r) > 0.7) "sterke" else if (abs(r) > 0.3) "matige" else "zwakke"
@@ -3014,6 +3018,17 @@ server <- function(input, output, session){
       # Determine if we should use "approximately" (if rounded significantly)
       r2_raw_percent <- 100*r2
       use_approx <- abs(r2_raw_percent - round(r2_raw_percent)) > 0.1
+      sig_label <- if (is_sig) "statistisch significant" else "niet statistisch significant"
+      h0_conclusion <- if (is_sig) {
+        sprintf("We verwerpen H0: %s voorspelt %s significant.", xs[1], y)
+      } else {
+        sprintf("We verwerpen H0 niet: er is geen statistisch bewijs dat %s %s significant voorspelt.", xs[1], y)
+      }
+      power_note <- if (!is_sig && n_obs <= 15) {
+        "Opmerking: met een kleine steekproef kan de power van de F-toets beperkt zijn."
+      } else {
+        ""
+      }
       
       HTML(sprintf(
         "<div class='accent'><h5>Interpretatie</h5>
@@ -3022,11 +3037,13 @@ server <- function(input, output, session){
         <p>De determinatiecoëfficiënt R² van %.4f komt overeen met <b>%.2f%%</b> (%.4f × 100) wanneer uitgedrukt als percentage. 
         %s <b>%.2f%%</b> van de variantie in <i>%s</i> wordt verklaard door <i>%s</i>. 
         De resterende <b>%.2f%%</b> is onverklaarde variantie (vervreemdingscoëfficiënt).</p>
+        <p><b>Globale F-toets</b>: F(%d, %d) = %.4f, p = %.4f. Op 5%%-niveau is het model <b>%s</b>. %s %s</p>
         <p><i>Let op: Samenhang betekent niet noodzakelijk causaliteit.</i></p></div>",
         strength, direction, r, r2, xs[1], b, y, 
         r2, r2_percent, r2,
         if(use_approx) "Ongeveer" else "Exact", 
-        r2_percent, y, xs[1], unexplained_percent))
+        r2_percent, y, xs[1], unexplained_percent,
+        1, n_obs - 2, f_model, p_model, sig_label, h0_conclusion, power_note))
     } else {
       # Correlation mode
       r <- cor(df[[xs[1]]], df[[y]])
