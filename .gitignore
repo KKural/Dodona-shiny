@@ -75,3 +75,4 @@ shiny_apps/**/rsconnect-python/
 shiny_apps/**/*.pyc
 shiny_apps/**/*.pyo
 shiny_apps/**/*.log
+.positai

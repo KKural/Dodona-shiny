@@ -181,6 +181,52 @@ scenarios <- list(
     means = c(35, 22, 12),
     sd_within = 8,
     subtle_scale = 0.20
+  ),
+  # --- k = 2 scenarios (categorische groeperingsvariabelen) ---
+  list(
+    id = "gender_fear",
+    title = "Geslacht & angst voor criminaliteit (k\u00a0=\u00a02)",
+    vignette = "Ervaren mannen en vrouwen een verschillende mate van angst voor criminaliteit in de openbare ruimte? Twee groepen worden vergeleken op angstscore (0-100). Bij k = 2 is ANOVA equivalent aan de onafhankelijke t-toets.",
+    groups = c("Man", "Vrouw"),
+    y_var = list(name = "AngstScore", unit = "0-100"),
+    entity = "Respondent",
+    means = c(42, 63),
+    sd_within = 12,
+    subtle_scale = 0.30
+  ),
+  list(
+    id = "nationality_victimisation",
+    title = "Nationaliteit & slachtofferschap (k\u00a0=\u00a02)",
+    vignette = "Worden personen met Belgische en niet-Belgische nationaliteit even vaak slachtoffer van vermogenscriminaliteit? Twee groepen worden vergeleken op slachtofferschapindex (0-100). Bij k = 2 geldt: F = t\u00b2.",
+    groups = c("Belgisch", "NietBelgisch"),
+    y_var = list(name = "SlachtofferschapIndex", unit = "0-100"),
+    entity = "Respondent",
+    means = c(38, 52),
+    sd_within = 10,
+    subtle_scale = 0.30
+  ),
+  # --- k = 3 scenarios met categorische groeperingsvariabelen ---
+  list(
+    id = "education_police_trust",
+    title = "Opleidingsniveau & vertrouwen in politie (k\u00a0=\u00a03)",
+    vignette = "Verschilt het vertrouwen in de politie naargelang het opleidingsniveau van de respondent? Drie onderwijsgroepen worden vergeleken op vertrouwensscore (1-7). Opleidingsniveau is een voorbeeld van een categorische groeperingsvariabele.",
+    groups = c("LaagOnderwijs", "GemiddeldOnderwijs", "HoogOnderwijs"),
+    y_var = list(name = "VertrouwenPolitie", unit = "1-7"),
+    entity = "Respondent",
+    means = c(3.8, 4.5, 5.2),
+    sd_within = 0.9,
+    subtle_scale = 0.30
+  ),
+  list(
+    id = "age_group_victimisation",
+    title = "Leeftijdsgroep & slachtofferschap (k\u00a0=\u00a03)",
+    vignette = "Worden bepaalde leeftijdsgroepen vaker slachtoffer van criminaliteit? Jongeren, volwassenen en ouderen worden vergeleken op slachtofferschaprate (per 1.000). Leeftijdsgroep is een voorbeeld van een categorische groeperingsvariabele.",
+    groups = c("Jongeren", "Volwassenen", "Ouderen"),
+    y_var = list(name = "Slachtofferschaprate", unit = "per 1.000"),
+    entity = "Respondent",
+    means = c(62, 45, 30),
+    sd_within = 12,
+    subtle_scale = 0.25
   )
 )
 
@@ -280,6 +326,16 @@ calc_anova_truth <- function(df, y_col) {
   F_ratio <- if (!is.na(MSW) && MSW > 0) round(MSB / MSW, 4) else NA_real_
   eta_sq  <- if (!is.na(SST) && SST > 0) round(SSB / SST, 4) else NA_real_
 
+  t_crit    <- if (!is.na(MSW) && MSW >= 0) round(qt(0.975, df_within), 4) else NA_real_
+  ci_margin <- if (!is.na(MSW) && MSW >= 0) {
+    setNames(round(vapply(groups, function(g) {
+      nj <- sum(G == g)
+      qt(0.975, df_within) * sqrt(MSW / nj)
+    }, numeric(1)), 4), groups)
+  } else setNames(rep(NA_real_, length(groups)), groups)
+  ci_lower  <- round(grp_means - ci_margin, 4)
+  ci_upper  <- round(grp_means + ci_margin, 4)
+
   list(
     n = n, k = k, groups = groups,
     n_groups       = setNames(sapply(groups, function(g) sum(G == g)), groups),
@@ -291,7 +347,9 @@ calc_anova_truth <- function(df, y_col) {
     dev_between_sq = dev_between_sq,
     SSW = SSW, SSB = SSB, SST = SST,
     df_between = df_between, df_within = df_within, df_total = df_total,
-    MSB = MSB, MSW = MSW, F_ratio = F_ratio, eta_sq = eta_sq
+    MSB = MSB, MSW = MSW, F_ratio = F_ratio, eta_sq = eta_sq,
+    t_crit = t_crit, ci_margin = ci_margin,
+    ci_lower = ci_lower, ci_upper = ci_upper
   )
 }
 
@@ -471,6 +529,12 @@ ui <- fluidPage(
       if (show){ el.classList.remove('disabled'); el.style.transition='opacity 0.3s ease-in-out'; el.style.opacity='1'; }
       else { el.classList.add('disabled'); el.style.opacity='0.5'; }
     });
+    Shiny.addCustomMessageHandler('toggleCI', function(show){
+      var el = document.getElementById('ci_block');
+      if (!el) return;
+      if (show){ el.classList.remove('disabled'); el.style.transition='opacity 0.3s ease-in-out'; el.style.opacity='1'; }
+      else { el.classList.add('disabled'); el.style.opacity='0.5'; }
+    });
     Shiny.addCustomMessageHandler('paintLight', function(msg){
       var el = document.getElementById(msg.id);
       if (!el) return;
@@ -518,20 +582,21 @@ ui <- fluidPage(
       div(class = "card",
           h4("Hoe deze webpagina werkt"),
           HTML("<ul style='margin:6px 0 0 0px; padding-left: 20px;'>
-            <li>Oefen <b>eenweg-ANOVA</b> met 3 groepen en criminologiedatasets.</li>
-            <li>Voltooi <b>6 delen</b> om handmatig ANOVA uit te voeren (gebruik 4 decimalen).</li>
+            <li>Oefen <b>eenweg-ANOVA</b> met 2 of 3 groepen en criminologiedatasets.</li>
+            <li>Voltooi <b>7 delen</b> om handmatig ANOVA uit te voeren (gebruik 4 decimalen).</li>
             <li>Bekijk de dataset (alleen-lezen). Vul daarna stap voor stap in:
               <ul style='margin-top:4px;'>
                 <li><b>Deel I:</b> Dataset bekijken</li>
-                <li><b>Deel II:</b> Stap 1 (Groepsgemiddelden Y1, Y2, Y3 en grootgemiddelde Y..)</li>
+                <li><b>Deel II:</b> Stap 1 (Groepsgemiddelden Y&#x0305;<sub>j</sub> per groep en grootgemiddelde Y..)</li>
                 <li><b>Deel III:</b> Stappen 2-6 (Afwijkingtabel: (Y-Yj), (Y-Yj)^2, (Yj-Y..), (Yj-Y..)^2)</li>
                 <li><b>Deel IV:</b> Stappen 7-9 (SSW, SSB en SST)</li>
                 <li><b>Deel V:</b> Stappen 10-12 (df, MS en F-ratio)</li>
                 <li><b>Deel VI:</b> Visualisaties en interpretatie (vrijkomt na correcte invoer)</li>
+                <li><b>Deel VII:</b> 95%-betrouwbaarheidsinterval per groep (wordt getoond na correcte invoer)</li>
               </ul>
             </li>
             <li>Velden worden <span style='color:#00C853;font-weight:700;'>groen</span> wanneer correct en <span style='color:#D50000;font-weight:700;'>rood</span> wanneer fout.</li>
-            <li>Wanneer alle stappen correct zijn, verschijnen <b>visualisaties</b> in Deel VI.</li>
+            <li>Wanneer alle stappen correct zijn, verschijnen <b>visualisaties</b> (Deel VI) en <b>95%-BI</b> (Deel VII).</li>
           </ul>")
       ),
       br(),
@@ -543,11 +608,11 @@ ui <- fluidPage(
               <b>1. Selecteer een specifiek scenario</b> uit de dropdown en klik 'Genereer dataset'<br/>
               <b>2. Kies een willekeurig scenario</b> via 'Willekeurig scenario' (kiest uit onze criminologie-collectie)")),
           selectInput("scenario", "Scenario", choices = scenario_choices),
-          helpText("Kies een criminologische context met 3 groepen (bijv. interventieniveaus, politiestrategieen)."),
+          helpText("Kies een criminologisch scenario: k\u00a0=\u00a03 (interventieniveaus, opleidingsgroepen, leeftijdscategorie\u00ebn) of k\u00a0=\u00a02 (geslacht, nationaliteit)."),
           numericInput("n_per_group",
-                       paste0("Observaties per groep (3-", as.integer(MAX_SAMPLE_SIZE / 3), ")"),
-                       value = 10, min = 3, max = as.integer(MAX_SAMPLE_SIZE / 3), step = 1),
-          helpText("Aantal waarnemingen per groep. Totale N = n x 3."),
+                       paste0("Observaties per groep (3-", as.integer(MAX_SAMPLE_SIZE / 2), ")"),
+                       value = 10, min = 3, max = as.integer(MAX_SAMPLE_SIZE / 2), step = 1),
+          helpText("Aantal waarnemingen per groep. Totale N = n \u00d7 k (k = aantal groepen in het scenario)."),
           textInput("seed", "Datasetcode (seed, optioneel)", value = ""),
           helpText(HTML("<b>Optioneel nummer voor reproduceerbaarheid.</b> Zelfde code = elke keer dezelfde dataset.")),
           fluidRow(
@@ -716,6 +781,13 @@ ui <- fluidPage(
           h4("Deel VI — Visualisaties en conclusie"),
           div(id = "viz_block", class = "disabled",
               uiOutput("viz_content")
+          )
+      ),
+      br(),
+      div(class = "card",
+          h4("Deel VII \u2014 95%-betrouwbaarheidsinterval per groep"),
+          div(id = "ci_block", class = "disabled",
+              uiOutput("ci_content")
           )
       )
     )
@@ -1514,6 +1586,78 @@ server <- function(input, output, session) {
   })
 
   observe({ session$sendCustomMessage("toggleViz", all_correct()) })
+  observe({ session$sendCustomMessage("toggleCI",  all_correct()) })
+
+  # ---- DEEL VII: Betrouwbaarheidsintervallen (display only) ----
+  output$ci_content <- renderUI({
+    if (!all_correct())
+      return(div(class = "muted", "Voltooi alle stappen correct om de betrouwbaarheidsintervallen te zien."))
+    t <- rv$truth
+
+    # Per-group CI rows
+    ci_rows <- lapply(t$groups, function(g) {
+      nj  <- t$n_groups[g]
+      se  <- round(sqrt(t$MSW / nj), 4)
+      lo  <- round(t$ci_lower[g], 4)
+      hi  <- round(t$ci_upper[g], 4)
+      tags$tr(
+        tags$td(style = "padding:6px 12px;font-weight:600;", g),
+        tags$td(style = "padding:6px 12px;text-align:center;", round(t$grp_means[g], 4)),
+        tags$td(style = "padding:6px 12px;text-align:center;", nj),
+        tags$td(style = "padding:6px 12px;text-align:center;", se),
+        tags$td(style = "padding:6px 12px;text-align:center;color:#1565C0;font-weight:700;",
+                paste0("[", lo, " ; ", hi, "]"))
+      )
+    })
+
+    tagList(
+      # Formula explanation
+      div(class = "accent",
+          HTML(paste0(
+            "<b>Formule:</b> CI<sub>j</sub> = Y&#x0305;<sub>j</sub> &plusmn; t<sub>0,975;&thinsp;df<sub>binnen</sub></sub>",
+            " &times; &#x221A;(MSW / n<sub>j</sub>)",
+            "<br/><b>Gebruikte waarden:</b>",
+            " t<sub>0,975;&thinsp;", t$df_within, "</sub> = ", round(t$t_crit, 4),
+            " &nbsp;|&nbsp; MSW = ", round(t$MSW, 4)
+          ))
+      ),
+      br(),
+      # CI table
+      tags$table(
+        style = "border-collapse:collapse; width:100%; font-size:14px;",
+        tags$thead(
+          tags$tr(style = "background:#E3F2FD; border-bottom:2px solid #90CAF9;",
+            tags$th(style = "padding:6px 12px;text-align:left;",  "Groep"),
+            tags$th(style = "padding:6px 12px;text-align:center;", "Y\u0305\u2C7C"),
+            tags$th(style = "padding:6px 12px;text-align:center;", "n\u2C7C"),
+            tags$th(style = "padding:6px 12px;text-align:center;", "SE = \u221A(MSW/n\u2C7C)"),
+            tags$th(style = "padding:6px 12px;text-align:center;", "95%-BI")
+          )
+        ),
+        tags$tbody(ci_rows)
+      ),
+      br(),
+      # What does CI mean?
+      div(class = "card",
+          style = "background:#F3F8FF; border-left:4px solid #1565C0; padding:14px 18px;",
+          HTML(paste0(
+            "<b style='color:#1565C0;'>Wat betekent een 95%-betrouwbaarheidsinterval?</b><br/>",
+            "<ul style='margin:8px 0 0 16px;'>",
+            "<li>Als je dit onderzoek 100 keer zou herhalen, zou het betrouwbaarheidsinterval in ",
+            "<b>95 van de 100 gevallen</b> de ware populatieparameter bevatten.</li>",
+            "<li>Het BI geeft aan hoe <b>nauwkeurig</b> je schatting is: een smal BI = grotere zekerheid, ",
+            "een breed BI = meer onzekerheid (door kleine n of grote spreiding).</li>",
+            "<li>De breedte hangt af van <b>drie factoren</b>: MSW (binnengroepse spreiding), ",
+            "n<sub>j</sub> (steekproefgrootte) en df<sub>binnen</sub> (via t-kritiek).</li>",
+            "<li>In de grafiek (Deel VI) zijn de betrouwbaarheidsintervallen zichtbaar als ",
+            "<b style='color:#3F51B5;'>blauwe foutbalken</b> rondom elk groepsgemiddelde.</li>",
+            "<li><b>Overlappende BI's</b> wijzen niet noodzakelijk op een niet-significant verschil \u2014 ",
+            "gebruik altijd de F-toets als beslissingsinstrument.</li>",
+            "</ul>"
+          ))
+      )
+    )
+  })
 
   output$final_success_message <- renderUI({
     if (!all_correct()) return(NULL)
@@ -1555,17 +1699,25 @@ server <- function(input, output, session) {
     if (!all_correct()) return(NULL)
     df <- rv$df; sc <- rv$sc; t <- rv$truth; if (is.null(df)) return(NULL)
     df$Groep <- factor(df$Groep, levels = t$groups)
-    gm_df <- data.frame(Groep = factor(t$groups, levels = t$groups), Gem = as.numeric(t$grp_means))
+    gm_df <- data.frame(
+      Groep = factor(t$groups, levels = t$groups),
+      Gem   = as.numeric(t$grp_means),
+      CIlo  = as.numeric(t$ci_lower),
+      CIhi  = as.numeric(t$ci_upper)
+    )
+    pal <- c("#42A5F5", "#66BB6A", "#FFA726", "#AB47BC", "#26A69A")[seq_along(t$groups)]
     ggplot(df, aes(x = Groep, y = .data[[sc$y_var$name]], fill = Groep)) +
       geom_boxplot(alpha = 0.55, outlier.colour = "#B00020", outlier.size = 2) +
+      geom_errorbar(data = gm_df, aes(x = Groep, ymin = CIlo, ymax = CIhi),
+                    width = 0.25, colour = "#3F51B5", linewidth = 1.2, inherit.aes = FALSE) +
       geom_point(data = gm_df, aes(y = Gem), shape = 18, size = 5, colour = "#3F51B5") +
       geom_hline(yintercept = t$grand_mean, linetype = "dashed", colour = "#888", linewidth = 0.8) +
       annotate("text", x = 0.62, y = t$grand_mean,
                label = paste0("Y.. = ", round(t$grand_mean, 2)), vjust = -0.4, colour = "#555", size = 3.5) +
-      scale_fill_manual(values = c("#42A5F5","#66BB6A","#FFA726")) +
+      scale_fill_manual(values = pal) +
       labs(title = paste0("Verdeling van ", sc$y_var$name, " per groep"),
            x = "Groep", y = paste0(sc$y_var$name, " (", sc$y_var$unit, ")"),
-           caption = "Ruit = groepsgemiddelde  --- = grootgemiddelde Y..") +
+           caption = "Ruit = groepsgemiddelde | Foutbalken = 95%-BI | --- = grootgemiddelde Y..") +
       theme_minimal(base_size = 13) +
       theme(legend.position = "none", plot.title = element_text(face = "bold", colour = "#3F51B5"))
   })
@@ -1617,6 +1769,7 @@ server <- function(input, output, session) {
           "<li><b>Grootgemiddelde:</b> Y.. = ", round(t$grand_mean, 2), "</li>",
           "<li><b>Aandeel tussengroepse variatie (\\u03b7\\u00b2):</b> SSB/SST = ", pct_between, "% (\\u03b7\\u00b2 = ",round(t$eta_sq,4),")</li>",
           "<li><b>F-ratio:</b> MSB/MSW = ",round(t$MSB,4)," / ",round(t$MSW,4)," = ",round(t$F_ratio,4),"</li>",
+          if (t$k == 2L) paste0("<li style='color:#1565C0;'><b>k\u00a0=\u00a02:</b> Bij twee groepen is ANOVA equivalent aan de onafhankelijke t-toets (F\u00a0=\u00a0t\u00b2).</li>") else "",
           "<li><b>Kritieke F (alpha=0,05):</b> Fkrit(",t$df_between,",",t$df_within,") = ",f_crit,"</li>",
           "<li><b>Extra interpretatie:</b> p-waarde = ", p_label,
           " (rechterstaartkans van de F-verdeling bij F(",t$df_between,",",t$df_within,"))</li>",

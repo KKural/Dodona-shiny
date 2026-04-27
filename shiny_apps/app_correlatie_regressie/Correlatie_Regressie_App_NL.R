@@ -1525,9 +1525,13 @@ server <- function(input, output, session){
              "<b>Concepten :</b><ul style='margin:6px 0 0 16px;'><li>",
              paste(primers, collapse='</li><li>'), "</li></ul>")
     } else ""
+    var_labels <- paste0(
+      "<br><b>X = ", sc$vars$x$name, "</b> (", sc$vars$x$unit, ") &nbsp;|&nbsp; ",
+      "<b>Y = ", sc$vars$y$name, "</b> (", sc$vars$y$unit, ")"
+    )
     HTML(paste0(
       "<div class='accent'><b>", sc$title, "</b><br>",
-      sc$vignette, primer_html, "</div>"
+      sc$vignette, var_labels, primer_html, "</div>"
     ))
   }
   

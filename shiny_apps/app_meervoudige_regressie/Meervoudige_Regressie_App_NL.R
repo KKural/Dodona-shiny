@@ -901,18 +901,16 @@ server <- function(input, output, session) {
     y_unit   <- sc$vars$y$unit %||% ""
     x2_name  <- (sc$extras %||% c("ControlVar"))[1]
 
-    concepts_html <- paste0(
-      "<br><br><b>Concepts (quick primer):</b><ul>",
-      "<li><b>", y_name, ":</b> ", y_unit, "</li>",
-      "<li><b>", x1_name, " (x₁):</b> ", x1_unit, "</li>",
-      "<li><b>", x2_name, " (x₂):</b> additional predictor / control variable.</li>",
-      "</ul>"
+    var_labels <- paste0(
+      "<br><b>x₁ = ", x1_name, "</b> (", x1_unit, ") &nbsp;|&nbsp; ",
+      "<b>x₂ = ", x2_name, "</b> &nbsp;|&nbsp; ",
+      "<b>Y = ", y_name, "</b> (", y_unit, ")"
     )
 
     HTML(paste0(
       "<div class='accent'><b>", sc$title, "</b><br>",
       sc$vignette,
-      concepts_html,
+      var_labels,
       "</div>"
     ))
   })
