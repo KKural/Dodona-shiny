@@ -566,7 +566,7 @@ ui <- fluidPage(
           h4("Hoe deze webpagina werkt"),
           HTML("<ul style='margin:6px 0 0 0px; padding-left: 20px;'>
             <li>Oefen <b>multiple regressieanalyse</b> met 2 voorspellers (x₁, x₂) met criminologiedatasets.</li>
-            <li>Voltooi <b>7 delen</b> om handmatig multiple regressie uit te voeren (gebruik 4 decimalen).</li>
+            <li>Voltooi <b>8 delen</b> om handmatig multiple regressie uit te voeren (gebruik 4 decimalen).</li>
             <li>Bekijk de dataset (alleen-lezen). Vul daarna stap voor stap in:
               <ul style='margin-top:4px;'>
                 <li><b>Deel I:</b> Dataset bekijken</li>
@@ -576,10 +576,11 @@ ui <- fluidPage(
                 <li><b>Deel V:</b> Stappen 15-18 (Determinant, b₁, b₂ en intercept a)</li>
                 <li><b>Deel VI:</b> Voorspellingen met Ŷ = a + b₁·x₁ + b₂·x₂</li>
                 <li><b>Deel VII:</b> R² en vervreemdingscoëfficiënt</li>
+                <li><b>Deel VIII:</b> F-toets & model p-waarde (via R²-formule)</li>
               </ul>
             </li>
             <li>Velden worden groen wanneer correct en rood wanneer fout.</li>
-            <li>Wanneer alle stappen correct zijn, verschijnen <b>visualisaties en interpretatie</b> in Deel VIII.</li>
+            <li>Wanneer alle stappen correct zijn, verschijnen <b>visualisaties en interpretatie</b> in Deel IX.</li>
           </ul>")
       ),
       br(),
@@ -634,6 +635,8 @@ ui <- fluidPage(
             "<li>Voorspelde waarde Ŷ = a + b₁·x₁ + b₂·x₂ (voor elke observatie).</li>",
             "<li>R² = 1 − SSE/SST (determinatiecoëfficiënt: aandeel verklaarde variantie).</li>",
             "<li>Vervreemdingscoëfficiënt = 1 − R² (onverklaarde variantie).</li>",
+            "<li>F = (R²/2) / ((1−R²)/(n−3)) met p = 2 voorspellers.</li>",
+            "<li>Model p-waarde = rechterstaartkans van F met df<sub>1</sub>=2 en df<sub>2</sub>=n−3.</li>",
             "</ol></div>"
           ))
       )
@@ -779,11 +782,22 @@ ui <- fluidPage(
       ),
       br(),
 
+      div(class = "card",
+          h4("Deel VIII — Stappen 22-23: F-toets via R² (4 decimalen)"),
+          div(class = "muted", "Bereken de globale modeltoets met p = 2 voorspellers."),
+          helpText("Gebruik exact: F = (R²/2)/((1−R²)/(n−3)) en model p-waarde = P(F(df1=2, df2=n−3) ≥ F). In Excel: =F.DIST.RT(F;2;n−3)."),
+          numericInput("multi_f_stat", HTML("F = (R²/2) / ((1−R²)/(n−3))"), value = NA, step = 0.0001),
+          uiOutput("msg_multi_f_stat"),
+          numericInput("multi_model_p", HTML("Model p-waarde = F.DIST.RT(F; 2; n−3)"), value = NA, step = 0.0001),
+          uiOutput("msg_multi_model_p")
+      ),
+      br(),
+
       uiOutput("final_success_message"),
       br(),
 
       div(class = "card",
-          h4("Deel VIII — Visualisaties & Samenvatting (ontgrendelt wanneer alles correct is)"),
+          h4("Deel IX — Visualisaties & Samenvatting (ontgrendelt wanneer alles correct is)"),
           div(id = "viz_block", class = "disabled",
               uiOutput("plot_block"),
               uiOutput("stats_block"),
@@ -828,7 +842,8 @@ server <- function(input, output, session) {
       "cov_x1y", "cov_x2y", "cov_x1x2",
       "r_x1y", "r_x2y", "r_x1x2",
       "multi_det", "multi_b1", "multi_b2", "multi_intercept",
-      "multi_r_squared", "multi_alienation"
+      "multi_r_squared", "multi_alienation",
+      "multi_f_stat", "multi_model_p"
     )
     
     msg_ids <- c(
@@ -839,7 +854,8 @@ server <- function(input, output, session) {
       "msg_r_x1y", "msg_r_x2y", "msg_r_x1x2",
       "msg_multi_det", "msg_multi_b1", "msg_multi_b2", "msg_multi_intercept",
       "msg_predictions",
-      "msg_multi_r_squared", "msg_multi_alienation"
+      "msg_multi_r_squared", "msg_multi_alienation",
+      "msg_multi_f_stat", "msg_multi_model_p"
     )
     
     for (id in input_ids) {
@@ -1539,6 +1555,21 @@ server <- function(input, output, session) {
                  err_msg = "Vervreemdingscoëfficiënt is onjuist.")
     }
 
+    # F-test via R² (p = 2 voorspellers)
+    f_from_r2 <- round((truth$R_squared / 2) / ((1 - truth$R_squared) / (truth$n - 3)), 4)
+    p_from_f <- round(stats::pf(f_from_r2, 2, truth$n - 3, lower.tail = FALSE), 4)
+
+    if (has_attempted(input$multi_f_stat)) {
+      mark_field("multi_f_stat", check_decimals(to_num("multi_f_stat"), f_from_r2, 4), "msg_multi_f_stat",
+                 true_val = f_from_r2,
+                 err_msg = "F-statistiek (via R²-formule) is onjuist.")
+    }
+    if (has_attempted(input$multi_model_p)) {
+      mark_field("multi_model_p", check_decimals(to_num("multi_model_p"), p_from_f, 4), "msg_multi_model_p",
+                 true_val = p_from_f,
+                 err_msg = "Model p-waarde (via F-verdeling) is onjuist.")
+    }
+
     # Prediction table (validate attempted cells only using TRUTH predictions)
     pred_tbl <- prediction_tbl()
     pred_col_name <- "Ŷ = a + b₁·X₁ + b₂·X₂"
@@ -1560,8 +1591,8 @@ server <- function(input, output, session) {
       output$msg_predictions <- renderUI(HTML(""))
     }
 
-    # Unlock visuals when ALL 21 core steps are attempted AND correct
-    # Core 21 steps = means (3) + totals (6) + var/SD (6) + coefficients (4) + fit (2)
+    # Unlock visuals when ALL 23 core steps are attempted AND correct
+    # Core 23 steps = means (3) + totals (6) + var/SD (6) + coefficients (4) + fit (2) + F/p via R² (2)
     # Covariances and correlations are intermediate calculations (validated but not required for unlock)
     # Predictions are optional
     
@@ -1576,7 +1607,8 @@ server <- function(input, output, session) {
       has_attempted(input$sd_Y) && has_attempted(input$multi_det) && 
       has_attempted(input$multi_b1) && has_attempted(input$multi_b2) && 
       has_attempted(input$multi_intercept) && has_attempted(input$multi_r_squared) && 
-      has_attempted(input$multi_alienation)
+      has_attempted(input$multi_alienation) &&
+      has_attempted(input$multi_f_stat) && has_attempted(input$multi_model_p)
     
     # If not all attempted, don't unlock
     if (!all_attempted) {
@@ -1608,7 +1640,9 @@ server <- function(input, output, session) {
       isTRUE(check_decimals(to_num("multi_b2"),        truth$b2,        4)) &&
       isTRUE(check_decimals(to_num("multi_intercept"), truth$intercept,  4)) &&
       isTRUE(check_decimals(to_num("multi_r_squared"), truth$R_squared, 4)) &&
-      isTRUE(check_decimals(to_num("multi_alienation"), truth$alienation, 4))
+      isTRUE(check_decimals(to_num("multi_alienation"), truth$alienation, 4)) &&
+      isTRUE(check_decimals(to_num("multi_f_stat"), f_from_r2, 4)) &&
+      isTRUE(check_decimals(to_num("multi_model_p"), p_from_f, 4))
 
     unlocked(all_steps_ok)
     session$sendCustomMessage("toggleViz", all_steps_ok)
@@ -1619,10 +1653,10 @@ server <- function(input, output, session) {
     div(
       class = "card",
       style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
-      h3(style = "color: #2E7D32; margin-top: 0;", "🎉 Uitstekend werk! Alle 21 stappen voltooid!"),
+      h3(style = "color: #2E7D32; margin-top: 0;", "🎉 Uitstekend werk! Alle 23 stappen voltooid!"),
       p(style = "font-size: 16px; margin: 15px 0;",
         strong("Proficiat!"),
-        " Je hebt de volledige multiple regressieanalyse (21 stappen, met 2 voorspellers) succesvol afgerond."
+        " Je hebt de volledige multiple regressieanalyse (23 stappen, met 2 voorspellers) succesvol afgerond."
       ),
       p(style = "font-size: 15px; margin: 10px 0;",
         "Je kan nu de ",
@@ -1830,6 +1864,20 @@ server <- function(input, output, session) {
     r2 <- truth$R_squared
     explained <- 100 * r2
     unexplained <- 100 * (1 - r2)
+    f_model <- truth$F_stat
+    p_model <- truth$model_p
+    is_sig <- p_model < 0.05
+    sig_label <- if (is_sig) "statistisch significant" else "niet statistisch significant"
+    h0_conclusion <- if (is_sig) {
+      sprintf("We verwerpen H0: %s en %s voorspellen %s als geheel significant.", x1, x2, y)
+    } else {
+      sprintf("We verwerpen H0 niet: er is geen statistisch bewijs dat %s en %s samen %s significant voorspellen.", x1, x2, y)
+    }
+    power_note <- if (!is_sig && truth$n <= 15) {
+      "Opmerking: met een kleine steekproef kan de power van de F-toets beperkt zijn."
+    } else {
+      ""
+    }
 
     HTML(sprintf(
       "<div class='accent'><h5>Interpretatie</h5>
@@ -1838,13 +1886,15 @@ server <- function(input, output, session) {
          <li><b>b₁ = %.4f</b>: met <i>%s</i> constant is een stijging van 1 eenheid in <i>%s</i> gemiddeld geassocieerd met een verandering van %.4f eenheden in <i>%s</i>.</li>
          <li><b>b₂ = %.4f</b>: met <i>%s</i> constant is een stijging van 1 eenheid in <i>%s</i> gemiddeld geassocieerd met een verandering van %.4f eenheden in <i>%s</i>.</li>
          <li><b>R² = %.4f</b>: ongeveer <b>%.2f%%</b> van de variantie in <i>%s</i> wordt verklaard door <i>%s</i> en <i>%s</i>; ongeveer <b>%.2f%%</b> blijft onverklaard (vervreemding).</li>
+         <li><b>Globale F-toets</b>: F(%d, %d) = %.4f, p = %.4f. Op 5%%-niveau is het model <b>%s</b>. %s %s</li>
        </ul>
        <p><i>Onthoud: associatie impliceert geen causaliteit.</i></p>
        </div>",
       y, x1, x2,
       truth$b1, x2, x1, truth$b1, y,
       truth$b2, x1, x2, truth$b2, y,
-      r2, explained, y, x1, x2, unexplained
+      r2, explained, y, x1, x2, unexplained,
+      truth$df_reg, truth$df_err, f_model, p_model, sig_label, h0_conclusion, power_note
     ))
   })
 }

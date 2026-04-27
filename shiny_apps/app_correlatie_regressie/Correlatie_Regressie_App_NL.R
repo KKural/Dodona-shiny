@@ -785,12 +785,13 @@ ui <- fluidPage(
         br()
       ),
       
-      # Part VIII — Steps 14-15 & Summary (hidden in Correlation mode)
+      # Part VIII — Steps 14-17 & Summary (hidden in Correlation mode)
       conditionalPanel(
         condition = "input.mode != 'Correlation'",
         div(class="card",
-            h4("Deel VIII — Stappen 14-15: Determinatiecoëfficiënt & Samenvatting (4 decimalen)"),
-            div(class="muted", "Bereken R² en vervreemdingscoëfficiënt om de analyse te voltooien."),
+            h4("Deel VIII — Stappen 14-17: Model Fit & F-toets (4 decimalen)"),
+            div(class="muted", "Bereken R², vervreemdingscoëfficiënt, F en model p-waarde om de analyse te voltooien."),
+            helpText("Formules: F = (R²/1)/((1−R²)/(n−2)) en p = F.DIST.RT(F;1;n−2)."),
             uiOutput("coefficients_ui"),
             uiOutput("step1415_feedback")
         ),
@@ -998,12 +999,12 @@ server <- function(input, output, session){
         </li>
         <li>Cellen worden groen wanneer correct, rood wanneer fout.</li>
         <li>Wanneer alle stappen voltooid zijn, verschijnt een <b>spreidingsdiagram met regressielijn</b> in Deel VI.</li>
-        <li><b>Wilt u voorspellingen doen?</b> Schakel over naar <i>Bivariate Regressie</i> voor de volledige 15-stappenanalyse!</li>
+        <li><b>Wilt u voorspellingen doen?</b> Schakel over naar <i>Bivariate Regressie</i> voor de volledige 17-stappenanalyse!</li>
       </ul>")
     } else {
       HTML("<ul style='margin:6px 0 0 0px; padding-left: 20px;'>
         <li>Oefen <b>bivariate regressieanalyse</b> met criminologische datasets.</li>
-        <li>Voltooi <b>15 stappen verdeeld over Delen I-VIII</b> voor volledige correlatie en regressie (gebruik 4 decimalen).</li>
+        <li>Voltooi <b>17 stappen verdeeld over Delen I-VIII</b> voor volledige correlatie en regressie (gebruik 4 decimalen).</li>
         <li>Bestudeer de dataset (alleen-lezen). Voltooi vervolgens elke stap:
           <ul style='margin-top:4px;'>
             <li><b>Deel I:</b> Bekijk dataset</li>
@@ -1013,10 +1014,11 @@ server <- function(input, output, session){
             <li><b>Deel V:</b> Stappen 7-9 (Correlatiecoëfficiënt)</li>
             <li><b>Deel VI:</b> Stappen 10-12 (Regressievergelijking: regressiecoëfficiënt en intercept)</li>
             <li><b>Deel VII:</b> Stap 13 (Voorspellingen met Ŷ = a + b·X)</li>
-            <li><b>Deel VIII:</b> Stappen 14-15 (R² en vervreemdingscoëfficiënt)</li>
+            <li><b>Deel VIII:</b> Stappen 14-17 (R², vervreemdingscoëfficiënt, F en model p-waarde)</li>
           </ul>
         </li>
         <li>Cellen worden groen wanneer correct, rood wanneer fout.</li>
+        <li><b>F-toets vereist:</b> bereken F en model p-waarde op basis van R² met df₁=1 en df₂=n−2.</li>
         <li>Wanneer alle stappen voltooid zijn, verschijnen <b>grafieken en interpretatie</b> in Deel IX.</li>
       </ul>")
     }
@@ -1443,7 +1445,7 @@ server <- function(input, output, session){
     list(ok = TRUE, attempted = TRUE, message = NULL)
   }
   
-  # Validate Steps 14-15: R² and Alienation Coefficient
+  # Validate Steps 14-17: R², alienation, F and model p-value
   validate_step1415 <- function() {
     df <- current(); y <- yvar(); xs <- xvars()
     if (is.null(df) || nrow(df) == 0 || is.null(y) || length(xs) == 0) {
@@ -1452,8 +1454,10 @@ server <- function(input, output, session){
     
     r_squared_attempted <- has_attempted(input$r_squared)
     alienation_attempted <- has_attempted(input$alienation)
+    f_attempted <- has_attempted(input$f_stat)
+    p_attempted <- has_attempted(input$model_p_value)
     
-    if (!r_squared_attempted && !alienation_attempted) {
+    if (!r_squared_attempted && !alienation_attempted && !f_attempted && !p_attempted) {
       return(list(ok = FALSE, attempted = FALSE, message = NULL))
     }
     
@@ -1485,19 +1489,29 @@ server <- function(input, output, session){
     }
     r_squared_expected  <- round(r_canonical^2, 4)
     alienation_expected <- round(1 - r_squared_expected, 4)
+    # For bivariate regression (k = 1): F = (R²/1) / ((1−R²)/(n−2))
+    f_expected <- round((r_squared_expected / 1) / ((1 - r_squared_expected) / (nrow(df) - 2)), 4)
+    model_p_expected <- round(stats::pf(f_expected, 1, nrow(df) - 2, lower.tail = FALSE), 4)
     
-    all_attempted <- has_attempted(input$r_squared) && has_attempted(input$alienation)
+    all_attempted <- has_attempted(input$r_squared) &&
+      has_attempted(input$alienation) &&
+      has_attempted(input$f_stat) &&
+      has_attempted(input$model_p_value)
     
     r_squared_correct <- has_attempted(input$r_squared) && 
       isTRUE(safe_check(input$r_squared, r_squared_expected, 4))
     alienation_correct <- has_attempted(input$alienation) && 
       isTRUE(safe_check(input$alienation, alienation_expected, 4))
+    f_correct <- has_attempted(input$f_stat) &&
+      isTRUE(safe_check(input$f_stat, f_expected, 4))
+    p_correct <- has_attempted(input$model_p_value) &&
+      isTRUE(safe_check(input$model_p_value, model_p_expected, 4))
     
-    all_correct <- r_squared_correct && alienation_correct
+    all_correct <- r_squared_correct && alienation_correct && f_correct && p_correct
     
     if (!all_attempted) return(list(ok = FALSE, attempted = FALSE, message = NULL))
     if (!all_correct) {
-      return(list(ok = FALSE, attempted = TRUE, message = "Controleer Stappen 14-15: R² en aliënatieco​ëfficiënt moeten overeenkomen op 4 decimalen."))
+      return(list(ok = FALSE, attempted = TRUE, message = "Controleer Stappen 14-17: R², vervreemdingscoëfficiënt, F en model p-waarde moeten overeenkomen op 4 decimalen."))
     }
     
     list(ok = TRUE, attempted = TRUE, message = NULL)
@@ -2063,7 +2077,7 @@ server <- function(input, output, session){
     )
   })
   
-  # Coefficients UI for Part VIII (Steps 14-15)
+  # Coefficients UI for Part VIII (Steps 14-17)
   output$coefficients_ui <- renderUI({
     df <- current()
     if (is.null(df) || nrow(df)==0) return(NULL)
@@ -2079,7 +2093,15 @@ server <- function(input, output, session){
       numericInput("alienation", 
                    HTML("<strong>Stap 15:</strong> Aliënatiecoëfficiënt = 1 − R² (onverklaarde variantie)"), 
                    value = NA, step = 0.0001),
-      uiOutput("msg_alienation")
+      uiOutput("msg_alienation"),
+      numericInput("f_stat",
+                   HTML("<strong>Stap 16:</strong> F = (R²/1) / ((1−R²)/(n−2))"),
+                   value = NA, step = 0.0001),
+      uiOutput("msg_f_stat"),
+      numericInput("model_p_value",
+                   HTML("<strong>Stap 17:</strong> Model p-waarde = F.DIST.RT(F; 1; n−2)"),
+                   value = NA, step = 0.0001),
+      uiOutput("msg_model_p_value")
     )
   })
   
@@ -2382,7 +2404,7 @@ server <- function(input, output, session){
     if (!result$ok && !is.null(result$message)) {
       div(class = "err", result$message)
     } else if (result$ok) {
-      div(class = "ok", "✅ Deel VIII (Stappen 14-15) voltooid! R² en vervreemdingscoëfficiënt zijn correct.")
+      div(class = "ok", "✅ Deel VIII (Stappen 14-17) voltooid! R², vervreemdingscoëfficiënt, F en model p-waarde zijn correct.")
     } else {
       NULL
     }
@@ -2392,7 +2414,10 @@ server <- function(input, output, session){
     df <- current()
     if (is.null(df) || nrow(df) == 0) return(NULL)
     feedback_panel_ui(
-      c("R²" = "msg_r_squared", "Aliënatiecoëfficiënt" = "msg_alienation"),
+      c("R²" = "msg_r_squared",
+        "Aliënatiecoëfficiënt" = "msg_alienation",
+        "F-statistiek" = "msg_f_stat",
+        "Model p-waarde" = "msg_model_p_value"),
       "Uitgebreide feedback bij de samenvattingsmaten"
     )
   })
@@ -2413,13 +2438,13 @@ server <- function(input, output, session){
             tags$li("De ", strong("correlatiecoëfficiënt (r)"), " toont de sterkte en richting van de lineaire relatie")
           ),
           p(style = "font-size: 15px; margin: 10px 0; color: #1B5E20;", 
-            strong("Wilt u voorspellingen leren?"), " Schakel over naar 'Bivariate Regressie' modus om de volledige 15-stappenanalyse te voltooien met regressievergelijking, voorspellingen en R²!")
+            strong("Wilt u voorspellingen leren?"), " Schakel over naar 'Bivariate Regressie' modus om de volledige 17-stappenanalyse te voltooien met regressievergelijking, voorspellingen, R² en F-toets!")
       )
     } else {
       div(class = "card", style = "background-color: #E8F5E9; border: 2px solid #4CAF50; padding: 20px; margin: 20px 0;",
-          h3(style = "color: #2E7D32; margin-top: 0;", "🎉 Uitstekend Werk! Alle 15 Stappen Voltooid!"),
+          h3(style = "color: #2E7D32; margin-top: 0;", "🎉 Uitstekend Werk! Alle 17 Stappen Voltooid!"),
           p(style = "font-size: 16px; margin: 15px 0;", 
-            strong("Gefeliciteerd!"), " U heeft met succes de volledige 15-stappen regressieanalyse voltooid."),
+            strong("Gefeliciteerd!"), " U heeft met succes de volledige 17-stappen regressieanalyse voltooid."),
           p(style = "font-size: 15px; margin: 10px 0;", 
             "U kunt nu de ", strong("visualisaties hieronder"), " bekijken om te zien:"),
           tags$ul(style = "font-size: 15px; margin: 10px 0;",
@@ -2657,6 +2682,8 @@ server <- function(input, output, session){
         intercept_exp <- round(mY - slope_exp * mX, 4)
         r_squared_exp <- round(correlation_exp^2, 4)
         alienation_exp <- round(1 - r_squared_exp, 4)
+        f_stat_exp <- round((r_squared_exp / 1) / ((1 - r_squared_exp) / (n - 2)), 4)
+        model_p_exp <- round(stats::pf(f_stat_exp, 1, n - 2, lower.tail = FALSE), 4)
         
         # Helper: compare student value against known wrong-formula alternatives
         diag <- function(val, patterns, fallback) {
@@ -2795,12 +2822,30 @@ server <- function(input, output, session){
                 "<b>Waarom fout:</b> U vulde r in &#8212; vervreemding = 1 &#8722; r&#178;.<br/><b>Correctie:</b> Kwadrateer eerst r, trek dan af van 1: 1 &#8722; r&#178;.")
             ), "Vervreemdingsco&#235;ffici&#235;nt onjuist. 1 &#8722; R&#178;."))
         }
+        if (has_attempted(input$f_stat)) {
+          mark_field("f_stat", check_decimals(to_num("f_stat"), f_stat_exp, 4), "msg_f_stat",
+            err_msg = diag(input$f_stat, list(
+              list(value = model_p_exp, tip =
+                "<b>Waarom fout:</b> U vulde de p-waarde in bij F.<br/><b>Correctie:</b> F = (R&#178;/1) / ((1&#8722;R&#178;)/(n&#8722;2))."),
+              list(value = round((r_squared_exp / 1) / ((1 - r_squared_exp) / (n - 3)), 4), tip =
+                "<b>Waarom fout:</b> U gebruikte n&#8722;3 in plaats van n&#8722;2.<br/><b>Correctie:</b> Voor bivariate regressie geldt df<sub>2</sub> = n&#8722;2.")
+            ), "F-statistiek onjuist. Gebruik F = (R&#178;/1) / ((1&#8722;R&#178;)/(n&#8722;2))."))
+        }
+        if (has_attempted(input$model_p_value)) {
+          mark_field("model_p_value", check_decimals(to_num("model_p_value"), model_p_exp, 4), "msg_model_p_value",
+            err_msg = diag(input$model_p_value, list(
+              list(value = f_stat_exp, tip =
+                "<b>Waarom fout:</b> U vulde de F-statistiek in bij de p-waarde.<br/><b>Correctie:</b> p = F.DIST.RT(F;1;n&#8722;2)."),
+              list(value = round(stats::pf(f_stat_exp, 1, n - 3, lower.tail = FALSE), 4), tip =
+                "<b>Waarom fout:</b> U gebruikte de verkeerde vrijheidsgraden in de F-verdeling.<br/><b>Correctie:</b> Gebruik df<sub>1</sub>=1 en df<sub>2</sub>=n&#8722;2.")
+            ), "Model p-waarde onjuist. Gebruik p = F.DIST.RT(F;1;n&#8722;2)."))
+        }
 
         # Reset any unattempted field to neutral — prevents stale green/red after clearing
         for (.fid in c("var_X", "var_Y", "sd_X", "sd_Y",
                        "cross_product_sum", "covariance", "sd_product",
                        "correlation", "slope", "intercept",
-                       "r_squared", "alienation")) {
+                       "r_squared", "alienation", "f_stat", "model_p_value")) {
           if (!has_attempted(input[[.fid]])) {
             session$sendCustomMessage("markField", list(id = .fid, state = "neutral"))
             output[[paste0("msg_", .fid)]] <- renderUI(HTML(""))
@@ -2927,12 +2972,18 @@ server <- function(input, output, session){
         )
       )
     }
+    n_obs <- nrow(df)
+    r2_val <- round(summary(fit)$r.squared, 4)
+    f_val <- round((r2_val / 1) / ((1 - r2_val) / (n_obs - 2)), 4)
+    p_val <- round(stats::pf(f_val, 1, n_obs - 2, lower.tail = FALSE), 4)
     
     div(class="accent",
         h5("Statistieken Samenvatting"),
         tags$ul(
           tags$li(paste0("Correlatie (r): ", round(r, 2))),
           tags$li(paste0("R²: ", round(summary(fit)$r.squared, 2))),
+          tags$li(paste0("F-statistiek: ", f_val)),
+          tags$li(paste0("Model p-waarde: ", p_val)),
           tags$li(paste0("Regressiecoëfficiënt (b): ", round(coef(fit)[2], 2))),
           tags$li(paste0("Intercept (a): ", round(coef(fit)[1], 2)))
         )
