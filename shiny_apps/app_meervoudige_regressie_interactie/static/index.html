@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactiemodel Oefening</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Interactiemodel</h1>
+      <p class="muted">Y = a + b1*X1c + b2*X2c + b3*(X1c*X2c)</p>
+
+      <label for="scenario">Scenario</label>
+      <select id="scenario"></select>
+
+      <label for="n">Steekproefgrootte N (5-40)</label>
+      <input id="n" type="number" min="5" max="40" step="1" value="12" />
+
+      <label for="seed">Datasetcode (seed, optioneel)</label>
+      <input id="seed" type="number" min="1" placeholder="bijv. 123" />
+
+      <div class="button-row">
+        <button id="btn-generate" class="btn btn-primary">Genereer dataset</button>
+        <button id="btn-random" class="btn">Willekeurig scenario</button>
+      </div>
+
+      <div class="steps">
+        <h3>Kernstappen</h3>
+        <ol>
+          <li>Bereken X1, X2 en Y gemiddelden.</li>
+          <li>Bereken S-totalen voor het interactiemodel.</li>
+          <li>Schat a, b1, b2 en b3.</li>
+          <li>Bereken voorspellingen Yhat.</li>
+          <li>Bereken R2, Delta R2 en vervreemdingscoefficient.</li>
+        </ol>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="card" id="scenario-card">
+        <h2>Scenario</h2>
+        <div id="scenario-text"></div>
+      </section>
+
+      <section class="card">
+        <h2>Dataset</h2>
+        <div class="table-wrap"><table id="dataset-table"></table></div>
+      </section>
+
+      <section class="card">
+        <h2>Stap 1 - Gemiddelden</h2>
+        <div class="grid three" id="step1-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Stap 2 - Totalen voor het interactiemodel</h2>
+        <div class="grid two" id="step2-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Stap 3 - Coefficienten</h2>
+        <div class="grid two" id="step3-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Stap 4 - Voorspellingen</h2>
+        <p class="muted">Gebruik de read-only kolommen X1c, X2c en INT.</p>
+        <div class="table-wrap"><table id="pred-table"></table></div>
+        <div id="pred-msg" class="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>Stap 5 - Model fit</h2>
+        <div class="grid three" id="step5-grid"></div>
+      </section>
+
+      <section class="card success hidden" id="success-card">
+        <h2>Volledig interactiemodel correct uitgewerkt</h2>
+      </section>
+
+      <section class="card locked" id="viz-card">
+        <h2>Visualisaties</h2>
+        <div class="chart-wrap"><canvas id="interaction-chart"></canvas></div>
+        <div class="chart-wrap"><canvas id="calibration-chart"></canvas></div>
+        <div class="chart-wrap"><canvas id="residual-chart"></canvas></div>
+        <div id="interpretation" class="interpretation"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

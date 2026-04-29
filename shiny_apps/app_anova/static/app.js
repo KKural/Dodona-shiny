@@ -266,30 +266,12 @@ function fCriticalVal(df1, df2, alpha = 0.05) {
     return r4(mid);
 }
 
-// \u2500\u2500\u2500 t-critical approximation (simple lookup or Abramowitz) \u2500\u2500
+// \u2500\u2500\u2500 t-critical (exact via F-distribution identity: t^2 ~ F(1,df)) \u2500\u2500
 function tCritical(p, df) {
-    // For typical df, use Wilson-Hilferty approximation
+    // t_{p}(df) = sqrt(F_{2(1-p)}(1, df)). E.g. p=0.975 -> alpha=0.05 F(1,df).
     if (df <= 0) return NaN;
-    // Inverse normal Z for p = 0.975 ≈ 1.96
-    // Use polynomial approximation for t-distribution
-    if (df >= 200) return 1.9600;
-    const table = {
-        1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365,
-        8: 2.306, 9: 2.262, 10: 2.228, 11: 2.201, 12: 2.179, 13: 2.160, 14: 2.145,
-        15: 2.131, 16: 2.120, 17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086,
-        25: 2.060, 30: 2.042, 40: 2.021, 50: 2.009, 60: 2.000, 80: 1.990,
-        100: 1.984, 120: 1.980
-    };
-    const keys = Object.keys(table).map(Number).sort((a, b) => a - b);
-    // interpolate
-    if (df <= keys[0]) return table[keys[0]];
-    for (let i = 0; i < keys.length - 1; i++) {
-        if (df >= keys[i] && df <= keys[i + 1]) {
-            const frac = (df - keys[i]) / (keys[i + 1] - keys[i]);
-            return table[keys[i]] + frac * (table[keys[i + 1]] - table[keys[i]]);
-        }
-    }
-    return 1.9600;
+    const alpha = 2 * (1 - p);
+    return Math.sqrt(fCriticalVal(1, df, alpha));
 }
 
 // \u2500\u2500\u2500 p-value from F (incomplete beta approx) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1115,7 +1097,6 @@ function renderCI() {
 
     const labels = sc.groups;
     const means = sc.groups.map(g => truth.grpMeans[g]);
-    const errors = sc.groups.map(g => truth.ciMargin[g]);
 
     state.chartCI = new Chart(ctx, {
         type: 'bar',
@@ -1336,6 +1317,31 @@ function attachGlobalListeners() {
     });
     if (btnClose) btnClose.addEventListener('click', closeSidebar);
     if (overlayEl) overlayEl.addEventListener('click', closeSidebar);
+
+    // ─── Sidebar resize drag handle ──
+    const resizeHandle = document.getElementById('sidebar-resize-handle');
+    if (resizeHandle && sidebarEl) {
+        let startX = 0, startWidth = 0;
+        resizeHandle.addEventListener('mousedown', (e) => {
+            startX = e.clientX;
+            startWidth = sidebarEl.getBoundingClientRect().width;
+            resizeHandle.classList.add('dragging');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!resizeHandle.classList.contains('dragging')) return;
+            const newWidth = Math.min(480, Math.max(180, startWidth + (e.clientX - startX)));
+            sidebarEl.style.width = newWidth + 'px';
+        });
+        document.addEventListener('mouseup', () => {
+            if (!resizeHandle.classList.contains('dragging')) return;
+            resizeHandle.classList.remove('dragging');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        });
+    }
 }
 
 // \u2500\u2500\u2500 INIT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500

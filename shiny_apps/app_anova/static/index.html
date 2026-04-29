@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eenweg ANOVA – Statistiek in de Criminologie</title>
+    <title>Eenweg ANOVA &ndash; Statistiek in de Criminologie</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
@@ -13,7 +13,8 @@
     <div class="layout">
 
         <!-- SIDEBAR -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
             <div class="sidebar-title">Eenweg ANOVA
                 <button class="btn-sidebar-close" id="btn-sidebar-close">&#10005;</button>
             </div>
@@ -26,16 +27,17 @@
                         <ul>
                             <li><b>Deel I:</b> Dataset bekijken</li>
                             <li><b>Deel II:</b> Groepsgemiddelden &amp; grootgemiddelde</li>
-                            <li><b>Deel III:</b> Afwijkingtabel — (Y−Yj), (Y−Yj)², (Yj−Ȳ..), (Yj−Ȳ..)²</li>
+                            <li><b>Deel III:</b> Afwijkingtabel &mdash; (Y&minus;Yj), (Y&minus;Yj)&sup2;,
+                                (Yj&minus;&#x0232;..), (Yj&minus;&#x0232;..)&sup2;</li>
                             <li><b>Deel IV:</b> SSW, SSB, SST</li>
-                            <li><b>Deel V:</b> df, MS, F-ratio, η²</li>
-                            <li><b>Deel VI–VII:</b> Visualisaties &amp; BI 🔒</li>
+                            <li><b>Deel V:</b> df, MS, F-ratio, &eta;&sup2;</li>
+                            <li><b>Deel VI&ndash;VII:</b> Visualisaties &amp; BI &#128274;</li>
                         </ul>
                     </li>
                     <li>Velden worden <span style="color:#22c55e;font-weight:700">groen</span> bij correct en <span
                             style="color:#ef4444;font-weight:700">rood</span> bij fout.</li>
-                    <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> en <b>BI-tabel</b> in Deel VI–VII.
-                    </li>
+                    <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> en <b>BI-tabel</b> in Deel
+                        VI&ndash;VII.</li>
                 </ul>
             </div>
 
@@ -55,6 +57,26 @@
             </div>
             <button class="btn-primary" id="btn-generate">&#9654; Genereer dataset</button>
             <button class="btn-secondary" id="btn-random">&#8635; Willekeurig scenario</button>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-card-title">Stappen (NL)</div>
+                <ol class="sidebar-steps-list">
+                    <li>Bereken &Ycirc;<sub>j</sub> per groep.</li>
+                    <li>Bereken &Ycirc;.. (gemiddelde van <i>alle</i> Y-waarden).</li>
+                    <li>(Y<sub>ij</sub> &minus; &Ycirc;<sub>j</sub>) per observatie.</li>
+                    <li>Kwadrateer: (Y<sub>ij</sub> &minus; &Ycirc;<sub>j</sub>)&sup2;.</li>
+                    <li>(&Ycirc;<sub>j</sub> &minus; &Ycirc;..) per groep.</li>
+                    <li>Kwadrateer: (&Ycirc;<sub>j</sub> &minus; &Ycirc;..)&sup2;.</li>
+                    <li>SSW = &sum;(Y<sub>ij</sub> &minus; &Ycirc;<sub>j</sub>)&sup2;.</li>
+                    <li>SSB = &sum;[n<sub>j</sub> &times; (&Ycirc;<sub>j</sub> &minus; &Ycirc;..)&sup2;].</li>
+                    <li>SST = SSW + SSB.</li>
+                    <li>df<sub>B</sub> = k &minus; 1, df<sub>W</sub> = N &minus; k, df<sub>T</sub> = N &minus; 1.</li>
+                    <li>MSB = SSB / df<sub>B</sub>, MSW = SSW / df<sub>W</sub>.</li>
+                    <li>F = MSB / MSW.</li>
+                </ol>
+            </div>
 
             <div class="sidebar-divider"></div>
             <div class="progress-block" id="progress-block">
