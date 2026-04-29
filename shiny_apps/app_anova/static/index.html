@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eenweg ANOVA – Statistiek in de Criminologie</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Eenweg ANOVA</div>
+
+            <div class="sidebar-section">
+                <label for="sel-scenario">Scenario</label>
+                <select id="sel-scenario"></select>
+            </div>
+            <div class="sidebar-section">
+                <label for="inp-n">n per groep</label>
+                <input type="number" id="inp-n" value="8" min="3" max="16" />
+            </div>
+            <div class="sidebar-section">
+                <label for="inp-seed">Seed</label>
+                <input type="number" id="inp-seed" value="42" min="1" />
+            </div>
+            <button class="btn-primary" id="btn-generate">&#9654; Genereer dataset</button>
+            <button class="btn-secondary" id="btn-random">&#8635; Willekeurig scenario</button>
+
+            <div class="sidebar-divider"></div>
+            <div class="progress-block" id="progress-block">
+                <div class="progress-label">Voortgang</div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="progress-text" id="progress-text">0 / 0 correct</div>
+            </div>
+            <div class="sidebar-divider"></div>
+            <div class="section-nav" id="section-nav">
+                <div class="nav-item active" data-target="deel1">I. Dataset</div>
+                <div class="nav-item" data-target="deel2">II. Gemiddelden</div>
+                <div class="nav-item" data-target="deel3">III. Afwijkingtabel</div>
+                <div class="nav-item" data-target="deel4">IV. SS-waarden</div>
+                <div class="nav-item" data-target="deel5">V. ANOVA-tabel</div>
+                <div class="nav-item locked" data-target="deel6">VI. Visualisaties 🔒</div>
+                <div class="nav-item locked" data-target="deel7">VII. BI–intervallen 🔒</div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-content">
+
+            <!-- Vignette banner -->
+            <div class="vignette-card" id="vignette-card">
+                <span id="vignette-text">Genereer een dataset om te beginnen.</span>
+            </div>
+
+            <!-- DEEL I -->
+            <section class="card" id="deel1">
+                <div class="card-header">Deel I — Dataset bekijken</div>
+                <div class="card-body">
+                    <p id="dataset-info" class="muted">Klik op <strong>Genereer dataset</strong> om een dataset te
+                        laden.</p>
+                    <div id="dataset-table-wrap"></div>
+                </div>
+            </section>
+
+            <!-- DEEL II -->
+            <section class="card" id="deel2">
+                <div class="card-header">Deel II — Groepsgemiddelden &amp; grootgemiddelde</div>
+                <div class="card-body">
+                    <p class="instruction">Bereken het gemiddelde voor elke groep en het grootgemiddelde (gemiddelde van
+                        alle waarnemingen samen). Rond af op 4 decimalen.</p>
+                    <div id="group-means-inputs"></div>
+                    <div class="field-row">
+                        <label>Grootgemiddelde (Ȳ..)</label>
+                        <input type="number" step="any" id="inp-grand-mean" class="num-input" placeholder="0.0000" />
+                        <span class="light" id="light-grand-mean"></span>
+                        <span class="field-msg" id="msg-grand-mean"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DEEL III -->
+            <section class="card" id="deel3">
+                <div class="card-header">Deel III — Afwijkingtabel</div>
+                <div class="card-body">
+                    <p class="instruction">Vul de afwijkingen in. Kolommen <em>(Y−Yj)</em> en <em>(Y−Yj)²</em> worden
+                        per rij ingevuld. Kolommen <em>(Yj−Ȳ..)</em> en <em>(Yj−Ȳ..)²</em> zijn constant per groep: vul
+                        alleen de <strong>eerste rij</strong> van elke groep in.</p>
+                    <div class="table-scroll">
+                        <table class="calc-table" id="calc-table">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="feedback-box" id="table-feedback"></div>
+                </div>
+            </section>
+
+            <!-- DEEL IV -->
+            <section class="card" id="deel4">
+                <div class="card-header">Deel IV — Kwadratensom (SS)</div>
+                <div class="card-body">
+                    <p class="instruction">Bereken de kwadratensommen op basis van de afwijkingtabel. Rond af op 4
+                        decimalen.</p>
+                    <div class="ss-grid">
+                        <div class="field-row">
+                            <label>SSW (binnen groepen)</label>
+                            <input type="number" step="any" id="inp-ssw" class="num-input" placeholder="0.0000" />
+                            <span class="light" id="light-ssw"></span>
+                            <span class="field-msg" id="msg-ssw"></span>
+                        </div>
+                        <div class="field-row">
+                            <label>SSB (tussen groepen)</label>
+                            <input type="number" step="any" id="inp-ssb" class="num-input" placeholder="0.0000" />
+                            <span class="light" id="light-ssb"></span>
+                            <span class="field-msg" id="msg-ssb"></span>
+                        </div>
+                        <div class="field-row">
+                            <label>SST (totaal)</label>
+                            <input type="number" step="any" id="inp-sst" class="num-input" placeholder="0.0000" />
+                            <span class="light" id="light-sst"></span>
+                            <span class="field-msg" id="msg-sst"></span>
+                        </div>
+                    </div>
+                    <div class="ss-decomp-hint" id="ss-decomp-disp"></div>
+                </div>
+            </section>
+
+            <!-- DEEL V -->
+            <section class="card" id="deel5">
+                <div class="card-header">Deel V — ANOVA-tabel (df, MS, F, η²)</div>
+                <div class="card-body">
+                    <p class="instruction">Bereken de vrijheidsgraden, gemiddelde kwadratensommen, F-ratio en
+                        eta-kwadraat.</p>
+                    <table class="anova-table">
+                        <thead>
+                            <tr>
+                                <th>Bron</th>
+                                <th>SS</th>
+                                <th>df</th>
+                                <th>MS</th>
+                                <th>F</th>
+                                <th>η²</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Tussen groepen</td>
+                                <td id="disp-ssb">—</td>
+                                <td><input type="number" step="1" id="inp-df-between" class="num-input small"
+                                        placeholder="?" /><span class="light" id="light-df-between"></span></td>
+                                <td><input type="number" step="any" id="inp-msb" class="num-input"
+                                        placeholder="0.0000" /><span class="light" id="light-msb"></span></td>
+                                <td><input type="number" step="any" id="inp-f" class="num-input"
+                                        placeholder="0.0000" /><span class="light" id="light-f"></span></td>
+                                <td><input type="number" step="any" id="inp-eta" class="num-input"
+                                        placeholder="0.0000" /><span class="light" id="light-eta"></span></td>
+                            </tr>
+                            <tr>
+                                <td>Binnen groepen</td>
+                                <td id="disp-ssw">—</td>
+                                <td><input type="number" step="1" id="inp-df-within" class="num-input small"
+                                        placeholder="?" /><span class="light" id="light-df-within"></span></td>
+                                <td><input type="number" step="any" id="inp-msw" class="num-input"
+                                        placeholder="0.0000" /><span class="light" id="light-msw"></span></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Totaal</td>
+                                <td id="disp-sst">—</td>
+                                <td><input type="number" step="1" id="inp-df-total" class="num-input small"
+                                        placeholder="?" /><span class="light" id="light-df-total"></span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="feedback-box" id="anova-table-feedback"></div>
+                    <div class="sig-note" id="sig-note"></div>
+                    <div class="success-msg" id="success-msg"></div>
+                </div>
+            </section>
+
+            <!-- DEEL VI -->
+            <section class="card locked-section" id="deel6">
+                <div class="card-header">Deel VI — Visualisaties &amp; conclusie 🔒</div>
+                <div class="card-body">
+                    <div class="lock-notice" id="lock6">Vul alle antwoorden correct in om de visualisaties te
+                        ontgrendelen.</div>
+                    <div class="viz-content hidden" id="viz-content">
+                        <div class="charts-row">
+                            <div class="chart-wrap">
+                                <canvas id="chart-boxplot" height="280"></canvas>
+                            </div>
+                            <div class="chart-wrap">
+                                <canvas id="chart-ss" height="280"></canvas>
+                            </div>
+                        </div>
+                        <div class="interpretation-block" id="interpretation-block"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DEEL VII -->
+            <section class="card locked-section" id="deel7">
+                <div class="card-header">Deel VII — 95%-betrouwbaarheidsintervallen 🔒</div>
+                <div class="card-body">
+                    <div class="lock-notice" id="lock7">Vul alle antwoorden correct in om de BI-tabel te ontgrendelen.
+                    </div>
+                    <div class="ci-content hidden" id="ci-content">
+                        <table class="ci-table" id="ci-table">
+                            <thead>
+                                <tr>
+                                    <th>Groep</th>
+                                    <th>n</th>
+                                    <th>Gem.</th>
+                                    <th>Marge</th>
+                                    <th>BI onder</th>
+                                    <th>BI boven</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <canvas id="chart-ci" height="220"></canvas>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
