@@ -131,7 +131,7 @@
                         alle waarnemingen samen). Rond af op 4 decimalen.</p>
                     <div id="group-means-inputs"></div>
                     <div class="field-row">
-                        <label>Grootgemiddelde (&#562;..)</label>
+                        <label>Grootgemiddelde (<span style="text-decoration:overline">Y</span>..)</label>
                         <input type="number" step="any" id="inp-grand-mean" class="num-input" placeholder="0.0000" />
                         <span class="light" id="light-grand-mean"></span>
                     </div>
@@ -145,9 +145,11 @@
             <section class="card" id="deel3">
                 <div class="card-header">Deel III &mdash; Afwijkingtabel</div>
                 <div class="card-body">
-                    <p class="instruction">Vul de afwijkingen in. Kolommen <em>(Y&minus;Yj)</em> en <em>(Y&minus;Yj)&sup2;</em>
+                    <p class="instruction">Vul de afwijkingen in. Kolommen <em>(Y&minus;Yj)</em> en
+                        <em>(Y&minus;Yj)&sup2;</em>
                         worden
-                        per rij ingevuld. Kolommen <em>(Yj&minus;&#562;..)</em> en <em>(Yj&minus;&#562;..)&sup2;</em> zijn constant per
+                        per rij ingevuld. Kolommen <em>(Yj&minus;<span style="text-decoration:overline">Y</span>..)</em>
+                        en <em>(Yj&minus;<span style="text-decoration:overline">Y</span>..)&sup2;</em> zijn constant per
                         groep: vul
                         alleen de <strong>eerste rij</strong> van elke groep in.</p>
                     <div class="table-scroll">

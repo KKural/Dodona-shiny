@@ -566,7 +566,7 @@ function renderDeviationTable() {
     table.querySelector('thead').innerHTML = `
     <tr>
       <th>Eenheid</th><th>Groep</th><th>${yName}</th>
-      <th>(Y\u2212Yj)</th><th>(Y\u2212Yj)\u00b2</th><th>(Yj\u2212\u0232..)</th><th>(Yj\u2212\u0232..)\u00b2</th>
+      <th>(Y\u2212Yj)</th><th>(Y\u2212Yj)\u00b2</th><th>(Yj\u2212<span style="text-decoration:overline">Y</span>..)</th><th>(Yj\u2212<span style="text-decoration:overline">Y</span>..)\u00b2</th>
     </tr>`;
 
     // figure out group start rows
