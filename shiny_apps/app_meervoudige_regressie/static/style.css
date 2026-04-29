@@ -140,19 +140,22 @@ body {
   font-size: 0.9rem;
 }
 
-.field input {
+.field input,
+.field select {
   width: 100%;
   padding: 8px;
   border-radius: 8px;
   border: 1px solid #cbd5e1;
 }
 
-.field input.valid {
+.field input.valid,
+.field select.valid {
   border: 2px solid var(--ok);
   background: #ecfdf3;
 }
 
-.field input.invalid {
+.field input.invalid,
+.field select.invalid {
   border: 2px solid var(--bad);
   background: #fef2f2;
 }

@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Partiele Correlatie Oefening</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Partiele Correlatie</h1>
+      <p class="muted">r_xy.z = (r_xy - r_xz*r_yz)/sqrt((1-r_xz^2)(1-r_yz^2))</p>
+
+      <label for="scenario">Scenario</label>
+      <select id="scenario"></select>
+
+      <label for="n">Steekproefgrootte N (4-50)</label>
+      <input id="n" type="number" min="4" max="50" step="1" value="15" />
+
+      <label for="seed">Datasetcode (seed, optioneel)</label>
+      <input id="seed" type="number" min="1" placeholder="bijv. 123" />
+
+      <div class="button-row">
+        <button id="btn-generate" class="btn btn-primary">Genereer dataset</button>
+        <button id="btn-random" class="btn">Willekeurig scenario</button>
+      </div>
+
+      <div class="steps">
+        <h3>Kernstappen</h3>
+        <ol>
+          <li>Gemiddelden en afwijkingen voor X, Y en Z.</li>
+          <li>SS, SCP, variantie, SD, covariantie en bivariate r.</li>
+          <li>Bereken teller/noemer en r_xy.z.</li>
+          <li>Classificeer het type relatie (1-5).</li>
+        </ol>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="card" id="scenario-card">
+        <h2>Scenario</h2>
+        <div id="scenario-text"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel I - Dataset</h2>
+        <div class="table-wrap"><table id="dataset-table"></table></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel II - Gemiddelden</h2>
+        <div class="grid three" id="means-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel III-IV - SS, SCP, Var, SD, Cov, r</h2>
+        <div class="grid three" id="stats-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel V - Partiele correlatie</h2>
+        <div class="grid three" id="partial-grid"></div>
+        <div class="field" style="margin-top:10px;">
+          <label for="conclusie_type">Type conclusie (1-5)</label>
+          <select id="conclusie_type">
+            <option value="">Kies...</option>
+            <option value="1">1 - Schijnverband</option>
+            <option value="2">2 - Indirect/confounding</option>
+            <option value="3">3 - Suppressie</option>
+            <option value="4">4 - Direct effect blijft</option>
+            <option value="5">5 - Tekenwisseling</option>
+          </select>
+          <div id="conclusie_type_msg" class="msg"></div>
+        </div>
+      </section>
+
+      <section class="card success hidden" id="success-card">
+        <h2>Volledige partiele correlatie correct uitgewerkt</h2>
+      </section>
+
+      <section class="card locked" id="viz-card">
+        <h2>Visualisaties</h2>
+        <div class="chart-wrap"><canvas id="scatter-chart"></canvas></div>
+        <div id="interpretation" class="interpretation"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
