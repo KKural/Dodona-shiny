@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Correlatie en Regressie Oefening</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Correlatie &amp; Regressie</h1>
+      <p class="muted">Bivariaat model: Y = a + b*X</p>
+
+      <label for="scenario">Scenario</label>
+      <select id="scenario"></select>
+
+      <label for="n">Steekproefgrootte N (5-50)</label>
+      <input id="n" type="number" min="5" max="50" step="1" value="10" />
+
+      <label for="seed">Datasetcode (seed, optioneel)</label>
+      <input id="seed" type="number" min="1" placeholder="bijv. 123" />
+
+      <div class="button-row">
+        <button id="btn-generate" class="btn btn-primary">Genereer dataset</button>
+        <button id="btn-random" class="btn">Willekeurig scenario</button>
+      </div>
+
+      <div class="steps">
+        <h3>Kernstappen</h3>
+        <ol>
+          <li>Gemiddelden en afwijkingen van X en Y.</li>
+          <li>Variantie, SD, covariantie en correlatie.</li>
+          <li>Helling b en intercept a.</li>
+          <li>Voorspellingen, R2, F en model p.</li>
+        </ol>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="card" id="scenario-card">
+        <h2>Scenario</h2>
+        <div id="scenario-text"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel I - Dataset</h2>
+        <div class="table-wrap"><table id="dataset-table"></table></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel II - Gemiddelden</h2>
+        <div class="grid two" id="means-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel III - Totalen</h2>
+        <div class="grid two" id="totals-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel IV - Variantie, SD, Cov en r</h2>
+        <div class="grid three" id="stats-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel V-VI - Regressievergelijking</h2>
+        <div class="grid three" id="reg-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel VII - Voorspellingen Yhat</h2>
+        <div class="table-wrap"><table id="pred-table"></table></div>
+        <div id="pred-msg" class="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>Deel VIII - R2 en F-toets</h2>
+        <div class="grid two" id="fit-grid"></div>
+      </section>
+
+      <section class="card success hidden" id="success-card">
+        <h2>Volledig model correct uitgewerkt</h2>
+      </section>
+
+      <section class="card locked" id="viz-card">
+        <h2>Visualisaties</h2>
+        <div class="chart-wrap"><canvas id="scatter-chart"></canvas></div>
+        <div class="chart-wrap"><canvas id="calibration-chart"></canvas></div>
+        <div class="chart-wrap"><canvas id="residual-chart"></canvas></div>
+        <div id="interpretation" class="interpretation"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

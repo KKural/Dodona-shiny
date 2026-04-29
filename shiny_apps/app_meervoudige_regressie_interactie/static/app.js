@@ -135,8 +135,9 @@ function sampleSD(arr) {
 }
 
 function scaleLatent(z, center, spread, bounds) {
+  const mu = sampleMean(z);
   const sd = sampleSD(z);
-  const zz = (!Number.isFinite(sd) || sd === 0) ? z.slice() : z.map(v => (v - sampleMean(z)) / sd);
+  const zz = (!Number.isFinite(sd) || sd === 0) ? z.slice() : z.map(v => (v - mu) / sd);
   return zz.map(v => r2(clamp(center + spread * v, bounds[0], bounds[1])));
 }
 
@@ -310,6 +311,7 @@ function calcTruth(data) {
 
   const Xadd = x1c.map((v, i) => [1, v, x2c[i]]);
   const betaAdd = regressionBetas(Xadd, Y);
+  if (!betaAdd) return null;
   const yhatAdd = Xadd.map(row => r4(row[0] * betaAdd[0] + row[1] * betaAdd[1] + row[2] * betaAdd[2]));
   const SSEadd = r4(Y.reduce((s, v, i) => s + r4((v - yhatAdd[i]) ** 2), 0));
   const R2_add = SST === 0 ? 0 : r4(1 - r4(SSEadd / SST));
