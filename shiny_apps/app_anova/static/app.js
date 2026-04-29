@@ -142,6 +142,9 @@ const state = {
     chartCI: null
 };
 
+// Feedback message store (mirrors R app feedback_store)
+const feedbackStore = {};
+
 // ─── DEBOUNCE ────────────────────────────────────────────────
 function debounce(fn, ms) {
     let timer;
@@ -201,8 +204,17 @@ function calculateTruth(data, sc) {
     const devBetweenSq = devBetween.map(v => r4(v * v));
 
     const SSW = r4(devWithinSq.reduce((a, b) => a + b));
-    const SSB = r4(devBetweenSq.reduce((a, b) => a + b));
-    const SST = r4(SSW + SSB);
+    // SSB = Σ nj(Yj − Y..)² — explicit group-level formula
+    let SSB = 0;
+    groups.forEach(g => {
+        const d = r4(grpMeans[g] - grandMean);
+        SSB += nGroups[g] * r4(d * d);
+    });
+    SSB = r4(SSB);
+    // SST = Σ(Y − Ȳ..)² — computed directly; also confirms SST = SSW + SSB
+    const devTotal = data.map(d => r4(d.y - grandMean));
+    const devTotalSq = devTotal.map(v => r4(v * v));
+    const SST = r4(devTotalSq.reduce((a, b) => a + b, 0));
 
     const dfBetween = k - 1;
     const dfWithin = N - k;
@@ -230,12 +242,28 @@ function calculateTruth(data, sc) {
         groups, k, N, nGroups,
         grpMeans, grandMean,
         devWithin, devWithinSq, devBetween, devBetweenSq,
+        devTotal, devTotalSq,
         SSW, SSB, SST,
         dfBetween, dfWithin, dfTotal,
         MSB, MSW, Fratio, etaSq,
         tCrit, ciMargin, ciLower, ciUpper,
-        pValue: pValueFromF(Fratio, dfBetween, dfWithin)
+        // Approximate p-value for teaching interpretation only — not used for student validation.
+        pValue: pValueFromF(Fratio, dfBetween, dfWithin),
+        // F-critical at alpha=0.05 for teaching (binary search via pValueFromF)
+        fCritical: fCriticalVal(dfBetween, dfWithin)
     };
+}
+
+// ─── F-critical at alpha=0.05 (binary search using pValueFromF) ──
+function fCriticalVal(df1, df2, alpha = 0.05) {
+    if (df1 <= 0 || df2 <= 0) return NaN;
+    let lo = 0, hi = 100, mid = 1;
+    for (let i = 0; i < 80; i++) {
+        mid = (lo + hi) / 2;
+        const p = pValueFromF(mid, df1, df2);
+        if (p > alpha) lo = mid; else hi = mid;
+    }
+    return r4(mid);
 }
 
 // ─── t-critical approximation (simple lookup or Abramowitz) ──
@@ -330,6 +358,163 @@ function betaCF(x, a, b) {
     return h;
 }
 
+// ─── FIELD FEEDBACK MESSAGES ─────────────────────────────────
+// Returns an HTML diagnostic string or null for each field
+function getFeedbackMsg(fieldKey, userVal, t) {
+    const v = parseFloat(userVal);
+    if (isNaN(v)) return null;
+    const tol = (ref) => Math.max(0.005, 0.01 * Math.abs(ref));
+    const bigTol = (ref) => Math.max(0.5, 0.01 * Math.abs(ref));
+
+    if (fieldKey === 'grandMean') {
+        const unweighted = r4(t.groups.reduce((s, g) => s + t.grpMeans[g], 0) / t.groups.length);
+        if (Math.abs(v - unweighted) <= tol(unweighted) && Math.abs(v - t.grandMean) > 0.005)
+            return `<b>Waarom fout:</b> U berekende het ongewogen gemiddelde van de groepsgemiddelden (= ${unweighted.toFixed(4)}) in plaats van het grootgemiddelde.<br><b>Oorzaak:</b> Bij ongelijke groepsgrootten is het gemiddelde van groepsgemiddelden ≠ ΣY/N.<br><b>Correctie:</b> Tel alle N = ${t.N} Y-waarden op en deel door N.`;
+        for (const g of t.groups) {
+            if (Math.abs(v - t.grpMeans[g]) <= tol(t.grpMeans[g]))
+                return `<b>Waarom fout:</b> U vulde het groepsgemiddelde van groep '${g}' (= ${t.grpMeans[g].toFixed(4)}) in.<br><b>Correctie:</b> Het grootgemiddelde is het gemiddelde van ALLE N = ${t.N} Y-waarden — Y&#x0305;.. = ΣY / N.`;
+        }
+        return `Grootgemiddelde onjuist. Y&#x0305;.. = Σ(alle Y-waarden) / N. Gebruik alle N = ${t.N} waarnemingen.`;
+    }
+
+    if (fieldKey.startsWith('grp_')) {
+        const gi = parseInt(fieldKey.split('_')[1], 10);
+        const g = t.groups[gi];
+        if (!g) return null;
+        const nj = t.nGroups[g];
+        const grpSum = r4(t.grpMeans[g] * nj);
+        if (Math.abs(v - t.grandMean) <= tol(t.grandMean))
+            return `<b>Waarom fout:</b> U vulde het grootgemiddelde (Y&#x0305;.. = ${t.grandMean.toFixed(4)}) in als groepsgemiddelde van '${g}'.<br><b>Oorzaak:</b> Het groepsgemiddelde gebruikt alleen de waarden bínnen groep '${g}', niet alle N = ${t.N} waarnemingen.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = Σ(Y voor groep ${g}) / n<sub>${g}</sub>.`;
+        if (Math.abs(v - t.MSW) <= tol(t.MSW))
+            return `<b>Waarom fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in — dat is een gemiddeld kwadraat, geen rekenkundig gemiddelde.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = Σ(Y voor groep ${g}) / n<sub>${g}</sub>.`;
+        if (nj > 1 && Math.abs(v - grpSum) <= Math.max(0.5, tol(grpSum)))
+            return `<b>Waarom fout:</b> U vulde de groepssom (${grpSum.toFixed(4)}) in zonder te delen door n.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = ΣY / n<sub>${g}</sub> — deel de som door n<sub>${g}</sub> = ${nj}.`;
+        return `Groepsgemiddelde onjuist. Y&#x0305;<sub>${g}</sub> = Σ(Y voor groep ${g}) / n<sub>${g}</sub> (n<sub>${g}</sub> = ${nj}).`;
+    }
+
+    if (fieldKey === 'ssw') {
+        if (Math.abs(v - t.SSB) <= bigTol(t.SSB))
+            return `<b>Verwisseld:</b> U vulde SSB (${t.SSB.toFixed(4)}) in bij SSW — deze zijn verwisseld.<br><b>Oorzaak:</b> SSW = <em>binnengroepse</em> variatie Σ(Y−Y&#x0305;<sub>j</sub>)²; SSB = <em>tussengroepse</em> variatie.<br><b>Correctie:</b> Gebruik de juiste kolomsom uit de afwijkingtabel.`;
+        if (Math.abs(v - t.SST) <= bigTol(t.SST))
+            return `<b>Fout:</b> U vulde SST (${t.SST.toFixed(4)}) in bij SSW.<br><b>Oorzaak:</b> SST = SSW + SSB; SSW is alleen de binnengroepse variatie.<br><b>Correctie:</b> Haal SSB van SST af: SSW = SST − SSB = ${t.SST.toFixed(4)} − ${t.SSB.toFixed(4)}.`;
+        if (Math.abs(v - t.MSW) <= bigTol(t.MSW))
+            return `<b>Fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in bij SSW.<br><b>Oorzaak:</b> MSW = SSW / df<sub>binnen</sub> — SSW is de som vóór deling door df.<br><b>Correctie:</b> Vermenigvuldig MSW met df<sub>binnen</sub>: SSW = ${t.MSW.toFixed(4)} × ${t.dfWithin}.`;
+        return 'SSW onjuist. SSW = som van alle (Y−Y&#x0305;<sub>j</sub>)² uit de afwijkingtabel.';
+    }
+    if (fieldKey === 'ssb') {
+        if (Math.abs(v - t.SSW) <= bigTol(t.SSW))
+            return `<b>Verwisseld:</b> U vulde SSW (${t.SSW.toFixed(4)}) in bij SSB — deze zijn verwisseld.<br><b>Oorzaak:</b> SSB = <em>tussengroepse</em> variatie Σ n<sub>j</sub>(Y&#x0305;<sub>j</sub>−Y&#x0305;..)²; SSW is binnengroeps.<br><b>Correctie:</b> Gebruik de tussengroepse kwadratenkolom.`;
+        if (Math.abs(v - t.SST) <= bigTol(t.SST))
+            return `<b>Fout:</b> U vulde SST (${t.SST.toFixed(4)}) in bij SSB.<br><b>Oorzaak:</b> SSB is alleen de tussengroepse variatie, niet het totaal.<br><b>Correctie:</b> Haal SSW van SST af: SSB = SST − SSW = ${t.SST.toFixed(4)} − ${t.SSW.toFixed(4)}.`;
+        if (Math.abs(v - t.MSB) <= bigTol(t.MSB))
+            return `<b>Fout:</b> U vulde MSB (${t.MSB.toFixed(4)}) in bij SSB.<br><b>Oorzaak:</b> MSB = SSB / df<sub>tussen</sub> — SSB is de som vóór deling door df.<br><b>Correctie:</b> Vermenigvuldig MSB met df<sub>tussen</sub>: SSB = ${t.MSB.toFixed(4)} × ${t.dfBetween}.`;
+        return 'SSB onjuist. SSB = Σ n<sub>j</sub>(Y&#x0305;<sub>j</sub>−Y&#x0305;..)² (tussengroepse variatie).';
+    }
+    if (fieldKey === 'sst') {
+        if (Math.abs(v - t.SSW) <= bigTol(t.SSW))
+            return `<b>Fout:</b> U vulde SSW (${t.SSW.toFixed(4)}) in bij SST.<br><b>Correctie:</b> SST = SSW + SSB = ${t.SSW.toFixed(4)} + ${t.SSB.toFixed(4)}.`;
+        if (Math.abs(v - t.SSB) <= bigTol(t.SSB))
+            return `<b>Fout:</b> U vulde SSB (${t.SSB.toFixed(4)}) in bij SST.<br><b>Correctie:</b> SST = SSW + SSB = ${t.SSW.toFixed(4)} + ${t.SSB.toFixed(4)}.`;
+        return `SST onjuist. SST = SSW + SSB = ${t.SSW.toFixed(4)} + ${t.SSB.toFixed(4)}.`;
+    }
+    if (fieldKey === 'df-between') {
+        if (v === t.k) return `<b>Fout:</b> U vulde k (= ${t.k}) in. df<sub>tussen</sub> = k − 1, dus trek 1 af.<br><b>Correctie:</b> df<sub>tussen</sub> = ${t.k} − 1 = ${t.dfBetween}.`;
+        if (v === t.k + 1) return `<b>Fout:</b> U telde 1 op bij k in plaats van af te trekken.<br><b>Correctie:</b> df<sub>tussen</sub> = k − 1 = ${t.k} − 1 = ${t.dfBetween}.`;
+        if (v === t.dfWithin) return `<b>Verwisseld:</b> U vulde df<sub>binnen</sub> (= ${t.dfWithin}) in bij df<sub>tussen</sub>.<br><b>Correctie:</b> df<sub>tussen</sub> = k − 1 = ${t.dfBetween}; df<sub>binnen</sub> = N − k = ${t.dfWithin}.`;
+        if (v === t.dfTotal) return `<b>Fout:</b> U vulde df<sub>totaal</sub> (= ${t.dfTotal}) in bij df<sub>tussen</sub>.<br><b>Correctie:</b> df<sub>tussen</sub> = k − 1 = ${t.dfBetween}.`;
+        return `df<sub>tussen</sub> onjuist. df<sub>tussen</sub> = k − 1 = ${t.k} − 1 = ${t.dfBetween}.`;
+    }
+    if (fieldKey === 'df-within') {
+        if (v === t.N) return `<b>Fout:</b> U vulde N (= ${t.N}) in. df<sub>binnen</sub> = N − k — trek ook het aantal groepen k = ${t.k} af.<br><b>Correctie:</b> df<sub>binnen</sub> = ${t.N} − ${t.k} = ${t.dfWithin}.`;
+        if (v === t.N - 1) return `<b>Fout:</b> U vulde N − 1 (= ${t.N - 1}) in. df<sub>binnen</sub> = N − k — trek k af, niet 1.<br><b>Correctie:</b> df<sub>binnen</sub> = ${t.N} − ${t.k} = ${t.dfWithin}.`;
+        if (v === t.dfBetween) return `<b>Verwisseld:</b> U vulde df<sub>tussen</sub> (= ${t.dfBetween}) in bij df<sub>binnen</sub>.<br><b>Correctie:</b> df<sub>binnen</sub> = N − k = ${t.dfWithin}; df<sub>tussen</sub> = k − 1 = ${t.dfBetween}.`;
+        return `df<sub>binnen</sub> onjuist. df<sub>binnen</sub> = N − k = ${t.N} − ${t.k} = ${t.dfWithin}.`;
+    }
+    if (fieldKey === 'df-total') {
+        if (v === t.N) return `<b>Fout:</b> U vulde N (= ${t.N}) in. df<sub>totaal</sub> = N − 1 — trek 1 af.<br><b>Correctie:</b> df<sub>totaal</sub> = ${t.N} − 1 = ${t.dfTotal}.`;
+        if (v === t.dfBetween) return `<b>Fout:</b> U vulde df<sub>tussen</sub> (= ${t.dfBetween}) in bij df<sub>totaal</sub>.<br><b>Correctie:</b> df<sub>totaal</sub> = N − 1 = ${t.dfTotal}.`;
+        if (v === t.dfWithin) return `<b>Fout:</b> U vulde df<sub>binnen</sub> (= ${t.dfWithin}) in bij df<sub>totaal</sub>.<br><b>Correctie:</b> df<sub>totaal</sub> = N − 1 = ${t.dfTotal}.`;
+        if (v === t.dfWithin + t.dfBetween - 1) return `<b>Fout:</b> U berekende df<sub>tussen</sub> + df<sub>binnen</sub> − 1 (= ${t.dfWithin + t.dfBetween - 1}) — de −1 is niet nodig.<br><b>Correctie:</b> df<sub>totaal</sub> = df<sub>tussen</sub> + df<sub>binnen</sub> = ${t.dfTotal}.`;
+        return `df<sub>totaal</sub> onjuist. df<sub>totaal</sub> = N − 1 = ${t.N} − 1 = ${t.dfTotal}.`;
+    }
+    if (fieldKey === 'msb') {
+        if (Math.abs(v - t.SSB) <= bigTol(t.SSB))
+            return `<b>Fout:</b> U vulde SSB (${t.SSB.toFixed(4)}) in bij MSB — deel nog door df<sub>tussen</sub>.<br><b>Correctie:</b> MSB = SSB / df<sub>tussen</sub> = ${t.SSB.toFixed(4)} / ${t.dfBetween}.`;
+        if (Math.abs(v - t.MSW) <= bigTol(t.MSW))
+            return `<b>Verwisseld:</b> U vulde MSW (${t.MSW.toFixed(4)}) in bij MSB.<br><b>Correctie:</b> MSB = SSB / df<sub>tussen</sub> = ${t.SSB.toFixed(4)} / ${t.dfBetween}.`;
+        if (t.dfWithin > 0 && Math.abs(v - r4(t.SSB / t.dfWithin)) <= bigTol(r4(t.SSB / t.dfWithin)))
+            return `<b>Fout:</b> U deelde SSB door df<sub>binnen</sub> (= ${t.dfWithin}) in plaats van df<sub>tussen</sub> (= ${t.dfBetween}).<br><b>Correctie:</b> MSB = SSB / df<sub>tussen</sub>.`;
+        return `MSB onjuist. MSB = SSB / df<sub>tussen</sub> = ${t.SSB.toFixed(4)} / ${t.dfBetween}.`;
+    }
+    if (fieldKey === 'msw') {
+        if (Math.abs(v - t.SSW) <= bigTol(t.SSW))
+            return `<b>Fout:</b> U vulde SSW (${t.SSW.toFixed(4)}) in bij MSW — deel nog door df<sub>binnen</sub>.<br><b>Correctie:</b> MSW = SSW / df<sub>binnen</sub> = ${t.SSW.toFixed(4)} / ${t.dfWithin}.`;
+        if (Math.abs(v - t.MSB) <= bigTol(t.MSB))
+            return `<b>Verwisseld:</b> U vulde MSB (${t.MSB.toFixed(4)}) in bij MSW.<br><b>Correctie:</b> MSW = SSW / df<sub>binnen</sub> = ${t.SSW.toFixed(4)} / ${t.dfWithin}.`;
+        if (t.dfBetween > 0 && Math.abs(v - r4(t.SSW / t.dfBetween)) <= bigTol(r4(t.SSW / t.dfBetween)))
+            return `<b>Fout:</b> U deelde SSW door df<sub>tussen</sub> (= ${t.dfBetween}) in plaats van df<sub>binnen</sub> (= ${t.dfWithin}).<br><b>Correctie:</b> MSW = SSW / df<sub>binnen</sub>.`;
+        return `MSW onjuist. MSW = SSW / df<sub>binnen</sub> = ${t.SSW.toFixed(4)} / ${t.dfWithin}.`;
+    }
+    if (fieldKey === 'f') {
+        if (isFinite(t.Fratio) && t.Fratio > 0 && Math.abs(v - r4(1 / t.Fratio)) < Math.max(0.01, 0.02 / t.Fratio))
+            return `<b>Omgekeerd:</b> U berekende MSW/MSB (= ${r4(1 / t.Fratio).toFixed(4)}) in plaats van MSB/MSW — draai de deling om.<br><b>Correctie:</b> F = MSB / MSW = ${t.MSB.toFixed(4)} / ${t.MSW.toFixed(4)}.`;
+        return `F-ratio onjuist. F = MSB / MSW = ${t.MSB.toFixed(4)} / ${t.MSW.toFixed(4)} (tussengroeps gedeeld door binnengroeps).`;
+    }
+    if (fieldKey === 'eta') {
+        if (t.SSW > 0 && Math.abs(v - r4(t.SSB / t.SSW)) < Math.max(0.01, 0.02 * Math.abs(t.SSB / t.SSW)))
+            return `<b>Fout:</b> U gebruikte SSB/SSW (= ${r4(t.SSB / t.SSW).toFixed(4)}) in plaats van SSB/SST.<br><b>Oorzaak:</b> De noemer van η² is SST (= SSW + SSB), niet SSW.<br><b>Correctie:</b> η² = SSB / SST = ${t.SSB.toFixed(4)} / ${t.SST.toFixed(4)}.`;
+        return `η² onjuist. η² = SSB / SST = ${t.SSB.toFixed(4)} / ${t.SST.toFixed(4)} (gebruik SST in de noemer, niet SSW).`;
+    }
+    return null;
+}
+
+// set / clear a field diagnostic message — also mirrors into feedbackStore
+function setFieldMsg(id, html) {
+    feedbackStore[id] = html || null;
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!html) { el.innerHTML = ''; el.className = 'field-diag'; return; }
+    el.innerHTML = html;
+    el.className = 'field-diag visible';
+}
+
+// render a R-style detailed feedback panel (red border, all wrong fields listed)
+function renderFeedbackPanel(panelId, fieldMap) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    const items = [];
+    Object.entries(fieldMap).forEach(([label, msgId]) => {
+        const msg = feedbackStore[msgId];
+        if (msg) items.push({ label, html: msg });
+    });
+    if (!items.length) {
+        panel.innerHTML = '';
+        panel.className = 'feedback-panel';
+        return;
+    }
+    let html = '<div class="feedback-panel-title">Uitgebreide feedback:</div>';
+    items.forEach(item => {
+        html += `<div class="feedback-detail-item"><div class="feedback-detail-label">${item.label}</div><div>${item.html}</div></div>`;
+    });
+    panel.innerHTML = html;
+    panel.className = 'feedback-panel visible';
+}
+
+// update per-section summary feedback div
+function updateSectionSummary(divId, correct, total, labelOk, labelPartial) {
+    const el = document.getElementById(divId);
+    if (!el) return;
+    if (total === 0) { el.innerHTML = ''; el.className = 'section-summary'; return; }
+    if (correct === total) {
+        el.innerHTML = `✅ ${labelOk} (${correct}/${total})`;
+        el.className = 'section-summary ok';
+    } else {
+        const pct = Math.round(correct / total * 100);
+        el.innerHTML = `${correct}/${total} correct${labelPartial ? ' — ' + labelPartial : ''}`;
+        el.className = 'section-summary partial';
+    }
+}
+
 // ─── RENDER SCENARIO DROPDOWN ────────────────────────────────
 function populateScenarioDropdown() {
     const sel = document.getElementById('sel-scenario');
@@ -348,13 +533,24 @@ function renderDataset() {
     const { data, scenario: sc } = state;
     if (!data.length) { wrap.innerHTML = ''; return; }
 
-    info.textContent = `N = ${data.length} waarnemingen (${sc.groups.length} groepen × ${data.length / sc.groups.length} per groep). Afhankelijke variabele: ${sc.yName} (${sc.yUnit}).`;
+    const nPerGroup = data.length / sc.groups.length;
+    info.textContent = `N = ${data.length} waarnemingen (${sc.groups.length} groepen × ${nPerGroup} per groep). Afhankelijke variabele: ${sc.yName} (${sc.yUnit}).`;
 
-    let html = `<table class="dataset-table"><thead><tr><th>Eenheid</th><th>Groep</th><th>${sc.yName} (${sc.yUnit})</th></tr></thead><tbody>`;
-    data.forEach(row => {
-        html += `<tr><td>${row.entity}</td><td class="group-col">${row.group}</td><td>${row.y.toFixed(2)}</td></tr>`;
+    // Side-by-side group tables (matches R app layout)
+    let html = '<div class="group-tables-row">';
+    sc.groups.forEach(g => {
+        const rows = data.filter(d => d.group === g);
+        html += `<div class="group-table-col">
+            <div class="group-table-title">${g}</div>
+            <table class="dataset-table">
+                <thead><tr><th>Eenheid</th><th>${sc.yName} (${sc.yUnit})</th></tr></thead>
+                <tbody>`;
+        rows.forEach(row => {
+            html += `<tr><td>${row.entity}</td><td>${row.y.toFixed(2)}</td></tr>`;
+        });
+        html += '</tbody></table></div>';
     });
-    html += '</tbody></table>';
+    html += '</div>';
     wrap.innerHTML = html;
 }
 
@@ -370,14 +566,10 @@ function renderGroupMeansInputs() {
         <label>Groepsgemiddelde ${g} (Ȳ<sub>${i + 1}</sub>)</label>
         <input type="number" step="any" id="inp-grp-${i}" class="num-input" placeholder="0.0000" />
         <span class="light" id="light-grp-${i}"></span>
-        <span class="field-msg" id="msg-grp-${i}"></span>
-      </div>`;
+      </div>
+      <div class="field-diag" id="msg-grp-${i}"></div>`;
     });
     container.innerHTML = html;
-    // attach debounced listeners
-    sc.groups.forEach((_, i) => {
-        document.getElementById(`inp-grp-${i}`).addEventListener('input', debounce(validateAll, 250));
-    });
 }
 
 // ─── RENDER DEVIATION TABLE ──────────────────────────────────
@@ -423,13 +615,6 @@ function renderDeviationTable() {
     </tr>`;
     });
     table.querySelector('tbody').innerHTML = html;
-
-    // attach event delegation on tbody
-    table.querySelector('tbody').addEventListener('input', debounce(onTableInput, 250));
-}
-
-function onTableInput() {
-    validateAll();
 }
 
 // ─── READ ANSWERS ─────────────────────────────────────────────
@@ -505,24 +690,39 @@ function validateAll() {
     const ans = readAnswers();
     let totalFields = 0, correctFields = 0;
 
-    // helper to check one field
-    function chk(inputId, lightId, expected, ansValue) {
+    // helper: validate one field and set its diagnostic message
+    function chk(inputId, lightId, msgId, fieldKey, expected, ansValue) {
         totalFields++;
         const inp = document.getElementById(inputId);
         const light = lightId ? document.getElementById(lightId) : null;
         const res = validateField(inp, light, expected, ansValue);
         if (res.state === 'correct') correctFields++;
+        if (msgId) {
+            if (res.state === 'incorrect') {
+                setFieldMsg(msgId, getFeedbackMsg(fieldKey, ansValue, truth));
+            } else {
+                setFieldMsg(msgId, '');
+            }
+        }
         return res.state;
     }
 
     // Deel II: group means
+    let d2correct = 0, d2total = 0;
     sc.groups.forEach((g, i) => {
-        chk(`inp-grp-${i}`, `light-grp-${i}`, truth.grpMeans[g], ans[`grp_${i}`]);
+        d2total++;
+        const st = chk(`inp-grp-${i}`, `light-grp-${i}`, `msg-grp-${i}`, `grp_${i}`, truth.grpMeans[g], ans[`grp_${i}`]);
+        if (st === 'correct') d2correct++;
     });
-    chk('inp-grand-mean', 'light-grand-mean', truth.grandMean, ans.grandMean);
+    d2total++;
+    if (chk('inp-grand-mean', 'light-grand-mean', 'msg-grand-mean', 'grandMean', truth.grandMean, ans.grandMean) === 'correct') d2correct++;
+    updateSectionSummary('feedback-deel2', d2correct, d2total, 'Alle gemiddelden correct', 'controleer groepsgemiddelden');
+    const d2map = Object.fromEntries(sc.groups.map((g, i) => [`Y&#x0305;_${g}`, `msg-grp-${i}`]));
+    d2map['Grootgemiddelde Y&#x0305;..'] = 'msg-grand-mean';
+    renderFeedbackPanel('feedback-detail-deel2', d2map);
 
     // Deel III: table
-    let tableCorrect = 0, tableFilled = 0;
+    let tableCorrect = 0, tableTotal = 0;
     const groupFirstRow = {};
     let lastGroup = null;
     data.forEach((d, i) => {
@@ -533,81 +733,97 @@ function validateAll() {
         const row = ans.tableRows[i];
 
         // dW
-        totalFields++;
+        tableTotal++; totalFields++;
         if (row.dW !== null) {
-            if (row.dW !== '') tableFilled++;
-            const res = validateField(
-                document.getElementById(`tbl-dW-${i}`), null, truth.devWithin[i], row.dW
-            );
+            const res = validateField(document.getElementById(`tbl-dW-${i}`), null, truth.devWithin[i], row.dW);
             if (res.state === 'correct') { correctFields++; tableCorrect++; }
         }
 
         // dW2
-        totalFields++;
+        tableTotal++; totalFields++;
         if (row.dW2 !== null) {
-            if (row.dW2 !== '') tableFilled++;
-            const res = validateField(
-                document.getElementById(`tbl-dW2-${i}`), null, truth.devWithinSq[i], row.dW2
-            );
+            const res = validateField(document.getElementById(`tbl-dW2-${i}`), null, truth.devWithinSq[i], row.dW2);
             if (res.state === 'correct') { correctFields++; tableCorrect++; }
         }
 
-        // dB (first row of group only)
+        // dB / dB2 (first row of group only)
         const d = data[i];
         const isFirst = groupFirstRow[d.group] === i;
         if (isFirst) {
-            totalFields++;
-            if (row.dB !== null && row.dB !== '') tableFilled++;
-            const res = validateField(
-                document.getElementById(`tbl-dB-${i}`), null, truth.devBetween[i], row.dB || ''
-            );
+            tableTotal++; totalFields++;
+            const res = validateField(document.getElementById(`tbl-dB-${i}`), null, truth.devBetween[i], row.dB || '');
             if (res.state === 'correct') { correctFields++; tableCorrect++; }
 
-            totalFields++;
-            if (row.dB2 !== null && row.dB2 !== '') tableFilled++;
-            const res2 = validateField(
-                document.getElementById(`tbl-dB2-${i}`), null, truth.devBetweenSq[i], row.dB2 || ''
-            );
+            tableTotal++; totalFields++;
+            const res2 = validateField(document.getElementById(`tbl-dB2-${i}`), null, truth.devBetweenSq[i], row.dB2 || '');
             if (res2.state === 'correct') { correctFields++; tableCorrect++; }
         }
     });
+    // Table summary feedback
+    const tableFeedbackEl = document.getElementById('table-feedback');
+    if (tableFeedbackEl) {
+        if (tableTotal === 0) {
+            tableFeedbackEl.innerHTML = '';
+        } else if (tableCorrect === tableTotal) {
+            tableFeedbackEl.innerHTML = '<span class="ok-inline">✅ Afwijkingtabel volledig correct!</span>';
+        } else {
+            tableFeedbackEl.innerHTML = `<span class="partial-inline">${tableCorrect}/${tableTotal} cellen correct — controleer de afwijkingskolommen.</span>`;
+        }
+    }
+    updateSectionSummary('feedback-deel3', tableCorrect, tableTotal,
+        'Afwijkingtabel volledig correct', 'controleer de afwijkingskolommen');
 
     // Deel IV: SS
-    chk('inp-ssw', 'light-ssw', truth.SSW, ans.ssw);
-    chk('inp-ssb', 'light-ssb', truth.SSB, ans.ssb);
-    chk('inp-sst', 'light-sst', truth.SST, ans.sst);
+    let d4correct = 0;
+    if (chk('inp-ssw', 'light-ssw', 'msg-ssw', 'ssw', truth.SSW, ans.ssw) === 'correct') d4correct++;
+    if (chk('inp-ssb', 'light-ssb', 'msg-ssb', 'ssb', truth.SSB, ans.ssb) === 'correct') d4correct++;
+    if (chk('inp-sst', 'light-sst', 'msg-sst', 'sst', truth.SST, ans.sst) === 'correct') d4correct++;
+    updateSectionSummary('feedback-deel4', d4correct, 3, 'Alle kwadratensommen correct', 'controleer SS-waarden');
+    renderFeedbackPanel('feedback-detail-deel4', {
+        'SSW (binnengroeps)': 'msg-ssw',
+        'SSB (tussengroeps)': 'msg-ssb',
+        'SST (totaal)': 'msg-sst'
+    });
 
     // SS decomp display
     updateSSDecompDisplay();
 
     // Deel V: ANOVA table
-    chk('inp-df-between', 'light-df-between', truth.dfBetween, ans['df-between']);
-    chk('inp-df-within', 'light-df-within', truth.dfWithin, ans['df-within']);
-    chk('inp-df-total', 'light-df-total', truth.dfTotal, ans['df-total']);
-    chk('inp-msb', 'light-msb', truth.MSB, ans.msb);
-    chk('inp-msw', 'light-msw', truth.MSW, ans.msw);
-    chk('inp-f', 'light-f', truth.Fratio, ans.f);
-    chk('inp-eta', 'light-eta', truth.etaSq, ans.eta);
+    let d5correct = 0;
+    if (chk('inp-df-between', 'light-df-between', 'msg-df-between', 'df-between', truth.dfBetween, ans['df-between']) === 'correct') d5correct++;
+    if (chk('inp-df-within', 'light-df-within', 'msg-df-within', 'df-within', truth.dfWithin, ans['df-within']) === 'correct') d5correct++;
+    if (chk('inp-df-total', 'light-df-total', 'msg-df-total', 'df-total', truth.dfTotal, ans['df-total']) === 'correct') d5correct++;
+    if (chk('inp-msb', 'light-msb', 'msg-msb', 'msb', truth.MSB, ans.msb) === 'correct') d5correct++;
+    if (chk('inp-msw', 'light-msw', 'msg-msw', 'msw', truth.MSW, ans.msw) === 'correct') d5correct++;
+    if (chk('inp-f', 'light-f', 'msg-f', 'f', truth.Fratio, ans.f) === 'correct') d5correct++;
+    if (chk('inp-eta', 'light-eta', 'msg-eta', 'eta', truth.etaSq, ans.eta) === 'correct') d5correct++;
+    updateSectionSummary('feedback-deel5', d5correct, 7,
+        `ANOVA-tabel correct — F(${truth.dfBetween},${truth.dfWithin}) = ${truth.Fratio.toFixed(4)}`,
+        'controleer vrijheidsgraden en MS-waarden');
+    renderFeedbackPanel('feedback-detail-deel5', {
+        'df tussen groepen': 'msg-df-between',
+        'df binnen groepen': 'msg-df-within',
+        'df totaal': 'msg-df-total',
+        'MSB': 'msg-msb',
+        'MSW': 'msg-msw',
+        'F-ratio': 'msg-f',
+        '\u03b7\u00b2': 'msg-eta'
+    });
 
     updateProgress(correctFields, totalFields);
-
-    // update ANOVA table SS display
     updateANOVATableDisplay();
-
-    // significance note
     updateSigNote();
 
-    // check all correct
+    const wasCorrect = state.allCorrect;
     const allCorrect = correctFields === totalFields && totalFields > 0;
     state.allCorrect = allCorrect;
 
-    if (allCorrect) {
+    if (allCorrect && !wasCorrect) {
         unlockVisualSections();
-    } else {
+    } else if (!allCorrect && wasCorrect) {
         lockVisualSections();
     }
 
-    // success message
     const successEl = document.getElementById('success-msg');
     if (allCorrect) {
         successEl.textContent = '✅ Alle antwoorden zijn correct! Visualisaties zijn nu beschikbaar.';
@@ -663,10 +879,23 @@ function updateSigNote() {
     if (!truth || !isFinite(truth.Fratio)) { el.classList.remove('visible'); return; }
     const fEl = document.getElementById('inp-f');
     if (!fEl || !fEl.classList.contains('correct')) { el.classList.remove('visible'); return; }
+    const fCrit = isFinite(truth.fCritical) ? truth.fCritical.toFixed(2) : '?';
+    const sig = isFinite(truth.fCritical) && truth.Fratio > truth.fCritical;
     const p = truth.pValue;
-    const sig = isFinite(p) && p < 0.05;
-    const pStr = isFinite(p) ? (p < 0.001 ? '< .001' : p.toFixed(3)) : 'N.v.t.';
-    el.textContent = `F(${truth.dfBetween}, ${truth.dfWithin}) = ${truth.Fratio.toFixed(4)}, p = ${pStr}. ${sig ? '✅ Er is een statistisch significant groepseffect (p < .05).' : '⚠️ Het groepseffect is niet statistisch significant (p ≥ .05).'}`;
+    const pStr = isFinite(p) ? (p < 0.001 ? '&lt; .001' : p.toFixed(3)) : 'N.v.t.';
+    el.innerHTML = `
+        <b>Significantie:</b> zoek de kritieke F-waarde op in een
+        <a href="https://www.statology.org/f-distribution-table/" target="_blank" rel="noopener noreferrer">F-tabel</a>
+        bij &alpha; = 0,05 met tellerdf <b>df<sub>tussen</sub> = ${truth.dfBetween}</b>
+        en noemerdf <b>df<sub>binnen</sub> = ${truth.dfWithin}</b>.
+        <ul style="margin:6px 0 0 16px;">
+            <li>F<sub>krit</sub>(${truth.dfBetween}, ${truth.dfWithin}) &asymp; ${fCrit}</li>
+            <li>F<sub>berekend</sub> = ${truth.Fratio.toFixed(4)}</li>
+            <li>${sig
+            ? `<b style="color:#166534;">F &gt; F<sub>krit</sub> &rarr; significant (p = ${pStr})</b>`
+            : `<b style="color:#991b1b;">F &le; F<sub>krit</sub> &rarr; niet significant (p = ${pStr})</b>`
+        }</li>
+        </ul>`;
     el.classList.add('visible');
 }
 
@@ -677,6 +906,13 @@ function updateProgress(correct, total) {
     const pct = total > 0 ? Math.round(correct / total * 100) : 0;
     bar.style.width = pct + '%';
     text.textContent = `${correct} / ${total} correct`;
+}
+
+// ─── DESTROY CHARTS ────────────────────────────────────────
+function destroyCharts() {
+    if (state.chartBoxplot) { state.chartBoxplot.destroy(); state.chartBoxplot = null; }
+    if (state.chartSS) { state.chartSS.destroy(); state.chartSS = null; }
+    if (state.chartCI) { state.chartCI.destroy(); state.chartCI = null; }
 }
 
 // ─── LOCK / UNLOCK VIZ SECTIONS ──────────────────────────────
@@ -690,6 +926,7 @@ function lockVisualSections() {
     // update nav
     document.querySelectorAll('.nav-item[data-target="deel6"], .nav-item[data-target="deel7"]')
         .forEach(el => el.classList.add('locked'));
+    destroyCharts();
 }
 
 function unlockVisualSections() {
@@ -719,6 +956,11 @@ function renderPlots() {
     renderInterpretation();
 }
 
+function deterministicJitter(index, width = 0.20) {
+    const pattern = [-0.08, -0.04, 0, 0.04, 0.08];
+    return pattern[index % pattern.length] * (width / 0.08);
+}
+
 function renderBoxplotChart() {
     const { truth, scenario: sc, data } = state;
     const ctx = document.getElementById('chart-boxplot').getContext('2d');
@@ -728,7 +970,7 @@ function renderBoxplotChart() {
     const datasets = sc.groups.map((g, gi) => {
         const points = data
             .filter(d => d.group === g)
-            .map((d, j) => ({ x: gi + 1 + (Math.random() - 0.5) * 0.2, y: d.y }));
+            .map((d, j) => ({ x: gi + 1 + deterministicJitter(j), y: d.y }));
         return {
             label: g,
             data: points,
@@ -925,6 +1167,7 @@ function doGenerate() {
     state.data = generateData(sc, n, seed);
     state.truth = calculateTruth(state.data, sc);
     state.allCorrect = false;
+    destroyCharts();
 
     // update vignette
     document.getElementById('vignette-text').textContent = sc.vignette;
@@ -938,22 +1181,111 @@ function doGenerate() {
 }
 
 function resetAllInputs() {
-    // clear all answer inputs
     document.querySelectorAll('.num-input, .tbl-input').forEach(el => {
         el.value = '';
         el.classList.remove('correct', 'incorrect');
     });
     document.querySelectorAll('.light').forEach(el => el.classList.remove('green', 'red'));
-    document.querySelectorAll('.field-msg').forEach(el => el.textContent = '');
+    document.querySelectorAll('.field-diag').forEach(el => { el.innerHTML = ''; el.className = 'field-diag'; });
+    document.querySelectorAll('.section-summary').forEach(el => { el.innerHTML = ''; el.className = 'section-summary'; });
+    document.querySelectorAll('.feedback-panel').forEach(el => { el.innerHTML = ''; el.className = 'feedback-panel'; });
+    Object.keys(feedbackStore).forEach(k => delete feedbackStore[k]);
     document.getElementById('ss-decomp-disp').textContent = 'SST = SSW + SSB';
     document.getElementById('sig-note').classList.remove('visible');
     document.getElementById('success-msg').classList.remove('visible');
-    document.getElementById('anova-table-feedback').textContent = '';
-    document.getElementById('table-feedback').textContent = '';
+    ['anova-table-feedback', 'table-feedback'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+    });
     ['disp-ssb', 'disp-ssw', 'disp-sst'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.textContent = '—';
     });
+}
+
+// ─── AUTO-FILL ANSWERS (testing) ─────────────────────────────
+function autoFillAnswers() {
+    const { truth, scenario: sc, data } = state;
+    if (!truth || !sc) return;
+
+    sc.groups.forEach((g, i) => {
+        const el = document.getElementById(`inp-grp-${i}`);
+        if (el) el.value = truth.grpMeans[g].toFixed(4);
+    });
+    const gm = document.getElementById('inp-grand-mean');
+    if (gm) gm.value = truth.grandMean.toFixed(4);
+
+    const groupFirstRow = {};
+    let lastGroup = null;
+    data.forEach((d, i) => { if (d.group !== lastGroup) { groupFirstRow[d.group] = i; lastGroup = d.group; } });
+
+    data.forEach((_, i) => {
+        const dW = document.getElementById(`tbl-dW-${i}`);
+        const dW2 = document.getElementById(`tbl-dW2-${i}`);
+        if (dW) dW.value = truth.devWithin[i].toFixed(4);
+        if (dW2) dW2.value = truth.devWithinSq[i].toFixed(4);
+        if (groupFirstRow[data[i].group] === i) {
+            const dB = document.getElementById(`tbl-dB-${i}`); if (dB) dB.value = truth.devBetween[i].toFixed(4);
+            const dB2 = document.getElementById(`tbl-dB2-${i}`); if (dB2) dB2.value = truth.devBetweenSq[i].toFixed(4);
+        }
+    });
+
+    document.getElementById('inp-ssw').value = truth.SSW.toFixed(4);
+    document.getElementById('inp-ssb').value = truth.SSB.toFixed(4);
+    document.getElementById('inp-sst').value = truth.SST.toFixed(4);
+    document.getElementById('inp-df-between').value = truth.dfBetween;
+    document.getElementById('inp-df-within').value = truth.dfWithin;
+    document.getElementById('inp-df-total').value = truth.dfTotal;
+    document.getElementById('inp-msb').value = truth.MSB.toFixed(4);
+    document.getElementById('inp-msw').value = truth.MSW.toFixed(4);
+    document.getElementById('inp-f').value = truth.Fratio.toFixed(4);
+    document.getElementById('inp-eta').value = truth.etaSq.toFixed(4);
+    validateAll();
+}
+
+// ─── PASTE-FROM-EXCEL FILL ────────────────────────────────────
+// Order: [G1mean G2mean ... grandMean  SSW SSB SST  dfB dfW dfT  MSB MSW F eta]
+function parsePasteInput(raw) {
+    const { truth, scenario: sc } = state;
+    if (!truth || !sc) return;
+
+    const parts = raw.trim().split(/[\t,;]+|\s{2,}/).map(s => s.trim().replace(',', '.')).filter(s => s !== '');
+    const k = sc.groups.length;
+    const needed = k + 11;
+    const statusEl = document.getElementById('paste-status');
+    if (parts.length < needed) {
+        if (statusEl) statusEl.textContent = `⚠ Verwacht ≥ ${needed} waarden (${parts.length} gevonden).`;
+        return;
+    }
+
+    let idx = 0;
+    sc.groups.forEach((_, i) => { const el = document.getElementById(`inp-grp-${i}`); if (el) el.value = parts[idx++]; });
+    const grandEl = document.getElementById('inp-grand-mean'); if (grandEl) grandEl.value = parts[idx++];
+    ['inp-ssw', 'inp-ssb', 'inp-sst'].forEach(id => { const el = document.getElementById(id); if (el) el.value = parts[idx++]; });
+    ['inp-df-between', 'inp-df-within', 'inp-df-total'].forEach(id => { const el = document.getElementById(id); if (el) el.value = parts[idx++]; });
+    ['inp-msb', 'inp-msw', 'inp-f', 'inp-eta'].forEach(id => { const el = document.getElementById(id); if (el) el.value = parts[idx++]; });
+
+    if (statusEl) statusEl.textContent = `✅ ${idx} waarden ingevuld.`;
+    validateAll();
+}
+
+// build the paste format hint for the sidebar
+function updatePasteFormatHint() {
+    const sc = state.scenario;
+    const el = document.getElementById('paste-format-hint');
+    if (!el || !sc) return;
+    const colHeaders = [
+        ...sc.groups.map((_, i) => `Y&#x0305;<sub>${i + 1}</sub>`),
+        'Y&#x0305;..', 'SSW', 'SSB', 'SST',
+        'df<sub>B</sub>', 'df<sub>W</sub>', 'df<sub>T</sub>',
+        'MSB', 'MSW', 'F', '\u03B7\xB2'
+    ];
+    el.innerHTML =
+        `<div class="paste-hint">Volgorde kolommen (plak tab-gescheiden uit Excel):</div>` +
+        `<table class="paste-cols-table">` +
+        `<thead><tr>${colHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead>` +
+        `<tbody><tr>${colHeaders.map(() => `<td>\u2014</td>`).join('')}</tr></tbody>` +
+        `</table>`;
 }
 
 // ─── NAVIGATION SCROLL ───────────────────────────────────────
@@ -973,13 +1305,13 @@ function setupNav() {
 function attachGlobalListeners() {
     const validateDebounced = debounce(validateAll, 250);
 
-    ['inp-grand-mean', 'inp-ssw', 'inp-ssb', 'inp-sst',
-        'inp-df-between', 'inp-df-within', 'inp-df-total',
-        'inp-msb', 'inp-msw', 'inp-f', 'inp-eta']
-        .forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', validateDebounced);
-        });
+    // One document-level listener covers all .num-input and .tbl-input fields:
+    // static fields, dynamically rendered group means, and deviation table cells.
+    document.addEventListener('input', e => {
+        if (e.target.matches('.num-input') || e.target.matches('.tbl-input')) {
+            validateDebounced();
+        }
+    });
 
     document.getElementById('btn-generate').addEventListener('click', doGenerate);
     document.getElementById('btn-random').addEventListener('click', () => {
@@ -989,6 +1321,21 @@ function attachGlobalListeners() {
         document.getElementById('inp-seed').value = Math.floor(Math.random() * 9000) + 1000;
         doGenerate();
     });
+    // Sidebar mobile toggle
+    const sidebarEl = document.querySelector('.sidebar');
+    const overlayEl = document.getElementById('sidebar-overlay');
+    function closeSidebar() {
+        if (sidebarEl) sidebarEl.classList.remove('open');
+        if (overlayEl) overlayEl.classList.remove('visible');
+    }
+    const btnToggle = document.getElementById('btn-sidebar-toggle');
+    const btnClose = document.getElementById('btn-sidebar-close');
+    if (btnToggle) btnToggle.addEventListener('click', () => {
+        if (sidebarEl) sidebarEl.classList.add('open');
+        if (overlayEl) overlayEl.classList.add('visible');
+    });
+    if (btnClose) btnClose.addEventListener('click', closeSidebar);
+    if (overlayEl) overlayEl.addEventListener('click', closeSidebar);
 }
 
 // ─── INIT ─────────────────────────────────────────────────────
@@ -996,7 +1343,6 @@ function init() {
     populateScenarioDropdown();
     setupNav();
     attachGlobalListeners();
-    // generate default on load
     doGenerate();
 }
 
