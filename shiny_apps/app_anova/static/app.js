@@ -1,4 +1,4 @@
-/* =============================================================
+﻿/* =============================================================
    ANOVA App \u2013 app.js
    Static, fully client-side reactive ANOVA teaching app
    Dutch language, criminological scenarios
@@ -18,7 +18,7 @@ const SCENARIOS = [
     },
     {
         id: 'hotspots_policing',
-        title: 'Politiestrategieën & meldingen (3 typen)',
+        title: 'PolitiestrategieÃ«n & meldingen (3 typen)',
         vignette: 'Drie typen politiestrategie worden vergeleken in stedelijke straten: standaard patrouille, hot-spot aanpak, en gemeenschapsgerichte strategie. Uitkomst: meldingen aan de politie per week.',
         groups: ['StandaardPatrouille', 'HotSpotAanpak', 'GemeenschapsStrategie'],
         yName: 'MeldingenAanPolitie', yUnit: 'per week', entity: 'Straat',
@@ -366,7 +366,7 @@ function getFeedbackMsg(fieldKey, userVal, t) {
         const nj = t.nGroups[g];
         const grpSum = r4(t.grpMeans[g] * nj);
         if (Math.abs(v - t.grandMean) <= tol(t.grandMean))
-            return `<b>Waarom fout:</b> U vulde het grootgemiddelde (Y&#x0305;.. = ${t.grandMean.toFixed(4)}) in als groepsgemiddelde van '${g}'.<br><b>Oorzaak:</b> Het groepsgemiddelde gebruikt alleen de waarden bínnen groep '${g}', niet alle N = ${t.N} waarnemingen.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub>.`;
+            return `<b>Waarom fout:</b> U vulde het grootgemiddelde (Y&#x0305;.. = ${t.grandMean.toFixed(4)}) in als groepsgemiddelde van '${g}'.<br><b>Oorzaak:</b> Het groepsgemiddelde gebruikt alleen de waarden bÃ­nnen groep '${g}', niet alle N = ${t.N} waarnemingen.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub>.`;
         if (Math.abs(v - t.MSW) <= tol(t.MSW))
             return `<b>Waarom fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in \u2014 dat is een gemiddeld kwadraat, geen rekenkundig gemiddelde.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub>.`;
         if (nj > 1 && Math.abs(v - grpSum) <= Math.max(0.5, tol(grpSum)))
@@ -380,7 +380,7 @@ function getFeedbackMsg(fieldKey, userVal, t) {
         if (Math.abs(v - t.SST) <= bigTol(t.SST))
             return `<b>Fout:</b> U vulde SST (${t.SST.toFixed(4)}) in bij SSW.<br><b>Oorzaak:</b> SST = SSW + SSB; SSW is alleen de binnengroepse variatie.<br><b>Correctie:</b> Haal SSB van SST af: SSW = SST \u2212 SSB = ${t.SST.toFixed(4)} \u2212 ${t.SSB.toFixed(4)}.`;
         if (Math.abs(v - t.MSW) <= bigTol(t.MSW))
-            return `<b>Fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in bij SSW.<br><b>Oorzaak:</b> MSW = SSW / df<sub>binnen</sub> \u2014 SSW is de som vóór deling door df.<br><b>Correctie:</b> Vermenigvuldig MSW met df<sub>binnen</sub>: SSW = ${t.MSW.toFixed(4)} \u00d7 ${t.dfWithin}.`;
+            return `<b>Fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in bij SSW.<br><b>Oorzaak:</b> MSW = SSW / df<sub>binnen</sub> \u2014 SSW is de som vÃ³Ã³r deling door df.<br><b>Correctie:</b> Vermenigvuldig MSW met df<sub>binnen</sub>: SSW = ${t.MSW.toFixed(4)} \u00d7 ${t.dfWithin}.`;
         return 'SSW onjuist. SSW = som van alle (Y\u2212Y&#x0305;<sub>j</sub>)\u00b2 uit de afwijkingtabel.';
     }
     if (fieldKey === 'ssb') {
@@ -389,7 +389,7 @@ function getFeedbackMsg(fieldKey, userVal, t) {
         if (Math.abs(v - t.SST) <= bigTol(t.SST))
             return `<b>Fout:</b> U vulde SST (${t.SST.toFixed(4)}) in bij SSB.<br><b>Oorzaak:</b> SSB is alleen de tussengroepse variatie, niet het totaal.<br><b>Correctie:</b> Haal SSW van SST af: SSB = SST \u2212 SSW = ${t.SST.toFixed(4)} \u2212 ${t.SSW.toFixed(4)}.`;
         if (Math.abs(v - t.MSB) <= bigTol(t.MSB))
-            return `<b>Fout:</b> U vulde MSB (${t.MSB.toFixed(4)}) in bij SSB.<br><b>Oorzaak:</b> MSB = SSB / df<sub>tussen</sub> \u2014 SSB is de som vóór deling door df.<br><b>Correctie:</b> Vermenigvuldig MSB met df<sub>tussen</sub>: SSB = ${t.MSB.toFixed(4)} \u00d7 ${t.dfBetween}.`;
+            return `<b>Fout:</b> U vulde MSB (${t.MSB.toFixed(4)}) in bij SSB.<br><b>Oorzaak:</b> MSB = SSB / df<sub>tussen</sub> \u2014 SSB is de som vÃ³Ã³r deling door df.<br><b>Correctie:</b> Vermenigvuldig MSB met df<sub>tussen</sub>: SSB = ${t.MSB.toFixed(4)} \u00d7 ${t.dfBetween}.`;
         return 'SSB onjuist. SSB = \u03a3 n<sub>j</sub>(Y&#x0305;<sub>j</sub>\u2212Y&#x0305;..)\u00b2 (tussengroepse variatie).';
     }
     if (fieldKey === 'sst') {
@@ -580,18 +580,18 @@ function renderDeviationTable() {
     data.forEach((row, i) => {
         const isBetweenFirst = groupStart[i] === true;
         const dBInput = isBetweenFirst
-            ? `<input type="number" step="any" id="tbl-dB-${i}" class="tbl-input" placeholder="?" data-row="${i}" data-col="dB" />`
+            ? `<input type="number" step="any" id="tbl-dB-${i}" class="tbl-input" placeholder="0.0000" data-row="${i}" data-col="dB" />`
             : `<span class="readonly-cell muted" id="tbl-dB-${i}-disp">\u2014</span>`;
         const dB2Input = isBetweenFirst
-            ? `<input type="number" step="any" id="tbl-dB2-${i}" class="tbl-input" placeholder="?" data-row="${i}" data-col="dB2" />`
+            ? `<input type="number" step="any" id="tbl-dB2-${i}" class="tbl-input" placeholder="0.0000" data-row="${i}" data-col="dB2" />`
             : `<span class="readonly-cell muted" id="tbl-dB2-${i}-disp">\u2014</span>`;
 
         html += `<tr>
       <td>${row.entity}</td>
       <td class="group-cell">${row.group}</td>
       <td class="y-cell">${row.y.toFixed(2)}</td>
-      <td><input type="number" step="any" id="tbl-dW-${i}" class="tbl-input" placeholder="?" data-row="${i}" data-col="dW" /></td>
-      <td><input type="number" step="any" id="tbl-dW2-${i}" class="tbl-input" placeholder="?" data-row="${i}" data-col="dW2" /></td>
+      <td><input type="number" step="any" id="tbl-dW-${i}" class="tbl-input" placeholder="0.0000" data-row="${i}" data-col="dW" /></td>
+      <td><input type="number" step="any" id="tbl-dW2-${i}" class="tbl-input" placeholder="0.0000" data-row="${i}" data-col="dW2" /></td>
       <td>${dBInput}</td>
       <td>${dB2Input}</td>
     </tr>`;
@@ -1318,7 +1318,7 @@ function attachGlobalListeners() {
     if (btnClose) btnClose.addEventListener('click', closeSidebar);
     if (overlayEl) overlayEl.addEventListener('click', closeSidebar);
 
-    // ─── Sidebar resize drag handle ──
+    // â”€â”€â”€ Sidebar resize drag handle â”€â”€
     const resizeHandle = document.getElementById('sidebar-resize-handle');
     if (resizeHandle && sidebarEl) {
         let startX = 0, startWidth = 0;

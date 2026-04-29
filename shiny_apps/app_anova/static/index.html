@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 
 <head>
@@ -14,7 +14,6 @@
 
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
             <div class="sidebar-title">Eenweg ANOVA
                 <button class="btn-sidebar-close" id="btn-sidebar-close">&#10005;</button>
             </div>
@@ -93,10 +92,11 @@
                 <div class="nav-item" data-target="deel3">III. Afwijkingtabel</div>
                 <div class="nav-item" data-target="deel4">IV. SS-waarden</div>
                 <div class="nav-item" data-target="deel5">V. ANOVA-tabel</div>
-                <div class="nav-item locked" data-target="deel6">VI. Visualisaties 🔒</div>
-                <div class="nav-item locked" data-target="deel7">VII. BI–intervallen 🔒</div>
+                <div class="nav-item locked" data-target="deel6">VI. Visualisaties ðŸ”’</div>
+                <div class="nav-item locked" data-target="deel7">VII. BIâ€“intervallen ðŸ”’</div>
             </div>
         </aside>
+        <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
         <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
         <!-- MAIN -->
@@ -115,7 +115,7 @@
 
             <!-- DEEL I -->
             <section class="card" id="deel1">
-                <div class="card-header">Deel I — Dataset bekijken</div>
+                <div class="card-header">Deel I â€” Dataset bekijken</div>
                 <div class="card-body">
                     <p id="dataset-info" class="muted">Klik op <strong>Genereer dataset</strong> om een dataset te
                         laden.</p>
@@ -125,13 +125,13 @@
 
             <!-- DEEL II -->
             <section class="card" id="deel2">
-                <div class="card-header">Deel II — Groepsgemiddelden &amp; grootgemiddelde</div>
+                <div class="card-header">Deel II â€” Groepsgemiddelden &amp; grootgemiddelde</div>
                 <div class="card-body">
                     <p class="instruction">Bereken het gemiddelde voor elke groep en het grootgemiddelde (gemiddelde van
                         alle waarnemingen samen). Rond af op 4 decimalen.</p>
                     <div id="group-means-inputs"></div>
                     <div class="field-row">
-                        <label>Grootgemiddelde (Ȳ..)</label>
+                        <label>Grootgemiddelde (È²..)</label>
                         <input type="number" step="any" id="inp-grand-mean" class="num-input" placeholder="0.0000" />
                         <span class="light" id="light-grand-mean"></span>
                     </div>
@@ -143,10 +143,12 @@
 
             <!-- DEEL III -->
             <section class="card" id="deel3">
-                <div class="card-header">Deel III — Afwijkingtabel</div>
+                <div class="card-header">Deel III â€” Afwijkingtabel</div>
                 <div class="card-body">
-                    <p class="instruction">Vul de afwijkingen in. Kolommen <em>(Y−Yj)</em> en <em>(Y−Yj)²</em> worden
-                        per rij ingevuld. Kolommen <em>(Yj−Ȳ..)</em> en <em>(Yj−Ȳ..)²</em> zijn constant per groep: vul
+                    <p class="instruction">Vul de afwijkingen in. Kolommen <em>(Yâˆ’Yj)</em> en <em>(Yâˆ’Yj)Â²</em>
+                        worden
+                        per rij ingevuld. Kolommen <em>(Yjâˆ’È²..)</em> en <em>(Yjâˆ’È²..)Â²</em> zijn constant per
+                        groep: vul
                         alleen de <strong>eerste rij</strong> van elke groep in.</p>
                     <div class="table-scroll">
                         <table class="calc-table" id="calc-table">
@@ -161,7 +163,7 @@
 
             <!-- DEEL IV -->
             <section class="card" id="deel4">
-                <div class="card-header">Deel IV — Kwadratensom (SS)</div>
+                <div class="card-header">Deel IV â€” Kwadratensom (SS)</div>
                 <div class="card-body">
                     <p class="instruction">Bereken de kwadratensommen op basis van de afwijkingtabel. Rond af op 4
                         decimalen.</p>
@@ -193,7 +195,7 @@
 
             <!-- DEEL V -->
             <section class="card" id="deel5">
-                <div class="card-header">Deel V — ANOVA-tabel (df, MS, F, η²)</div>
+                <div class="card-header">Deel V â€” ANOVA-tabel (df, MS, F, Î·Â²)</div>
                 <div class="card-body">
                     <p class="instruction">Bereken de vrijheidsgraden, gemiddelde kwadratensommen, F-ratio en
                         eta-kwadraat.</p>
@@ -205,15 +207,15 @@
                                 <th>df</th>
                                 <th>MS</th>
                                 <th>F</th>
-                                <th>η²</th>
+                                <th>Î·Â²</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>Tussen groepen</td>
-                                <td id="disp-ssb">—</td>
+                                <td id="disp-ssb">â€”</td>
                                 <td><input type="number" step="1" id="inp-df-between" class="num-input small"
-                                        placeholder="?" /><span class="light" id="light-df-between"></span></td>
+                                        placeholder="0.0000" /><span class="light" id="light-df-between"></span></td>
                                 <td><input type="number" step="any" id="inp-msb" class="num-input"
                                         placeholder="0.0000" /><span class="light" id="light-msb"></span></td>
                                 <td><input type="number" step="any" id="inp-f" class="num-input"
@@ -223,9 +225,9 @@
                             </tr>
                             <tr>
                                 <td>Binnen groepen</td>
-                                <td id="disp-ssw">—</td>
+                                <td id="disp-ssw">â€”</td>
                                 <td><input type="number" step="1" id="inp-df-within" class="num-input small"
-                                        placeholder="?" /><span class="light" id="light-df-within"></span></td>
+                                        placeholder="0.0000" /><span class="light" id="light-df-within"></span></td>
                                 <td><input type="number" step="any" id="inp-msw" class="num-input"
                                         placeholder="0.0000" /><span class="light" id="light-msw"></span></td>
                                 <td></td>
@@ -233,9 +235,9 @@
                             </tr>
                             <tr>
                                 <td>Totaal</td>
-                                <td id="disp-sst">—</td>
+                                <td id="disp-sst">â€”</td>
                                 <td><input type="number" step="1" id="inp-df-total" class="num-input small"
-                                        placeholder="?" /><span class="light" id="light-df-total"></span></td>
+                                        placeholder="0.0000" /><span class="light" id="light-df-total"></span></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -252,7 +254,7 @@
 
             <!-- DEEL VI -->
             <section class="card locked-section" id="deel6">
-                <div class="card-header">Deel VI — Visualisaties &amp; conclusie 🔒</div>
+                <div class="card-header">Deel VI â€” Visualisaties &amp; conclusie ðŸ”’</div>
                 <div class="card-body">
                     <div class="lock-notice" id="lock6">Vul alle antwoorden correct in om de visualisaties te
                         ontgrendelen.</div>
@@ -272,7 +274,7 @@
 
             <!-- DEEL VII -->
             <section class="card locked-section" id="deel7">
-                <div class="card-header">Deel VII — 95%-betrouwbaarheidsintervallen 🔒</div>
+                <div class="card-header">Deel VII â€” 95%-betrouwbaarheidsintervallen ðŸ”’</div>
                 <div class="card-body">
                     <div class="lock-notice" id="lock7">Vul alle antwoorden correct in om de BI-tabel te ontgrendelen.
                     </div>
