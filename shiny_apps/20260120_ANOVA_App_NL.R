@@ -1471,9 +1471,9 @@ server <- function(input, output, session) {
     ggplot(df, aes(x = Groep, y = .data[[sc$y_var$name]], fill = Groep)) +
       geom_boxplot(alpha = 0.55, outlier.colour = "#B00020", outlier.size = 2) +
       geom_point(data = gm_df, aes(y = Gem), shape = 18, size = 5, colour = "#3F51B5") +
-      geom_hline(yintercept = t$grand_mean, linetype = "dashed", colour = "#888", linewidth = 0.8) +
+      geom_hline(yintercept = t$grand_mean, linetype = "dashed", colour = "#888888", linewidth = 0.8) +
       annotate("text", x = 0.62, y = t$grand_mean,
-               label = paste0("Y.. = ", round(t$grand_mean, 2)), vjust = -0.4, colour = "#555", size = 3.5) +
+               label = paste0("Y.. = ", round(t$grand_mean, 2)), vjust = -0.4, colour = "#555555", size = 3.5) +
       scale_fill_manual(values = c("#42A5F5","#66BB6A","#FFA726")) +
       labs(title = paste0("Verdeling van ", sc$y_var$name, " per groep"),
            x = "Groep", y = paste0(sc$y_var$name, " (", sc$y_var$unit, ")"),
@@ -1500,7 +1500,7 @@ server <- function(input, output, session) {
       theme_minimal(base_size = 13) +
       theme(legend.position = "none",
             plot.title    = element_text(face = "bold", colour = "#3F51B5"),
-            plot.subtitle = element_text(colour = "#555"))
+            plot.subtitle = element_text(colour = "#555555"))
   })
 
   output$interpretation_block <- renderUI({
