@@ -189,8 +189,11 @@ function incompleteBeta(x, a, b) {
   if (x === 0) return 0;
   if (x === 1) return 1;
   const lb = logBeta(a, b);
-  const front = Math.exp(Math.log(x) * a + Math.log(1 - x) * b - lb) / a;
-  return front * betaCF(x, a, b);
+  const bt = Math.exp(Math.log(x) * a + Math.log(1 - x) * b - lb);
+  if (x < (a + 1) / (a + b + 2)) {
+    return bt * betaCF(x, a, b) / a;
+  }
+  return 1 - (bt * betaCF(1 - x, b, a) / b);
 }
 
 function logBeta(a, b) { return logGamma(a) + logGamma(b) - logGamma(a + b); }

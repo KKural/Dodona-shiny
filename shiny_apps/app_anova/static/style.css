@@ -26,9 +26,9 @@ body {
 
 /* SIDEBAR */
 .sidebar {
-    width: 270px;
-    min-width: 180px;
-    max-width: 480px;
+    width: 400px;
+    min-width: 200px;
+    max-width: 560px;
     background: #1e2a3a;
     color: #cdd9e5;
     padding: 20px 14px;
