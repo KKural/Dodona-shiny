@@ -285,12 +285,6 @@ th {
   text-align: left;
 }
 
-.data-table th,
-.data-table td {
-  text-align: center;
-  vertical-align: middle;
-}
-
 .compact-table {
   min-width: 520px;
 }
