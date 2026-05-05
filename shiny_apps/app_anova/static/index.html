@@ -7,6 +7,8 @@
     <title>Eenweg ANOVA &ndash; Statistiek in de Criminologie</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.js"></script>
 </head>
 
 <body>
@@ -148,20 +150,15 @@
             <section class="card" id="deel3">
                 <div class="card-header">Deel III &mdash; Afwijkingtabel</div>
                 <div class="card-body">
-                    <p class="instruction">Vul de afwijkingen in. Kolommen <em>(Y&minus;Yj)</em> en
-                        <em>(Y&minus;Yj)&sup2;</em>
-                        worden
-                        per rij ingevuld. Kolommen <em>(Yj&minus;<span style="text-decoration:overline">Y</span>..)</em>
-                        en <em>(Yj&minus;<span style="text-decoration:overline">Y</span>..)&sup2;</em> zijn constant per
-                        groep: vul
-                        alleen de <strong>eerste rij</strong> van elke groep in.
+                    <p class="instruction">Vul de afwijkingen in de tabel hieronder in (gebruik <strong>4
+                            decimalen</strong>).
+                        Kolommen <em>(Y&minus;Yj)</em> en <em>(Y&minus;Yj)&sup2;</em> worden per rij ingevuld.
+                        Kolommen <em>(Yj&minus;<span style="text-decoration:overline">Y</span>..)</em> en
+                        <em>(Yj&minus;<span style="text-decoration:overline">Y</span>..)&sup2;</em> zijn
+                        samengevoegd per groep &mdash; vul alleen de <strong>eerste rij</strong> van elk groepsblok in;
+                        die waarde geldt voor alle observaties in die groep.
                     </p>
-                    <div class="table-scroll">
-                        <table class="calc-table" id="calc-table">
-                            <thead></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                    <div id="hot-container"></div>
                     <div id="table-feedback"></div>
                     <div class="section-summary" id="feedback-deel3"></div>
                 </div>

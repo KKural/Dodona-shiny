@@ -406,50 +406,10 @@ function wireTableInputs(container) {
   });
 }
 
-function makePasteBlock(id, fields) {
-  return `
-    <div class="section-paste" id="${id}">
-      <div class="paste-hint">Plakken uit Excel voor deze tabel:</div>
-      <div class="paste-format-wrap">
-        <table class="paste-cols-table">
-          <thead><tr>${fields.map(f => `<th>${f.label}</th>`).join('')}</tr></thead>
-          <tbody><tr>${fields.map(() => '<td>...</td>').join('')}</tr></tbody>
-        </table>
-      </div>
-      <textarea class="excel-paste-area" rows="2" placeholder="Plak hier de Excel-waarden voor deze tabel"></textarea>
-      <button type="button" class="btn-secondary btn-section-paste">Vul tabel in</button>
-      <div class="paste-status"></div>
-    </div>`;
-}
-
-function attachPasteBlock(block, fields) {
-  if (!block) return;
-  const area = block.querySelector('.excel-paste-area');
-  const button = block.querySelector('.btn-section-paste');
-  const status = block.querySelector('.paste-status');
-  const fill = () => {
-    const values = parseExcelPasteValues(area.value);
-    let filled = 0;
-    fields.forEach((field, i) => {
-      if (i < values.length && setExcelPasteTarget(field.target, values[i])) filled += 1;
-    });
-    evaluateAll();
-    status.textContent = values.length < fields.length
-      ? `${filled}/${fields.length} waarden ingevuld. Er ontbreken nog waarden.`
-      : `${filled}/${fields.length} waarden ingevuld.`;
-  };
-  button.addEventListener('click', fill);
-  area.addEventListener('paste', () => window.setTimeout(fill, 0));
-}
-
 function renderMeansTable() {
   const container = document.getElementById('means-grid');
   if (!container) return;
   container.className = 'table-wrap';
-  const fields = [
-    { label: 'Gemiddelde X', target: 'mean_X' },
-    { label: 'Gemiddelde Y', target: 'mean_Y' }
-  ];
   container.innerHTML = `
     <table class="calc-input-table">
       <thead><tr><th>Grootheid</th><th>Jouw antwoord</th><th>Feedback</th></tr></thead>
@@ -457,10 +417,8 @@ function renderMeansTable() {
         <tr><td>Gemiddelde X</td><td>${tableInput('mean_X')}</td><td>${tableMsg('mean_X')}</td></tr>
         <tr><td>Gemiddelde Y</td><td>${tableInput('mean_Y')}</td><td>${tableMsg('mean_Y')}</td></tr>
       </tbody>
-    </table>
-    ${makePasteBlock('paste-means', fields)}`;
+    </table>`;
   wireTableInputs(container);
-  attachPasteBlock(document.getElementById('paste-means'), fields);
 }
 
 function renderDeviationCalcTable() {
@@ -468,16 +426,8 @@ function renderDeviationCalcTable() {
   if (!container) return;
   container.className = 'table-wrap';
   const { x, y } = state.names;
-  const fields = [];
   const rows = state.rows.map((row, i) => {
     const ids = [`dev-dx-${i}`, `dev-dy-${i}`, `dev-dx2-${i}`, `dev-dy2-${i}`, `dev-dxdy-${i}`];
-    fields.push(
-      { label: `Rij ${i + 1} x-xbar`, target: ids[0] },
-      { label: `Rij ${i + 1} y-ybar`, target: ids[1] },
-      { label: `Rij ${i + 1} (x-xbar)^2`, target: ids[2] },
-      { label: `Rij ${i + 1} (y-ybar)^2`, target: ids[3] },
-      { label: `Rij ${i + 1} product`, target: ids[4] }
-    );
     return `
       <tr>
         <td>${row.entity}</td>
@@ -490,11 +440,6 @@ function renderDeviationCalcTable() {
         <td>${tableInput(ids[4], 120)}</td>
       </tr>`;
   }).join('');
-  fields.push(
-    { label: 'Som (x-xbar)^2', target: 'tot_X1_2' },
-    { label: 'Som (y-ybar)^2', target: 'tot_Y2' },
-    { label: 'Kruisproductsom', target: 'cross_product_sum' }
-  );
   container.innerHTML = `
     <p class="instruction">Bereken afwijkingen, kwadraten en kruisproducten. De onderste rij bevat de kolomsommen.</p>
     <table class="calc-input-table wide-calc-table">
@@ -514,22 +459,14 @@ function renderDeviationCalcTable() {
         </tr>
       </tbody>
     </table>
-    <div id="dev-table-msg" class="status"></div>
-    ${makePasteBlock('paste-deviations', fields)}`;
+    <div id="dev-table-msg" class="status"></div>`;
   wireTableInputs(container);
-  attachPasteBlock(document.getElementById('paste-deviations'), fields);
 }
 
 function renderStatsTable() {
   const container = document.getElementById('stats-grid');
   if (!container) return;
   container.className = 'table-wrap';
-  const fields = [
-    { label: 'Var(X)', target: 'var_X' }, { label: 'SD(X)', target: 'sd_X' },
-    { label: 'Var(Y)', target: 'var_Y' }, { label: 'SD(Y)', target: 'sd_Y' },
-    { label: 'Cov(X,Y)', target: 'covariance' }, { label: 'SD(X)*SD(Y)', target: 'sd_product' },
-    { label: 'r', target: 'correlation' }
-  ];
   container.innerHTML = `
     <table class="calc-input-table">
       <thead><tr><th>Grootheid</th><th>Jouw antwoord</th><th>Feedback</th></tr></thead>
@@ -542,20 +479,14 @@ function renderStatsTable() {
         <tr><td>SD(X) * SD(Y)</td><td>${tableInput('sd_product')}</td><td>${tableMsg('sd_product')}</td></tr>
         <tr><td>Correlatie r</td><td>${tableInput('correlation')}</td><td>${tableMsg('correlation')}</td></tr>
       </tbody>
-    </table>
-    ${makePasteBlock('paste-stats', fields)}`;
+    </table>`;
   wireTableInputs(container);
-  attachPasteBlock(document.getElementById('paste-stats'), fields);
 }
 
 function renderRegressionTable() {
   const container = document.getElementById('reg-grid');
   if (!container) return;
   container.className = 'table-wrap';
-  const fields = [
-    { label: 'Helling b', target: 'slope' },
-    { label: 'Intercept a', target: 'intercept' }
-  ];
   container.innerHTML = `
     <table class="calc-input-table">
       <thead><tr><th>Grootheid</th><th>Jouw antwoord</th><th>Feedback</th></tr></thead>
@@ -563,22 +494,14 @@ function renderRegressionTable() {
         <tr><td>Helling b</td><td>${tableInput('slope')}</td><td>${tableMsg('slope')}</td></tr>
         <tr><td>Intercept a</td><td>${tableInput('intercept')}</td><td>${tableMsg('intercept')}</td></tr>
       </tbody>
-    </table>
-    ${makePasteBlock('paste-reg', fields)}`;
+    </table>`;
   wireTableInputs(container);
-  attachPasteBlock(document.getElementById('paste-reg'), fields);
 }
 
 function renderFitTable() {
   const container = document.getElementById('fit-grid');
   if (!container) return;
   container.className = 'table-wrap';
-  const fields = [
-    { label: 'R2', target: 'r_squared' },
-    { label: 'Vervreemding', target: 'alienation' },
-    { label: 'F-statistiek', target: 'f_stat' },
-    { label: 'Model p-waarde', target: 'model_p_value' }
-  ];
   container.innerHTML = `
     <table class="calc-input-table">
       <thead><tr><th>Grootheid</th><th>Jouw antwoord</th><th>Feedback</th></tr></thead>
@@ -588,10 +511,8 @@ function renderFitTable() {
         <tr><td>F-statistiek</td><td>${tableInput('f_stat')}</td><td>${tableMsg('f_stat')}</td></tr>
         <tr><td>Model p-waarde</td><td>${tableInput('model_p_value')}</td><td>${tableMsg('model_p_value')}</td></tr>
       </tbody>
-    </table>
-    ${makePasteBlock('paste-fit', fields)}`;
+    </table>`;
   wireTableInputs(container);
-  attachPasteBlock(document.getElementById('paste-fit'), fields);
 }
 
 function buildFields() {
@@ -665,22 +586,6 @@ function renderPredictionTable() {
   });
 
   tbl.appendChild(tbody);
-}
-
-function parseExcelPasteValues(raw) {
-  return String(raw || '')
-    .trim()
-    .split(/\t|\r?\n|;|\s{2,}/)
-    .map(v => v.trim().replace(',', '.'))
-    .filter(v => v !== '');
-}
-
-function setExcelPasteTarget(target, value) {
-  const el = typeof target === 'string' ? document.getElementById(target) : target;
-  if (!el) return false;
-  el.value = value;
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-  return true;
 }
 
 function clearStatuses() {
@@ -1042,13 +947,15 @@ function applyModeUI() {
     howtoList.innerHTML = corrMode
       ? `
       <li>Oefen correlatieanalyse met criminologische datasets.</li>
-      <li>Voltooi 9 stappen verdeeld over Delen I-V (gebruik 4 decimalen).</li>
-      <li>Wanneer alle stappen kloppen, verschijnt visualisatie in Deel VI.</li>
+      <li>Bestudeer de dataset. Vul daarna de berekeningstabellen in: gemiddelden, afwijkingen, kwadraten, kruisproducten en sommen.</li>
+      <li>Bereken daarna varianties, standaardafwijkingen, covariantie en Pearson r.</li>
+      <li>Gebruik 4 decimalen. Wanneer alle stappen kloppen, verschijnt de visualisatie.</li>
       `
       : `
       <li>Oefen bivariate regressieanalyse met criminologische datasets.</li>
-      <li>Voltooi 17 stappen verdeeld over Delen I-VIII (gebruik 4 decimalen).</li>
-      <li>F-toets en model p-waarde horen bij de verplichte model-fitstappen.</li>
+      <li>Bestudeer de dataset. Vul daarna de berekeningstabellen in: gemiddelden, afwijkingen, kwadraten, kruisproducten en sommen.</li>
+      <li>Bereken daarna r, b, a, voorspellingen, R2, F en model p-waarde.</li>
+      <li>Gebruik 4 decimalen. Visualisaties verschijnen pas wanneer alle verplichte stappen correct zijn.</li>
       `;
   }
 

@@ -157,6 +157,8 @@ const state = {
     data: [],      // [{entity, group, y}]
     truth: null,
     allCorrect: false,
+    hot: null,
+    hotCellClasses: {},
     chartBoxplot: null,
     chartSS: null,
     chartCI: null
@@ -592,47 +594,68 @@ function renderGroupMeansInputs() {
 
 // \u2500\u2500\u2500 RENDER DEVIATION TABLE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function renderDeviationTable() {
-    const table = document.getElementById('calc-table');
+    const container = document.getElementById('hot-container');
     const sc = state.scenario;
-    const { data, truth } = state;
-    if (!sc || !data.length) { table.querySelector('thead').innerHTML = ''; table.querySelector('tbody').innerHTML = ''; return; }
+    const { data } = state;
 
-    const yName = sc.yName;
-    // header
-    table.querySelector('thead').innerHTML = `
-    <tr>
-      <th>Eenheid</th><th>Groep</th><th>${yName}</th>
-      <th>(Y\u2212Yj)</th><th>(Y\u2212Yj)\u00b2</th><th>(Yj\u2212<span style="text-decoration:overline">Y</span>..)</th><th>(Yj\u2212<span style="text-decoration:overline">Y</span>..)\u00b2</th>
-    </tr>`;
+    if (state.hot) { state.hot.destroy(); state.hot = null; }
+    state.hotCellClasses = {};
+    container.innerHTML = '';
 
-    // figure out group start rows
-    const groupStart = {};
-    let lastGroup = null;
-    data.forEach((d, i) => {
-        if (d.group !== lastGroup) { groupStart[i] = true; lastGroup = d.group; }
+    if (!sc || !data.length) return;
+
+    // Build flat data: [entity, group, y, dW, dW2, dB, dB2]
+    const tableData = data.map(row => [row.entity, row.group, row.y, null, null, null, null]);
+
+    // Merge (Yj-Y..) and (Yj-Y..)^2 columns per group block
+    const mergeCells = [];
+    let rowIdx = 0;
+    sc.groups.forEach(g => {
+        const n = data.filter(d => d.group === g).length;
+        mergeCells.push({ row: rowIdx, col: 5, rowspan: n, colspan: 1 });
+        mergeCells.push({ row: rowIdx, col: 6, rowspan: n, colspan: 1 });
+        rowIdx += n;
     });
 
-    let html = '';
-    data.forEach((row, i) => {
-        const isBetweenFirst = groupStart[i] === true;
-        const dBInput = isBetweenFirst
-            ? `<input type="number" step="any" id="tbl-dB-${i}" class="tbl-input" placeholder="0.0000" data-row="${i}" data-col="dB" />`
-            : `<span class="readonly-cell muted" id="tbl-dB-${i}-disp">\u2014</span>`;
-        const dB2Input = isBetweenFirst
-            ? `<input type="number" step="any" id="tbl-dB2-${i}" class="tbl-input" placeholder="0.0000" data-row="${i}" data-col="dB2" />`
-            : `<span class="readonly-cell muted" id="tbl-dB2-${i}-disp">\u2014</span>`;
+    const hotValidate = debounce(validateAll, 250);
 
-        html += `<tr>
-      <td>${row.entity}</td>
-      <td class="group-cell">${row.group}</td>
-      <td class="y-cell">${row.y.toFixed(2)}</td>
-      <td><input type="number" step="any" id="tbl-dW-${i}" class="tbl-input" placeholder="0.0000" data-row="${i}" data-col="dW" /></td>
-      <td><input type="number" step="any" id="tbl-dW2-${i}" class="tbl-input" placeholder="0.0000" data-row="${i}" data-col="dW2" /></td>
-      <td>${dBInput}</td>
-      <td>${dB2Input}</td>
-    </tr>`;
+    state.hot = new Handsontable(container, {
+        data: tableData,
+        licenseKey: 'non-commercial-and-evaluation',
+        colHeaders: [
+            'Eenheid', 'Groep', sc.yName,
+            '(Y&minus;&#x0232;<sub>j</sub>)',
+            '(Y&minus;&#x0232;<sub>j</sub>)&sup2;',
+            '(&#x0232;<sub>j</sub>&minus;&#x0232;..)',
+            '(&#x0232;<sub>j</sub>&minus;&#x0232;..)&sup2;'
+        ],
+        columns: [
+            { readOnly: true },
+            { readOnly: true },
+            { readOnly: true, type: 'numeric', numericFormat: { pattern: '0.00' } },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+        ],
+        mergeCells: mergeCells,
+        colWidths: [85, 120, 65, 95, 95, 95, 95],
+        rowHeaders: false,
+        width: '100%',
+        height: 'auto',
+        stretchH: 'last',
+        cells(row, col) {
+            const key = `${row}-${col}`;
+            const cls = state.hotCellClasses[key];
+            if (cls === 'correct') return { className: 'htCorrect' };
+            if (cls === 'incorrect') return { className: 'htIncorrect' };
+            return {};
+        },
+        afterChange(changes, source) {
+            if (source === 'loadData') return;
+            hotValidate();
+        }
     });
-    table.querySelector('tbody').innerHTML = html;
 }
 
 // \u2500\u2500\u2500 READ ANSWERS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -650,17 +673,19 @@ function readAnswers() {
     const grandEl = document.getElementById('inp-grand-mean');
     ans.grandMean = grandEl ? grandEl.value.trim() : '';
 
-    // table
-    ans.tableRows = data.map((_, i) => {
-        const dW = document.getElementById(`tbl-dW-${i}`);
-        const dW2 = document.getElementById(`tbl-dW2-${i}`);
-        const dB = document.getElementById(`tbl-dB-${i}`);
-        const dB2 = document.getElementById(`tbl-dB2-${i}`);
+    // table — read from Handsontable
+    const hotData = state.hot ? state.hot.getData() : [];
+    const groupFirstRowMap = {};
+    let lastGrp = null;
+    data.forEach((d, i) => { if (d.group !== lastGrp) { groupFirstRowMap[d.group] = i; lastGrp = d.group; } });
+    ans.tableRows = data.map((d, i) => {
+        const rowData = hotData[i] || [];
+        const isFirst = groupFirstRowMap[d.group] === i;
         return {
-            dW: dW ? dW.value.trim() : null,
-            dW2: dW2 ? dW2.value.trim() : null,
-            dB: dB ? dB.value.trim() : null,
-            dB2: dB2 ? dB2.value.trim() : null
+            dW: rowData[3] != null ? String(rowData[3]) : '',
+            dW2: rowData[4] != null ? String(rowData[4]) : '',
+            dB: isFirst ? (rowData[5] != null ? String(rowData[5]) : '') : null,
+            dB2: isFirst ? (rowData[6] != null ? String(rowData[6]) : '') : null
         };
     });
 
@@ -747,36 +772,47 @@ function validateAll() {
         if (d.group !== lastGroup) { groupFirstRow[d.group] = i; lastGroup = d.group; }
     });
 
+    function valState(expected, rawVal) {
+        if (rawVal == null || rawVal === '') return 'empty';
+        const num = typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal).replace(',', '.'));
+        if (isNaN(num)) return 'incorrect';
+        return Math.abs(r4(num) - r4(expected)) < 0.0001 ? 'correct' : 'incorrect';
+    }
+
+    const newHotClasses = {};
+    const hotRowData = state.hot ? state.hot.getData() : [];
+
     data.forEach((_, i) => {
-        const row = ans.tableRows[i];
+        const rowData = hotRowData[i] || [];
 
-        // dW
+        // dW (col 3)
         tableTotal++; totalFields++;
-        if (row.dW !== null) {
-            const res = validateField(document.getElementById(`tbl-dW-${i}`), null, truth.devWithin[i], row.dW);
-            if (res.state === 'correct') { correctFields++; tableCorrect++; }
-        }
+        const dWst = valState(truth.devWithin[i], rowData[3]);
+        newHotClasses[`${i}-3`] = dWst;
+        if (dWst === 'correct') { correctFields++; tableCorrect++; }
 
-        // dW2
+        // dW2 (col 4)
         tableTotal++; totalFields++;
-        if (row.dW2 !== null) {
-            const res = validateField(document.getElementById(`tbl-dW2-${i}`), null, truth.devWithinSq[i], row.dW2);
-            if (res.state === 'correct') { correctFields++; tableCorrect++; }
-        }
+        const dW2st = valState(truth.devWithinSq[i], rowData[4]);
+        newHotClasses[`${i}-4`] = dW2st;
+        if (dW2st === 'correct') { correctFields++; tableCorrect++; }
 
-        // dB / dB2 (first row of group only)
-        const d = data[i];
-        const isFirst = groupFirstRow[d.group] === i;
+        // dB / dB2 — first row of each group block only
+        const isFirst = groupFirstRow[data[i].group] === i;
         if (isFirst) {
             tableTotal++; totalFields++;
-            const res = validateField(document.getElementById(`tbl-dB-${i}`), null, truth.devBetween[i], row.dB || '');
-            if (res.state === 'correct') { correctFields++; tableCorrect++; }
+            const dBst = valState(truth.devBetween[i], rowData[5]);
+            newHotClasses[`${i}-5`] = dBst;
+            if (dBst === 'correct') { correctFields++; tableCorrect++; }
 
             tableTotal++; totalFields++;
-            const res2 = validateField(document.getElementById(`tbl-dB2-${i}`), null, truth.devBetweenSq[i], row.dB2 || '');
-            if (res2.state === 'correct') { correctFields++; tableCorrect++; }
+            const dB2st = valState(truth.devBetweenSq[i], rowData[6]);
+            newHotClasses[`${i}-6`] = dB2st;
+            if (dB2st === 'correct') { correctFields++; tableCorrect++; }
         }
     });
+    state.hotCellClasses = newHotClasses;
+    if (state.hot) state.hot.render();
     // Table summary feedback
     const tableFeedbackEl = document.getElementById('table-feedback');
     if (tableFeedbackEl) {
@@ -1214,14 +1250,19 @@ function doGenerate() {
     resetAllInputs();
     lockVisualSections();
     updateProgress(0, 0);
-    updatePasteFormatHint();
 }
 
 function resetAllInputs() {
-    document.querySelectorAll('.num-input, .tbl-input').forEach(el => {
+    document.querySelectorAll('.num-input').forEach(el => {
         el.value = '';
         el.classList.remove('correct', 'incorrect');
     });
+    if (state.hot) {
+        const emptyData = state.data.map(row => [row.entity, row.group, row.y, null, null, null, null]);
+        state.hot.loadData(emptyData);
+        state.hotCellClasses = {};
+        state.hot.render();
+    }
     document.querySelectorAll('.light').forEach(el => el.classList.remove('green', 'red'));
     document.querySelectorAll('.field-diag').forEach(el => { el.innerHTML = ''; el.className = 'field-diag'; });
     document.querySelectorAll('tr.msg-row').forEach(el => el.classList.remove('active'));
@@ -1257,16 +1298,18 @@ function autoFillAnswers() {
     let lastGroup = null;
     data.forEach((d, i) => { if (d.group !== lastGroup) { groupFirstRow[d.group] = i; lastGroup = d.group; } });
 
-    data.forEach((_, i) => {
-        const dW = document.getElementById(`tbl-dW-${i}`);
-        const dW2 = document.getElementById(`tbl-dW2-${i}`);
-        if (dW) dW.value = truth.devWithin[i].toFixed(4);
-        if (dW2) dW2.value = truth.devWithinSq[i].toFixed(4);
-        if (groupFirstRow[data[i].group] === i) {
-            const dB = document.getElementById(`tbl-dB-${i}`); if (dB) dB.value = truth.devBetween[i].toFixed(4);
-            const dB2 = document.getElementById(`tbl-dB2-${i}`); if (dB2) dB2.value = truth.devBetweenSq[i].toFixed(4);
-        }
-    });
+    if (state.hot) {
+        const fillData = state.hot.getData().map(row => [...row]);
+        data.forEach((_, i) => {
+            fillData[i][3] = truth.devWithin[i];
+            fillData[i][4] = truth.devWithinSq[i];
+            if (groupFirstRow[data[i].group] === i) {
+                fillData[i][5] = truth.devBetween[i];
+                fillData[i][6] = truth.devBetweenSq[i];
+            }
+        });
+        state.hot.loadData(fillData);
+    }
 
     document.getElementById('inp-ssw').value = truth.SSW.toFixed(4);
     document.getElementById('inp-ssb').value = truth.SSB.toFixed(4);
@@ -1281,100 +1324,6 @@ function autoFillAnswers() {
     validateAll();
 }
 
-// \u2500\u2500\u2500 PASTE-FROM-EXCEL FILL \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-// Order: [G1mean G2mean ... grandMean  SSW SSB SST  dfB dfW dfT  MSB MSW F eta]
-function parseExcelPasteValues(raw) {
-    return String(raw || '')
-        .trim()
-        .split(/\t|\r?\n|;|\s{2,}/)
-        .map(s => s.trim().replace(',', '.'))
-        .filter(s => s !== '');
-}
-
-function getPasteTargets() {
-    const { scenario: sc, data } = state;
-    const targets = [];
-    if (!sc) return targets;
-
-    sc.groups.forEach((_, i) => targets.push({ label: `Ygem groep ${i + 1}`, id: `inp-grp-${i}` }));
-    targets.push({ label: 'Ygem totaal', id: 'inp-grand-mean' });
-
-    data.forEach((_, i) => {
-        targets.push({ label: `Rij ${i + 1} (Y-Yj)`, id: `tbl-dW-${i}` });
-        targets.push({ label: `Rij ${i + 1} (Y-Yj)^2`, id: `tbl-dW2-${i}` });
-        if (document.getElementById(`tbl-dB-${i}`)) targets.push({ label: `Rij ${i + 1} (Yj-Y..)`, id: `tbl-dB-${i}` });
-        if (document.getElementById(`tbl-dB2-${i}`)) targets.push({ label: `Rij ${i + 1} (Yj-Y..)^2`, id: `tbl-dB2-${i}` });
-    });
-
-    [
-        ['SSW', 'inp-ssw'], ['SSB', 'inp-ssb'], ['SST', 'inp-sst'],
-        ['dfB', 'inp-df-between'], ['dfW', 'inp-df-within'], ['dfT', 'inp-df-total'],
-        ['MSB', 'inp-msb'], ['MSW', 'inp-msw'], ['F', 'inp-f'], ['eta2', 'inp-eta']
-    ].forEach(([label, id]) => targets.push({ label, id }));
-    return targets;
-}
-
-function parsePasteInput(raw) {
-    if (!state.truth || !state.scenario) return;
-    const parts = parseExcelPasteValues(raw);
-    const targets = getPasteTargets();
-    const statusEl = document.getElementById('paste-status');
-    let filled = 0;
-
-    targets.forEach((target, i) => {
-        const el = document.getElementById(target.id);
-        if (el && i < parts.length) {
-            el.value = parts[i];
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-            filled += 1;
-        }
-    });
-
-    validateAll();
-    if (statusEl) {
-        statusEl.textContent = parts.length < targets.length
-            ? `${filled}/${targets.length} waarden ingevuld. Er ontbreken nog waarden.`
-            : `${filled}/${targets.length} waarden ingevuld.`;
-    }
-}
-
-// build the paste format hint for the sidebar
-function updatePasteFormatHint() {
-    const el = document.getElementById('paste-format-hint');
-    if (!el || !state.scenario) return;
-    const targets = getPasteTargets();
-    el.innerHTML =
-        `<div class="paste-hint">Volgorde kolommen (plak tab-gescheiden uit Excel):</div>` +
-        `<table class="paste-cols-table">` +
-        `<thead><tr>${targets.map(t => `<th>${t.label}</th>`).join('')}</tr></thead>` +
-        `<tbody><tr>${targets.map(() => `<td>...</td>`).join('')}</tr></tbody>` +
-        `</table>`;
-}
-
-function initExcelPastePanel() {
-    const anchor = document.getElementById('btn-random');
-    if (!anchor || document.getElementById('excel-paste-card')) return;
-    const card = document.createElement('div');
-    card.className = 'sidebar-card excel-paste-card';
-    card.id = 'excel-paste-card';
-    card.innerHTML = `
-      <div class="sidebar-card-title">Plakken uit Excel</div>
-      <p class="paste-hint">Plak een rij of bereik met tab-gescheiden waarden. De waarden worden van links naar rechts ingevuld.</p>
-      <div id="paste-format-hint" class="paste-format-wrap"></div>
-      <textarea id="excel-paste-values" class="excel-paste-area" rows="3" placeholder="Plak hier waarden uit Excel"></textarea>
-      <button id="btn-paste-excel" class="btn-secondary" type="button">Vul waarden in</button>
-      <div id="paste-status" class="paste-status"></div>`;
-    anchor.insertAdjacentElement('afterend', card);
-    document.getElementById('btn-paste-excel').addEventListener('click', () => {
-        parsePasteInput(document.getElementById('excel-paste-values').value);
-    });
-    document.getElementById('excel-paste-values').addEventListener('paste', () => {
-        window.setTimeout(() => parsePasteInput(document.getElementById('excel-paste-values').value), 0);
-    });
-    updatePasteFormatHint();
-}
-
-// \u2500\u2500\u2500 NAVIGATION SCROLL \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function setupNav() {
     document.getElementById('section-nav').addEventListener('click', e => {
         const item = e.target.closest('.nav-item');
@@ -1462,7 +1411,6 @@ function init() {
     populateScenarioDropdown();
     setupNav();
     attachGlobalListeners();
-    initExcelPastePanel();
     const seedEl = document.getElementById('inp-seed');
     if (seedEl) {
         seedEl.value = String(nextRandomSeed());

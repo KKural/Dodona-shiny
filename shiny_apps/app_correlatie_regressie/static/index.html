@@ -3,50 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Correlatie en Regressie Oefening</title>
+  <title>Oefeningen voor Correlatie &amp; Regressie</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-title">Correlatie &amp; Regressie
+      <div class="sidebar-title">Oefeningen voor Correlatie &amp; Regressie
         <button class="btn-sidebar-close" id="btn-sidebar-close">&#10005;</button>
       </div>
 
       <div class="sidebar-card">
         <div class="sidebar-card-title">Hoe deze webpagina werkt</div>
         <ul class="sidebar-howto-list" id="howto-list">
-          <li>Oefen bivariate correlatie- en regressieberekeningen.</li>
-          <li>Gebruik 4 decimalen voor alle handmatige berekeningen.</li>
-          <li>Visualisaties ontgrendelen pas wanneer alle antwoorden correct zijn.</li>
+          <li>Oefen bivariate correlatie- en regressieberekeningen met criminologiedatasets.</li>
+          <li>Bestudeer eerst de dataset. Vul daarna stap voor stap de berekeningstabellen in.</li>
+          <li>Gebruik 4 decimalen. Visualisaties verschijnen pas wanneer alle verplichte stappen correct zijn.</li>
         </ul>
       </div>
 
-      <div class="sidebar-divider"></div>
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Scenario &amp; dataset</div>
+        <p class="sidebar-help">Kies een analysetype en scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te openen.</p>
+        <div class="sidebar-section">
+          <label for="mode">Analysetype</label>
+          <select id="mode">
+            <option value="Correlation">Correlatie</option>
+            <option value="Bivariate" selected>Bivariate regressie</option>
+          </select>
+        </div>
+        <div class="sidebar-section">
+          <label for="scenario">Scenario</label>
+          <select id="scenario"></select>
+        </div>
+        <div class="sidebar-section">
+          <label for="n">Steekproefgrootte N (5-50)</label>
+          <input id="n" type="number" min="5" max="50" step="1" value="10" />
+        </div>
+        <div class="sidebar-section">
+          <label for="seed">Datasetcode (seed, optioneel)</label>
+          <input id="seed" type="number" min="1" placeholder="bijv. 123" />
+        </div>
 
-      <div class="sidebar-section">
-        <label for="mode">Analysetype</label>
-        <select id="mode">
-          <option value="Correlation">Correlatie</option>
-          <option value="Bivariate" selected>Bivariate regressie</option>
-        </select>
+        <button id="btn-generate" class="btn-primary">&#9654; Genereer dataset</button>
+        <button id="btn-random" class="btn-secondary">&#8635; Willekeurig scenario</button>
       </div>
-      <div class="sidebar-section">
-        <label for="scenario">Scenario</label>
-        <select id="scenario"></select>
-      </div>
-      <div class="sidebar-section">
-        <label for="n">Steekproefgrootte N (5-50)</label>
-        <input id="n" type="number" min="5" max="50" step="1" value="10" />
-      </div>
-      <div class="sidebar-section">
-        <label for="seed">Datasetcode (seed, optioneel)</label>
-        <input id="seed" type="number" min="1" placeholder="bijv. 123" />
-      </div>
-
-      <button id="btn-generate" class="btn-primary">&#9654; Genereer dataset</button>
-      <button id="btn-random" class="btn-secondary">&#8635; Willekeurig scenario</button>
 
       <div class="sidebar-divider"></div>
       <div class="sidebar-card">
@@ -69,6 +71,7 @@
       <div class="sidebar-divider"></div>
       <div class="section-nav" id="section-nav">
         <div class="nav-item active" data-target="deel1">I. Dataset</div>
+        <div class="nav-item" data-target="deel-taak">Taak &amp; vignette</div>
         <div class="nav-item" data-target="deel2">II. Gemiddelden</div>
         <div class="nav-item" data-target="deel3">III. Totalen</div>
         <div class="nav-item" data-target="deel4" id="nav-deel4">IV. Stappen 5-9</div>
@@ -85,14 +88,26 @@
     <main class="main-content">
       <div class="mobile-header">
         <button class="btn-sidebar-toggle" id="btn-sidebar-toggle">&#9776;</button>
-        <span>Correlatie &amp; Regressie</span>
+        <span>Oefeningen voor Correlatie &amp; Regressie</span>
       </div>
 
-      <div class="vignette-card"><span id="scenario-text">Genereer een dataset om te starten.</span></div>
+      <section class="card title-card">
+        <div class="card-body">
+          <h1>Oefeningen voor Correlatie &amp; Regressie</h1>
+          <p class="muted">Statische oefenmodule voor handmatige correlatieanalyse en bivariate regressie.</p>
+        </div>
+      </section>
 
       <section class="card" id="deel1">
         <div class="card-header">Deel I - Dataset</div>
         <div class="card-body"><div class="table-wrap"><table id="dataset-table"></table></div></div>
+      </section>
+
+      <section class="card" id="deel-taak">
+        <div class="card-header">Taak &amp; vignette</div>
+        <div class="card-body">
+          <div class="vignette-card"><span id="scenario-text">Genereer een dataset om te starten.</span></div>
+        </div>
       </section>
 
       <section class="card" id="deel2">
