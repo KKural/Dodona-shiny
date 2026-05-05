@@ -535,7 +535,7 @@ function renderPredictionTable() {
 
   const { x1, x2, y } = state.names;
   const thead = document.createElement('thead');
-  thead.innerHTML = `<tr><th>Entity</th><th>${x1}</th><th>${x2}</th><th>${y}</th><th>Yhat = a + b1*X1 + b2*X2</th></tr>`;
+  thead.innerHTML = `<tr><th>Eenheid</th><th>${x1}</th><th>${x2}</th><th>${y}</th><th>Yhat = a + b1*X1 + b2*X2</th></tr>`;
   tbl.appendChild(thead);
 
   const tbody = document.createElement('tbody');

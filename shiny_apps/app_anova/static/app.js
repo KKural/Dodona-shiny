@@ -483,9 +483,15 @@ function setFieldMsg(id, html) {
     feedbackStore[id] = html || null;
     const el = document.getElementById(id);
     if (!el) return;
-    if (!html) { el.innerHTML = ''; el.className = 'field-diag'; return; }
+    const msgRow = el.closest('tr.msg-row');
+    if (!html) {
+        el.innerHTML = ''; el.className = 'field-diag';
+        if (msgRow) msgRow.classList.remove('active');
+        return;
+    }
     el.innerHTML = html;
     el.className = 'field-diag visible';
+    if (msgRow) msgRow.classList.add('active');
 }
 
 // render a R-style detailed feedback panel (red border, all wrong fields listed)
@@ -1216,6 +1222,7 @@ function resetAllInputs() {
     });
     document.querySelectorAll('.light').forEach(el => el.classList.remove('green', 'red'));
     document.querySelectorAll('.field-diag').forEach(el => { el.innerHTML = ''; el.className = 'field-diag'; });
+    document.querySelectorAll('tr.msg-row').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.section-summary').forEach(el => { el.innerHTML = ''; el.className = 'section-summary'; });
     document.querySelectorAll('.feedback-panel').forEach(el => { el.innerHTML = ''; el.className = 'feedback-panel'; });
     Object.keys(feedbackStore).forEach(k => delete feedbackStore[k]);

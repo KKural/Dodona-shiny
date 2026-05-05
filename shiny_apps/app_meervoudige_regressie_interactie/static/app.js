@@ -438,7 +438,7 @@ function renderPredTable() {
   const predName = 'Yhat = a + b1*X1c + b2*X2c + b3*INT';
 
   const thead = document.createElement('thead');
-  thead.innerHTML = `<tr><th>Entity</th><th>X1c</th><th>X2c</th><th>INT</th><th>${sc.vars.y}</th><th>${predName}</th></tr>`;
+  thead.innerHTML = `<tr><th>Eenheid</th><th>X1c</th><th>X2c</th><th>INT</th><th>${sc.vars.y}</th><th>${predName}</th></tr>`;
   tbl.appendChild(thead);
 
   const tbody = document.createElement('tbody');

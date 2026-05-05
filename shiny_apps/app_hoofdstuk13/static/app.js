@@ -2369,6 +2369,7 @@ function init() {
   initResizeHandle();
   populateScenarioSelect();
   bindEvents();
+  initExcelPastePanel();
   const seedEl = document.getElementById('seed');
   if (seedEl) {
     seedEl.value = String(nextRandomSeed());
