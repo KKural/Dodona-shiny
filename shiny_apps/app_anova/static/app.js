@@ -232,6 +232,8 @@ function calculateTruth(data, sc) {
     const devWithinSq = devWithin.map(v => r4(v * v));
     const devBetween = data.map(d => r4(grpMeans[d.group] - grandMean));
     const devBetweenSq = devBetween.map(v => r4(v * v));
+    const devTotal = data.map(d => r4(d.y - grandMean));
+    const devTotalSq = devTotal.map(v => r4(v * v));
 
     const SSW = r4(devWithinSq.reduce((a, b) => a + b));
     // SSB = \u03a3 nj(Yj \u2212 Y..)\u00b2 \u2014 explicit group-level formula
