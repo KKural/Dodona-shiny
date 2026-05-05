@@ -639,58 +639,59 @@ select.blank-select {
         print-color-adjust: exact;
     }
 }
+
 .excel-paste-card {
-  margin-top: 12px;
-  border-top: 1px solid var(--line);
-  padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
 }
 
 .excel-paste-area {
-  width: 100%;
-  min-height: 68px;
-  box-sizing: border-box;
-  resize: vertical;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 8px;
-  font-family: Consolas, "Courier New", monospace;
-  font-size: 0.82rem;
+    width: 100%;
+    min-height: 68px;
+    box-sizing: border-box;
+    resize: vertical;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.82rem;
 }
 
 .paste-format-wrap {
-  overflow-x: auto;
-  margin: 8px 0;
+    overflow-x: auto;
+    margin: 8px 0;
 }
 
 .paste-hint {
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.35;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.35;
 }
 
 .paste-cols-table {
-  width: max-content;
-  min-width: 100%;
-  border-collapse: collapse;
-  font-size: 0.76rem;
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-size: 0.76rem;
 }
 
 .paste-cols-table th,
 .paste-cols-table td {
-  border: 1px solid #cbd5e1;
-  padding: 4px 6px;
-  white-space: nowrap;
-  text-align: center;
-  vertical-align: middle;
+    border: 1px solid #cbd5e1;
+    padding: 4px 6px;
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .paste-cols-table th {
-  background: #eff6ff;
-  color: var(--blue);
+    background: #eff6ff;
+    color: var(--blue);
 }
 
 .paste-status {
-  margin-top: 6px;
-  font-size: 0.82rem;
-  color: var(--muted);
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: var(--muted);
 }

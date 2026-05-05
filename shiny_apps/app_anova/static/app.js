@@ -159,6 +159,12 @@ const state = {
     allCorrect: false,
     hot: null,
     hotCellClasses: {},
+    hot2: null,
+    hot2CellClasses: {},
+    hot4: null,
+    hot4CellClasses: {},
+    hot5: null,
+    hot5CellClasses: {},
     chartBoxplot: null,
     chartSS: null,
     chartCI: null
@@ -166,6 +172,13 @@ const state = {
 
 // Feedback message store (mirrors R app feedback_store)
 const feedbackStore = {};
+
+function humanizeGroup(g) {
+    return String(g)
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .trim();
+}
 
 function safeSeed(seedRaw) {
     const s = Number(seedRaw);
@@ -605,7 +618,7 @@ function renderDeviationTable() {
     if (!sc || !data.length) return;
 
     // Build flat data: [entity, group, y, dW, dW2, dB, dB2]
-    const tableData = data.map(row => [row.entity, row.group, row.y, null, null, null, null]);
+    const tableData = data.map(row => [row.entity, humanizeGroup(row.group), row.y, null, null, null, null]);
 
     // Merge (Yj-Y..) and (Yj-Y..)^2 columns per group block
     const mergeCells = [];
@@ -630,16 +643,16 @@ function renderDeviationTable() {
             '(&#x0232;<sub>j</sub>&minus;&#x0232;..)&sup2;'
         ],
         columns: [
-            { readOnly: true },
-            { readOnly: true },
-            { readOnly: true, type: 'numeric', numericFormat: { pattern: '0.00' } },
+            { type: 'text', readOnly: true },
+            { type: 'text', readOnly: true },
+            { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
             { type: 'numeric', numericFormat: { pattern: '0.0000' } },
             { type: 'numeric', numericFormat: { pattern: '0.0000' } },
             { type: 'numeric', numericFormat: { pattern: '0.0000' } },
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
         ],
         mergeCells: mergeCells,
-        colWidths: [85, 120, 65, 95, 95, 95, 95],
+        colWidths: [80, 145, 72, 92, 92, 92, 92],
         rowHeaders: false,
         width: '100%',
         height: 'auto',
@@ -647,12 +660,118 @@ function renderDeviationTable() {
         cells(row, col) {
             const key = `${row}-${col}`;
             const cls = state.hotCellClasses[key];
-            if (cls === 'correct') return { className: 'htCorrect' };
-            if (cls === 'incorrect') return { className: 'htIncorrect' };
-            return {};
+            const classes = [col < 2 ? 'htLeft' : 'htCenter'];
+            if (cls === 'correct') classes.push('htCorrect');
+            else if (cls === 'incorrect') classes.push('htIncorrect');
+            return { className: classes.join(' ') };
         },
         afterChange(changes, source) {
             if (source === 'loadData') return;
+            hotValidate();
+        }
+    });
+}
+
+// ─── RENDER SS TABLE (HOT4 — Deel IV) ────────────────────────────────────────
+function renderSSTable() {
+    const container = document.getElementById('hot4-container');
+    if (!container) return;
+    if (state.hot4) { state.hot4.destroy(); state.hot4 = null; }
+    state.hot4CellClasses = {};
+    container.innerHTML = '';
+
+    const tableData = [
+        ['Binnen groepen (SSW)', null],
+        ['Tussen groepen (SSB)', null],
+        ['Totaal (SST)', null]
+    ];
+
+    const hotValidate = debounce(validateAll, 250);
+
+    state.hot4 = new Handsontable(container, {
+        data: tableData,
+        licenseKey: 'non-commercial-and-evaluation',
+        colHeaders: ['Bron van variatie', 'SS&nbsp;(4&nbsp;decimalen)'],
+        columns: [
+            { type: 'text', readOnly: true },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+        ],
+        colWidths: [220, 140],
+        rowHeaders: false,
+        width: 375,
+        height: 'auto',
+        stretchH: 'none',
+        cells(row, col) {
+            const key = `${row}-${col}`;
+            const cls = state.hot4CellClasses[key];
+            const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+            if (cls === 'correct') classes.push('htCorrect');
+            else if (cls === 'incorrect') classes.push('htIncorrect');
+            return { className: classes.join(' ') };
+        },
+        afterChange(changes, source) {
+            if (source === 'loadData') return;
+            hotValidate();
+        }
+    });
+}
+
+// ─── RENDER ANOVA TABLE (HOT5 — Deel V) ──────────────────────────────────────
+function renderANOVAHotTable() {
+    const container = document.getElementById('hot5-container');
+    if (!container) return;
+    if (state.hot5) { state.hot5.destroy(); state.hot5 = null; }
+    state.hot5CellClasses = {};
+    container.innerHTML = '';
+
+    // Dimmed (read-only, non-applicable) cells: (row-col)
+    // Row 1 (Binnen): F(1-4) and η²(1-5) not applicable
+    // Row 2 (Totaal): MS(2-3), F(2-4), η²(2-5) not applicable
+    const DIMMED = new Set(['1-4', '1-5', '2-3', '2-4', '2-5']);
+
+    const tableData = [
+        ['Tussen groepen', '—', null, null, null, null],
+        ['Binnen groepen', '—', null, null, '—', '—'],
+        ['Totaal', '—', null, '—', '—', '—']
+    ];
+
+    const hotValidate = debounce(validateAll, 250);
+
+    state.hot5 = new Handsontable(container, {
+        data: tableData,
+        licenseKey: 'non-commercial-and-evaluation',
+        colHeaders: ['Bron', 'SS', 'df', 'MS', 'F', '\u03b7\u00b2'],
+        columns: [
+            { type: 'text', readOnly: true },
+            { type: 'text', readOnly: true },
+            { type: 'numeric', numericFormat: { pattern: '0' } },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+        ],
+        colWidths: [160, 105, 58, 110, 110, 82],
+        rowHeaders: false,
+        width: '100%',
+        height: 'auto',
+        stretchH: 'last',
+        cells(row, col) {
+            const key = `${row}-${col}`;
+            const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+            if (DIMMED.has(key)) {
+                classes.push('hot-dimmed-cell');
+                return { readOnly: true, type: 'text', className: classes.join(' ') };
+            }
+            if (col === 1) {
+                classes.push('hot-ss-cell');
+                return { readOnly: true, className: classes.join(' ') };
+            }
+            const cls = state.hot5CellClasses[key];
+            if (cls === 'correct') classes.push('htCorrect');
+            else if (cls === 'incorrect') classes.push('htIncorrect');
+            return { className: classes.join(' ') };
+        },
+        afterChange(changes, source) {
+            if (source === 'loadData' || source === 'displayUpdate') return;
             hotValidate();
         }
     });
@@ -750,18 +869,50 @@ function validateAll() {
         return res.state;
     }
 
-    // Deel II: group means
+    // helper: validate a HOT cell (no DOM element — uses feedbackStore keyed by msgId)
+    function chkHot(hotCellClasses, row, col, expected, rawVal, msgId, fieldKey) {
+        totalFields++;
+        const str = rawVal == null ? '' : String(rawVal).trim();
+        if (!str || str === 'null') {
+            delete hotCellClasses[`${row}-${col}`];
+            feedbackStore[msgId] = null;
+            return 'empty';
+        }
+        const num = parseFloat(str.replace(',', '.'));
+        if (isNaN(num)) {
+            hotCellClasses[`${row}-${col}`] = 'incorrect';
+            feedbackStore[msgId] = 'Geen geldig getal.';
+            return 'incorrect';
+        }
+        if (Math.abs(r4(num) - r4(expected)) < 0.0001) {
+            correctFields++;
+            hotCellClasses[`${row}-${col}`] = 'correct';
+            feedbackStore[msgId] = null;
+            return 'correct';
+        }
+        hotCellClasses[`${row}-${col}`] = 'incorrect';
+        feedbackStore[msgId] = getFeedbackMsg(fieldKey, str, truth);
+        return 'incorrect';
+    }
+
+    // Deel II: group means (HOT2)
+    const hot2Data = state.hot2 ? state.hot2.getData() : [];
+    const newHot2Classes = {};
     let d2correct = 0, d2total = 0;
     sc.groups.forEach((g, i) => {
         d2total++;
-        const st = chk(`inp-grp-${i}`, `light-grp-${i}`, `msg-grp-${i}`, `grp_${i}`, truth.grpMeans[g], ans[`grp_${i}`]);
+        const rawVal = hot2Data[i] ? hot2Data[i][1] : null;
+        const st = chkHot(newHot2Classes, i, 1, truth.grpMeans[g], rawVal, `msg2-grp-${i}`, `grp_${i}`);
         if (st === 'correct') d2correct++;
     });
     d2total++;
-    if (chk('inp-grand-mean', 'light-grand-mean', 'msg-grand-mean', 'grandMean', truth.grandMean, ans.grandMean) === 'correct') d2correct++;
+    const grandRaw = hot2Data[sc.groups.length] ? hot2Data[sc.groups.length][1] : null;
+    if (chkHot(newHot2Classes, sc.groups.length, 1, truth.grandMean, grandRaw, 'msg2-grand', 'grandMean') === 'correct') d2correct++;
+    state.hot2CellClasses = newHot2Classes;
+    if (state.hot2) state.hot2.render();
     updateSectionSummary('feedback-deel2', d2correct, d2total, 'Alle gemiddelden correct', 'controleer groepsgemiddelden');
-    const d2map = Object.fromEntries(sc.groups.map((g, i) => [`Y&#x0305;_${g}`, `msg-grp-${i}`]));
-    d2map['Grootgemiddelde Y&#x0305;..'] = 'msg-grand-mean';
+    const d2map = Object.fromEntries(sc.groups.map((g, i) => [`Y̅ ${humanizeGroup(g)}`, `msg2-grp-${i}`]));
+    d2map['Grootgemiddelde Y̅..'] = 'msg2-grand';
     renderFeedbackPanel('feedback-detail-deel2', d2map);
 
     // Deel III: table
@@ -827,41 +978,49 @@ function validateAll() {
     updateSectionSummary('feedback-deel3', tableCorrect, tableTotal,
         'Afwijkingtabel volledig correct', 'controleer de afwijkingskolommen');
 
-    // Deel IV: SS
+    // Deel IV: SS (HOT4 — row 0=SSW, 1=SSB, 2=SST)
+    const hot4Data = state.hot4 ? state.hot4.getData() : [];
+    const newHot4Classes = {};
     let d4correct = 0;
-    if (chk('inp-ssw', 'light-ssw', 'msg-ssw', 'ssw', truth.SSW, ans.ssw) === 'correct') d4correct++;
-    if (chk('inp-ssb', 'light-ssb', 'msg-ssb', 'ssb', truth.SSB, ans.ssb) === 'correct') d4correct++;
-    if (chk('inp-sst', 'light-sst', 'msg-sst', 'sst', truth.SST, ans.sst) === 'correct') d4correct++;
+    if (chkHot(newHot4Classes, 0, 1, truth.SSW, hot4Data[0] ? hot4Data[0][1] : null, 'msg4-ssw', 'ssw') === 'correct') d4correct++;
+    if (chkHot(newHot4Classes, 1, 1, truth.SSB, hot4Data[1] ? hot4Data[1][1] : null, 'msg4-ssb', 'ssb') === 'correct') d4correct++;
+    if (chkHot(newHot4Classes, 2, 1, truth.SST, hot4Data[2] ? hot4Data[2][1] : null, 'msg4-sst', 'sst') === 'correct') d4correct++;
+    state.hot4CellClasses = newHot4Classes;
+    if (state.hot4) state.hot4.render();
     updateSectionSummary('feedback-deel4', d4correct, 3, 'Alle kwadratensommen correct', 'controleer SS-waarden');
     renderFeedbackPanel('feedback-detail-deel4', {
-        'SSW (binnengroeps)': 'msg-ssw',
-        'SSB (tussengroeps)': 'msg-ssb',
-        'SST (totaal)': 'msg-sst'
+        'SSW (binnengroeps)': 'msg4-ssw',
+        'SSB (tussengroeps)': 'msg4-ssb',
+        'SST (totaal)': 'msg4-sst'
     });
 
-    // SS decomp display
-    updateSSDecompDisplay();
-
-    // Deel V: ANOVA table
+    // Deel V: ANOVA table (HOT5)
+    // Cols: 0=Bron, 1=SS(readonly), 2=df, 3=MS, 4=F, 5=η²
+    const hot5Data = state.hot5 ? state.hot5.getData() : [];
+    const newHot5Classes = {};
     let d5correct = 0;
-    if (chk('inp-df-between', 'light-df-between', 'msg-df-between', 'df-between', truth.dfBetween, ans['df-between']) === 'correct') d5correct++;
-    if (chk('inp-df-within', 'light-df-within', 'msg-df-within', 'df-within', truth.dfWithin, ans['df-within']) === 'correct') d5correct++;
-    if (chk('inp-df-total', 'light-df-total', 'msg-df-total', 'df-total', truth.dfTotal, ans['df-total']) === 'correct') d5correct++;
-    if (chk('inp-msb', 'light-msb', 'msg-msb', 'msb', truth.MSB, ans.msb) === 'correct') d5correct++;
-    if (chk('inp-msw', 'light-msw', 'msg-msw', 'msw', truth.MSW, ans.msw) === 'correct') d5correct++;
-    if (chk('inp-f', 'light-f', 'msg-f', 'f', truth.Fratio, ans.f) === 'correct') d5correct++;
-    if (chk('inp-eta', 'light-eta', 'msg-eta', 'eta', truth.etaSq, ans.eta) === 'correct') d5correct++;
+    const h5 = (r, c) => hot5Data[r] ? hot5Data[r][c] : null;
+    if (chkHot(newHot5Classes, 0, 2, truth.dfBetween, h5(0, 2), 'msg5-df-between', 'df-between') === 'correct') d5correct++;
+    if (chkHot(newHot5Classes, 1, 2, truth.dfWithin, h5(1, 2), 'msg5-df-within', 'df-within') === 'correct') d5correct++;
+    if (chkHot(newHot5Classes, 2, 2, truth.dfTotal, h5(2, 2), 'msg5-df-total', 'df-total') === 'correct') d5correct++;
+    if (chkHot(newHot5Classes, 0, 3, truth.MSB, h5(0, 3), 'msg5-msb', 'msb') === 'correct') d5correct++;
+    if (chkHot(newHot5Classes, 1, 3, truth.MSW, h5(1, 3), 'msg5-msw', 'msw') === 'correct') d5correct++;
+    if (chkHot(newHot5Classes, 0, 4, truth.Fratio, h5(0, 4), 'msg5-f', 'f') === 'correct') d5correct++;
+    if (chkHot(newHot5Classes, 0, 5, truth.etaSq, h5(0, 5), 'msg5-eta', 'eta') === 'correct') d5correct++;
+    state.hot5CellClasses = newHot5Classes;
+    if (state.hot5) state.hot5.render();
+    if (state.hot5) state.hot5.render();
     updateSectionSummary('feedback-deel5', d5correct, 7,
         `ANOVA-tabel correct \u2014 F(${truth.dfBetween},${truth.dfWithin}) = ${truth.Fratio.toFixed(4)}`,
         'controleer vrijheidsgraden en MS-waarden');
     renderFeedbackPanel('feedback-detail-deel5', {
-        'df tussen groepen': 'msg-df-between',
-        'df binnen groepen': 'msg-df-within',
-        'df totaal': 'msg-df-total',
-        'MSB': 'msg-msb',
-        'MSW': 'msg-msw',
-        'F-ratio': 'msg-f',
-        '\u03b7\u00b2': 'msg-eta'
+        'df tussen groepen': 'msg5-df-between',
+        'df binnen groepen': 'msg5-df-within',
+        'df totaal': 'msg5-df-total',
+        'MSB': 'msg5-msb',
+        'MSW': 'msg5-msw',
+        'F-ratio': 'msg5-f',
+        '\u03b7\u00b2': 'msg5-eta'
     });
 
     updateProgress(correctFields, totalFields);
@@ -890,40 +1049,22 @@ function validateAll() {
 
 // \u2500\u2500\u2500 SS DECOMP DISPLAY \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function updateSSDecompDisplay() {
-    const { truth } = state;
-    const el = document.getElementById('ss-decomp-disp');
-    if (!truth) { el.textContent = ''; return; }
-    const sswEl = document.getElementById('inp-ssw');
-    const ssbEl = document.getElementById('inp-ssb');
-    const sstEl = document.getElementById('inp-sst');
-    const sswOk = sswEl && sswEl.classList.contains('correct');
-    const ssbOk = ssbEl && ssbEl.classList.contains('correct');
-    const sstOk = sstEl && sstEl.classList.contains('correct');
-    if (sswOk && ssbOk) {
-        const sum = r4(parseFloat(sswEl.value) + parseFloat(ssbEl.value));
-        el.innerHTML = `SSW + SSB = ${parseFloat(sswEl.value).toFixed(4)} + ${parseFloat(ssbEl.value).toFixed(4)} = <strong>${sum.toFixed(4)}</strong>`;
-    } else {
-        el.textContent = 'SST = SSW + SSB';
-    }
+    // SS decomp display removed — HOT4 shows individual SS values
+    // Keep a no-op so any remaining callers don't crash
 }
 
 // \u2500\u2500\u2500 ANOVA TABLE SS DISPLAY \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function updateANOVATableDisplay() {
-    const { truth } = state;
-    const setBetween = document.getElementById('disp-ssb');
-    const setWithin = document.getElementById('disp-ssw');
-    const setTotal = document.getElementById('disp-sst');
-    if (truth) {
-        const sswEl = document.getElementById('inp-ssw');
-        const ssbEl = document.getElementById('inp-ssb');
-        const sstEl = document.getElementById('inp-sst');
-        if (sswEl && sswEl.classList.contains('correct')) setWithin.textContent = truth.SSW.toFixed(4);
-        else setWithin.textContent = '\u2014';
-        if (ssbEl && ssbEl.classList.contains('correct')) setBetween.textContent = truth.SSB.toFixed(4);
-        else setBetween.textContent = '\u2014';
-        if (sstEl && sstEl.classList.contains('correct')) setTotal.textContent = truth.SST.toFixed(4);
-        else setTotal.textContent = '\u2014';
-    }
+    if (!state.hot5 || !state.truth) return;
+    const t = state.truth;
+    const sswOk = state.hot4CellClasses['0-1'] === 'correct';
+    const ssbOk = state.hot4CellClasses['1-1'] === 'correct';
+    const sstOk = state.hot4CellClasses['2-1'] === 'correct';
+    state.hot5.setDataAtCell([
+        [0, 1, ssbOk ? t.SSB.toFixed(4) : '\u2014'],
+        [1, 1, sswOk ? t.SSW.toFixed(4) : '\u2014'],
+        [2, 1, sstOk ? t.SST.toFixed(4) : '\u2014']
+    ], 'displayUpdate');
 }
 
 // \u2500\u2500\u2500 SIGNIFICANCE NOTE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1245,8 +1386,10 @@ function doGenerate() {
     if (seedDisplay) seedDisplay.style.display = '';
 
     renderDataset();
-    renderGroupMeansInputs();
+    renderGroupMeansTable();
     renderDeviationTable();
+    renderSSTable();
+    renderANOVAHotTable();
     resetAllInputs();
     lockVisualSections();
     updateProgress(0, 0);
@@ -1258,10 +1401,35 @@ function resetAllInputs() {
         el.classList.remove('correct', 'incorrect');
     });
     if (state.hot) {
-        const emptyData = state.data.map(row => [row.entity, row.group, row.y, null, null, null, null]);
+        const emptyData = state.data.map(row => [row.entity, humanizeGroup(row.group), row.y, null, null, null, null]);
         state.hot.loadData(emptyData);
         state.hotCellClasses = {};
         state.hot.render();
+    }
+    if (state.hot2 && state.scenario) {
+        const emptyData2 = state.scenario.groups.map(g => [humanizeGroup(g), null]);
+        emptyData2.push(['Grootgemiddelde (\u0232..)', null]);
+        state.hot2.loadData(emptyData2);
+        state.hot2CellClasses = {};
+        state.hot2.render();
+    }
+    if (state.hot4) {
+        state.hot4.loadData([
+            ['Binnen groepen (SSW)', null],
+            ['Tussen groepen (SSB)', null],
+            ['Totaal (SST)', null]
+        ]);
+        state.hot4CellClasses = {};
+        state.hot4.render();
+    }
+    if (state.hot5) {
+        state.hot5.loadData([
+            ['Tussen groepen', '\u2014', null, null, null, null],
+            ['Binnen groepen', '\u2014', null, null, '\u2014', '\u2014'],
+            ['Totaal', '\u2014', null, '\u2014', '\u2014', '\u2014']
+        ]);
+        state.hot5CellClasses = {};
+        state.hot5.render();
     }
     document.querySelectorAll('.light').forEach(el => el.classList.remove('green', 'red'));
     document.querySelectorAll('.field-diag').forEach(el => { el.innerHTML = ''; el.className = 'field-diag'; });
@@ -1269,7 +1437,8 @@ function resetAllInputs() {
     document.querySelectorAll('.section-summary').forEach(el => { el.innerHTML = ''; el.className = 'section-summary'; });
     document.querySelectorAll('.feedback-panel').forEach(el => { el.innerHTML = ''; el.className = 'feedback-panel'; });
     Object.keys(feedbackStore).forEach(k => delete feedbackStore[k]);
-    document.getElementById('ss-decomp-disp').textContent = 'SST = SSW + SSB';
+    const ssDecomp = document.getElementById('ss-decomp-disp');
+    if (ssDecomp) ssDecomp.textContent = 'SST = SSW + SSB';
     document.getElementById('sig-note').classList.remove('visible');
     document.getElementById('success-msg').classList.remove('visible');
     ['anova-table-feedback', 'table-feedback'].forEach(id => {
@@ -1286,13 +1455,6 @@ function resetAllInputs() {
 function autoFillAnswers() {
     const { truth, scenario: sc, data } = state;
     if (!truth || !sc) return;
-
-    sc.groups.forEach((g, i) => {
-        const el = document.getElementById(`inp-grp-${i}`);
-        if (el) el.value = truth.grpMeans[g].toFixed(4);
-    });
-    const gm = document.getElementById('inp-grand-mean');
-    if (gm) gm.value = truth.grandMean.toFixed(4);
 
     const groupFirstRow = {};
     let lastGroup = null;
@@ -1311,16 +1473,28 @@ function autoFillAnswers() {
         state.hot.loadData(fillData);
     }
 
-    document.getElementById('inp-ssw').value = truth.SSW.toFixed(4);
-    document.getElementById('inp-ssb').value = truth.SSB.toFixed(4);
-    document.getElementById('inp-sst').value = truth.SST.toFixed(4);
-    document.getElementById('inp-df-between').value = truth.dfBetween;
-    document.getElementById('inp-df-within').value = truth.dfWithin;
-    document.getElementById('inp-df-total').value = truth.dfTotal;
-    document.getElementById('inp-msb').value = truth.MSB.toFixed(4);
-    document.getElementById('inp-msw').value = truth.MSW.toFixed(4);
-    document.getElementById('inp-f').value = truth.Fratio.toFixed(4);
-    document.getElementById('inp-eta').value = truth.etaSq.toFixed(4);
+    if (state.hot2) {
+        const fillData2 = sc.groups.map(g => [humanizeGroup(g), truth.grpMeans[g]]);
+        fillData2.push(['Grootgemiddelde (\u0232..)', truth.grandMean]);
+        state.hot2.loadData(fillData2);
+    }
+
+    if (state.hot4) {
+        state.hot4.loadData([
+            ['Binnen groepen (SSW)', truth.SSW],
+            ['Tussen groepen (SSB)', truth.SSB],
+            ['Totaal (SST)', truth.SST]
+        ]);
+    }
+
+    if (state.hot5) {
+        state.hot5.setDataAtCell([
+            [0, 2, truth.dfBetween], [0, 3, truth.MSB], [0, 4, truth.Fratio], [0, 5, truth.etaSq],
+            [1, 2, truth.dfWithin], [1, 3, truth.MSW],
+            [2, 2, truth.dfTotal]
+        ], 'autoFill');
+    }
+
     validateAll();
 }
 

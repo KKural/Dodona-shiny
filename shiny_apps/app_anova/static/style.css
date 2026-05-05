@@ -991,38 +991,91 @@ details.test-panel[open]>summary::before {
 }
 
 /* ─── Handsontable overrides ─── */
-#hot-container {
-    margin-top: 8px;
+#hot-container,
+#hot2-container,
+#hot4-container,
+#hot5-container {
+    margin-top: 10px;
     overflow: auto;
 }
 
-#hot-container .handsontable td {
-    text-align: center;
+#hot-container .handsontable td,
+#hot2-container .handsontable td,
+#hot4-container .handsontable td,
+#hot5-container .handsontable td {
     font-size: 0.86rem;
+    vertical-align: middle;
 }
 
-#hot-container .handsontable th {
+/* HOT3 (deviation table) keeps center-align per column via cells() callback */
+#hot-container .handsontable td {
+    text-align: center;
+}
+
+#hot-container .handsontable th,
+#hot2-container .handsontable th,
+#hot4-container .handsontable th,
+#hot5-container .handsontable th {
     background: #eff6ff;
     color: var(--blue);
     font-weight: 600;
     text-align: center;
     font-size: 0.82rem;
+    white-space: normal;
+    line-height: 1.25;
 }
 
 #hot-container .handsontable td.htDimmed,
-#hot-container .handsontable td[class*='htReadOnly'] {
+#hot-container .handsontable td[class*='htReadOnly'],
+#hot2-container .handsontable td.htDimmed,
+#hot2-container .handsontable td[class*='htReadOnly'],
+#hot4-container .handsontable td.htDimmed,
+#hot4-container .handsontable td[class*='htReadOnly'],
+#hot5-container .handsontable td.htDimmed,
+#hot5-container .handsontable td[class*='htReadOnly'] {
     background: #f8fafd !important;
-    color: #334155 !important;
+    color: #475569 !important;
 }
 
-#hot-container .handsontable td.htCorrect {
+#hot-container .handsontable td.htCorrect,
+#hot2-container .handsontable td.htCorrect,
+#hot4-container .handsontable td.htCorrect,
+#hot5-container .handsontable td.htCorrect {
     background: #f0fdf4 !important;
     outline: 2px solid #16a34a !important;
     outline-offset: -2px;
 }
 
-#hot-container .handsontable td.htIncorrect {
+#hot-container .handsontable td.htIncorrect,
+#hot2-container .handsontable td.htIncorrect,
+#hot4-container .handsontable td.htIncorrect,
+#hot5-container .handsontable td.htIncorrect {
     background: #fef2f2 !important;
     outline: 2px solid #dc2626 !important;
     outline-offset: -2px;
+}
+
+/* Dimmed placeholder cells (—) in HOT5 */
+.hot-dimmed-cell {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    text-align: center;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* SS read-only display cells in HOT5 (col 1 — filled from HOT4 results) */
+.hot-ss-cell {
+    background: #eff6ff !important;
+    color: #1e3a8a !important;
+    font-weight: 600;
+    text-align: center;
+    cursor: default;
+}
+
+/* Grand mean row separator in HOT2 */
+#hot2-container .handsontable td.hot-grand-mean-cell {
+    border-top: 2px solid #94a3b8 !important;
+    background: #fafbff !important;
+    font-weight: 600;
 }

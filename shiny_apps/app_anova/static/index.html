@@ -134,13 +134,7 @@
                 <div class="card-body">
                     <p class="instruction">Bereken het gemiddelde voor elke groep en het grootgemiddelde (gemiddelde van
                         alle waarnemingen samen). Rond af op 4 decimalen.</p>
-                    <div id="group-means-inputs"></div>
-                    <div class="field-row">
-                        <label>Grootgemiddelde (<span style="text-decoration:overline">Y</span>..)</label>
-                        <input type="number" step="any" id="inp-grand-mean" class="num-input" placeholder="0.0000" />
-                        <span class="light" id="light-grand-mean"></span>
-                    </div>
-                    <div class="field-diag" id="msg-grand-mean"></div>
+                    <div id="hot2-container" class="hot-table-container"></div>
                     <div class="section-summary" id="feedback-deel2"></div>
                     <div class="feedback-panel" id="feedback-detail-deel2"></div>
                 </div>
@@ -170,51 +164,7 @@
                 <div class="card-body">
                     <p class="instruction">Bereken de kwadratensommen op basis van de afwijkingtabel. Rond af op 4
                         decimalen.</p>
-                    <table class="anova-table">
-                        <thead>
-                            <tr>
-                                <th>Bron</th>
-                                <th>SS</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Binnen groepen (SSW)</td>
-                                <td><input type="number" step="any" id="inp-ssw" class="num-input"
-                                        placeholder="0.0000" /></td>
-                                <td><span class="light" id="light-ssw"></span></td>
-                            </tr>
-                            <tr class="msg-row">
-                                <td colspan="3">
-                                    <div class="field-diag" id="msg-ssw"></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Tussen groepen (SSB)</td>
-                                <td><input type="number" step="any" id="inp-ssb" class="num-input"
-                                        placeholder="0.0000" /></td>
-                                <td><span class="light" id="light-ssb"></span></td>
-                            </tr>
-                            <tr class="msg-row">
-                                <td colspan="3">
-                                    <div class="field-diag" id="msg-ssb"></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Totaal (SST)</td>
-                                <td><input type="number" step="any" id="inp-sst" class="num-input"
-                                        placeholder="0.0000" /></td>
-                                <td><span class="light" id="light-sst"></span></td>
-                            </tr>
-                            <tr class="msg-row">
-                                <td colspan="3">
-                                    <div class="field-diag" id="msg-sst"></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="ss-decomp-hint" id="ss-decomp-disp"></div>
+                    <div id="hot4-container" class="hot-table-container"></div>
                     <div class="section-summary" id="feedback-deel4"></div>
                     <div class="feedback-panel" id="feedback-detail-deel4"></div>
                 </div>
@@ -226,52 +176,7 @@
                 <div class="card-body">
                     <p class="instruction">Bereken de vrijheidsgraden, gemiddelde kwadratensommen, F-ratio en
                         eta-kwadraat.</p>
-                    <table class="anova-table">
-                        <thead>
-                            <tr>
-                                <th>Bron</th>
-                                <th>SS</th>
-                                <th>df</th>
-                                <th>MS</th>
-                                <th>F</th>
-                                <th>&eta;&sup2;</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Tussen groepen</td>
-                                <td id="disp-ssb" class="disp-cell">&mdash;</td>
-                                <td><input type="number" step="1" id="inp-df-between" class="num-input small"
-                                        placeholder="0.0000" /><span class="light" id="light-df-between"></span></td>
-                                <td><input type="number" step="any" id="inp-msb" class="num-input"
-                                        placeholder="0.0000" /><span class="light" id="light-msb"></span></td>
-                                <td><input type="number" step="any" id="inp-f" class="num-input"
-                                        placeholder="0.0000" /><span class="light" id="light-f"></span></td>
-                                <td><input type="number" step="any" id="inp-eta" class="num-input"
-                                        placeholder="0.0000" /><span class="light" id="light-eta"></span></td>
-                            </tr>
-                            <tr>
-                                <td>Binnen groepen</td>
-                                <td id="disp-ssw" class="disp-cell">&mdash;</td>
-                                <td><input type="number" step="1" id="inp-df-within" class="num-input small"
-                                        placeholder="0.0000" /><span class="light" id="light-df-within"></span></td>
-                                <td><input type="number" step="any" id="inp-msw" class="num-input"
-                                        placeholder="0.0000" /><span class="light" id="light-msw"></span></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td>Totaal</td>
-                                <td id="disp-sst" class="disp-cell">&mdash;</td>
-                                <td><input type="number" step="1" id="inp-df-total" class="num-input small"
-                                        placeholder="0.0000" /><span class="light" id="light-df-total"></span></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="feedback-box" id="anova-table-feedback"></div>
+                    <div id="hot5-container" class="hot-table-container"></div>
                     <div class="sig-note" id="sig-note"></div>
                     <div class="section-summary" id="feedback-deel5"></div>
                     <div class="feedback-panel" id="feedback-detail-deel5"></div>
