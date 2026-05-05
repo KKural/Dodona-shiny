@@ -630,6 +630,16 @@ function renderDeviationTable() {
         rowIdx += n;
     });
 
+    // Dynamic column widths based on scenario content
+    const totalN = state.data.length;
+    const entityLongest = [sc.entity + ' ' + totalN, 'Eenheid'].reduce((a, b) => a.length >= b.length ? a : b);
+    const groupLongest = ['Groep', ...sc.groups].reduce((a, b) => a.length >= b.length ? a : b);
+    const w0 = Math.max(70, Math.ceil(entityLongest.length * 7) + 16);
+    const w1 = Math.max(90, Math.ceil(groupLongest.length * 7) + 16);
+    const w2 = Math.max(65, Math.ceil(sc.yName.length * 7) + 16);
+    const wF = 88;
+    const hot3W = w0 + w1 + w2 + wF * 4;
+
     const hotValidate = debounce(validateAll, 250);
 
     state.hot = new Handsontable(container, {
@@ -652,9 +662,9 @@ function renderDeviationTable() {
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
         ],
         mergeCells: mergeCells,
-        colWidths: [80, 145, 72, 88, 88, 80, 80],
+        colWidths: [w0, w1, w2, wF, wF, wF, wF],
         rowHeaders: false,
-        width: 663,
+        width: hot3W,
         height: 'auto',
         stretchH: 'none',
         cells(row, col) {
@@ -688,6 +698,11 @@ function renderGroupMeansTable() {
     const tableData = sc.groups.map((g, i) => [`${humanizeGroup(g)} (\u0232${toSub(i + 1)})`, null]);
     tableData.push(['Grootgemiddelde (\u0232..)', null]);
 
+    // Dynamic width: size group column to fit the longest row label
+    const longestLabel2 = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Groep');
+    const hot2ColW = Math.max(150, Math.ceil(longestLabel2.length * 7) + 16);
+    const hot2W = hot2ColW + 150;
+
     const hotValidate = debounce(validateAll, 250);
 
     state.hot2 = new Handsontable(container, {
@@ -698,9 +713,9 @@ function renderGroupMeansTable() {
             { type: 'text', readOnly: true },
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
         ],
-        colWidths: [220, 150],
+        colWidths: [hot2ColW, 150],
         rowHeaders: false,
-        width: 390,
+        width: hot2W,
         height: 'auto',
         stretchH: 'none',
         cells(row, col) {
