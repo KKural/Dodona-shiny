@@ -1829,10 +1829,20 @@ function printQuestionPaper() {
   // Build MCQ block — span innerHTML already contains "A. text" from renderMcqList, use directly
   const mcqPrint = Array.from(document.querySelectorAll('.mcq-item')).map((item, i) => {
     const q = item.querySelector('.mcq-title')?.textContent || '';
-    const opts = Array.from(item.querySelectorAll('.mcq-option span'))
-      .map((s) => `<li>${s.innerHTML}</li>`)
+    const isMulti = !!item.querySelector('input[type="checkbox"]');
+    const hint = isMulti ? '<p style="font-size:9.5pt;font-style:italic;margin:0 0 2pt">Selecteer 2 opties.</p>' : '';
+    const opts = Array.from(item.querySelectorAll('.mcq-option'))
+      .map((label) => {
+        const input = label.querySelector('input');
+        const span = label.querySelector('span');
+        const checked = input?.checked || false;
+        const symbol = isMulti
+          ? (checked ? '&#x2611;' : '&#x25A1;')   // ☑ or □
+          : (checked ? '&#x25CF;' : '&#x25CB;');   // ● or ○
+        return `<li><span style="font-size:11pt;margin-right:5pt">${symbol}</span>${span ? span.innerHTML : ''}</li>`;
+      })
       .join('');
-    return `<div class="mcq-block"><p><strong>${i + 1}.</strong> ${q.replace(/^\d+\.\s*/, '')}</p><ul>${opts}</ul></div>`;
+    return `<div class="mcq-block"><p><strong>${i + 1}.</strong> ${q.replace(/^\d+\.\s*/, '')}</p>${hint}<ul>${opts}</ul></div>`;
   }).join('');
 
   // Build answer rows with clean write lines (no inline colours)
@@ -1947,7 +1957,7 @@ function printQuestionPaper() {
     }
     .mcq-block p  { margin: 0 0 3pt; font-size: 10.5pt; font-weight: 700; }
     .mcq-block ul { margin: 0; padding-left: 0; list-style: none; }
-    .mcq-block li { margin: 2pt 0; font-size: 10.5pt; padding-left: 18pt; text-indent: -18pt; }
+    .mcq-block li { margin: 2pt 0; font-size: 10.5pt; padding-left: 0; list-style: none; display: flex; align-items: baseline; gap: 0; }
     table.ans-table {
       width: calc(100% - 2pt);
       max-width: calc(100% - 2pt);
