@@ -109,11 +109,73 @@ const SCENARIOS = [
   }
 ];
 
+// ── Normal CDF (Abramowitz & Stegun approximation, max error 1.5e-7) ────────
+function normalCDF(z) {
+  const p = 0.3275911;
+  const a = [0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429];
+  const sign = z >= 0 ? 1 : -1;
+  const x = Math.abs(z) / Math.SQRT2;
+  const t = 1 / (1 + p * x);
+  let poly = 0;
+  for (let i = 4; i >= 0; i--) poly = a[i] + t * poly;
+  const erfc = poly * t * Math.exp(-x * x);
+  return 0.5 * (1 + sign * (1 - erfc));
+}
+
+// ── Cross-tab scenarios ──────────────────────────────────────────────────────
+const CROSSTAB_SCENARIOS = [
+  { rowLabel: 'GESLACHT', colLabel: 'VORIG JAAR HEREXAMENS', rows: ['Jongen', 'Meisje'], colNo: 'Nee', colYes: 'Ja' },
+  { rowLabel: 'GESLACHT', colLabel: 'SLACHTOFFER VAN CRIMINALITEIT', rows: ['Man', 'Vrouw'], colNo: 'Nee', colYes: 'Ja' },
+  { rowLabel: 'OPLEIDING', colLabel: 'EERDER AL VEROORDEELD', rows: ['Laagopgeleid', 'Hoogopgeleid'], colNo: 'Nee', colYes: 'Ja' },
+  { rowLabel: 'WOONOMGEVING', colLabel: 'ANGST VOOR CRIMINALITEIT', rows: ['Stedelijk', 'Landelijk'], colNo: 'Nee', colYes: 'Ja' }
+];
+
+function buildCrossTab(rng) {
+  const sc = CROSSTAB_SCENARIOS[Math.floor(rng() * CROSSTAB_SCENARIOS.length)];
+  const n1 = Math.floor(3200 + rng() * 3600);
+  const n2 = Math.floor(3200 + rng() * 3600);
+  const p1yes = round(0.04 + rng() * 0.12, 4);
+  const p2yes = round(0.04 + rng() * 0.10, 4);
+  const r1yes = Math.round(n1 * p1yes);
+  const r1no = n1 - r1yes;
+  const r2yes = Math.round(n2 * p2yes);
+  const r2no = n2 - r2yes;
+  const p1no = round(r1no / n1, 4);
+  const p2no = round(r2no / n2, 4);
+  const odds1 = round(r1no / r1yes, 4);
+  const odds2 = round(r2no / r2yes, 4);
+  return { sc, r1no, r1yes, n1, r2no, r2yes, n2, p1no, p2no, p1yes: round(p1yes, 4), p2yes: round(p2yes, 4), odds1, odds2 };
+}
+
+function renderCrossTab(ct) {
+  if (!ct) return;
+  const s = ct.sc;
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setText('ct-rowlabel', s.rowLabel);
+  setText('ct-collabel', s.colLabel);
+  setText('ct-col-no', s.colNo);
+  setText('ct-col-yes', s.colYes);
+  setText('ct-row1-label', s.rows[0]);
+  setText('ct-row2-label', s.rows[1]);
+  setText('ct-r1-no', ct.r1no.toLocaleString('nl-BE'));
+  setText('ct-r1-yes', ct.r1yes.toLocaleString('nl-BE'));
+  setText('ct-r2-no', ct.r2no.toLocaleString('nl-BE'));
+  setText('ct-r2-yes', ct.r2yes.toLocaleString('nl-BE'));
+}
+
+function createMultiMcq(id, question, options, correctIndices, feedbacks, hint) {
+  return { id, question, options, correctIndices, feedbacks, multiSelect: true, hint: hint || 'Selecteer 2 opties.' };
+}
+
 const OPEN_PROMPT_TEMPLATES = [
   'Werk de interpretatie uit met duidelijke ceteris paribus-bewoordingen.',
   'Besteed expliciet aandacht aan het verschil tussen zero-order en partiele samenhang.',
   'Leg uit welk deel van de variatie in Y verklaard is en welk deel onverklaard blijft.',
-  'Vergelijk de relatieve sterkte van de predictoren op basis van gestandaardiseerde effecten.'
+  'Vergelijk de relatieve sterkte van de predictoren op basis van gestandaardiseerde effecten.',
+  'Bespreek hoe het opnemen van de tweede predictor de relatie tussen X\u2081 en Y verandert.',
+  'Reflecteer op de praktische relevantie van de gevonden effecten voor de criminologische context.',
+  'Wat zegt het intercept (a) over de situatie wanneer beide predictoren gelijk zijn aan nul?',
+  'Hoe verhoudt de meervoudige R\u00b2 zich tot de enkelvoudige r\u00b2 en wat impliceert dat voor de rol van X\u2082?'
 ];
 
 const PATH_SCENARIOS = [
@@ -159,6 +221,32 @@ const PATH_SCENARIOS = [
   }
 ];
 
+function humanizeLabel(label) {
+  if (typeof label !== 'string') return label;
+  return label
+    .replace(/_/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeScenarioLabels() {
+  SCENARIOS.forEach((sc) => {
+    if (sc?.vars?.x1?.name) sc.vars.x1.name = humanizeLabel(sc.vars.x1.name);
+    if (sc?.vars?.x2?.name) sc.vars.x2.name = humanizeLabel(sc.vars.x2.name);
+    if (sc?.vars?.y?.name) sc.vars.y.name = humanizeLabel(sc.vars.y.name);
+    if (sc?.bin?.name) sc.bin.name = humanizeLabel(sc.bin.name);
+    if (sc?.path?.names) {
+      Object.keys(sc.path.names).forEach((k) => {
+        sc.path.names[k] = humanizeLabel(sc.path.names[k]);
+      });
+    }
+  });
+}
+
+normalizeScenarioLabels();
+
 const state = {
   scenario: null,
   rows: [],
@@ -167,7 +255,12 @@ const state = {
   stats: null,
   pathModel: null,
   datasetMcqs: [],
-  generalMcqs: []
+  generalMcqs: [],
+  crossTab: null,
+  firstAttempt: {},
+  attemptCount: {},
+  firstCorrectAttempt: {},
+  lastAttemptSignature: {}
 };
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -187,6 +280,10 @@ function safeSeed(seedRaw) {
   const s = Number(seedRaw);
   if (!Number.isFinite(s) || s <= 0) return null;
   return Math.floor(Math.abs(s)) % 2147483647;
+}
+
+function nextRandomSeed() {
+  return Math.floor(Math.random() * 1000000000) + 1;
 }
 
 function mulberry32(seed) {
@@ -346,7 +443,7 @@ function makeRowsForScenario(sc, seedRaw) {
   const yProf = unitProfile(sc.vars.y.unit, true);
 
   let attempt = 0;
-  while (attempt < 80) {
+  while (attempt < 240) {
     attempt += 1;
     const rng = mulberry32(seedUsed + attempt * 131);
     const rows = [];
@@ -377,7 +474,21 @@ function makeRowsForScenario(sc, seedRaw) {
     const multi = multipleRegression2(x1, x2, y);
     const g0 = rows.filter((r) => r.binNum === 0).length;
     const g1 = rows.filter((r) => r.binNum === 1).length;
-    const valid = sd(x1) > 0 && sd(x2) > 0 && sd(y) > 0 && Math.abs(correlation(x1, x2)) < 0.98 && multi && g0 >= 2 && g1 >= 2;
+    const signOkB1 = !multi ? false : (Math.sign(multi.b1) === Math.sign(sc.model.b1));
+    const signOkB2 = !multi ? false : (Math.sign(multi.b2) === Math.sign(sc.model.b2));
+    const strengthOk = !!multi && multi.r2 >= 0.10 && multi.r2 <= 0.90;
+    const valid = (
+      sd(x1) > 0 &&
+      sd(x2) > 0 &&
+      sd(y) > 0 &&
+      Math.abs(correlation(x1, x2)) < 0.98 &&
+      multi &&
+      g0 >= 2 &&
+      g1 >= 2 &&
+      signOkB1 &&
+      signOkB2 &&
+      strengthOk
+    );
     if (valid) return { rows, seedUsed };
   }
   return { rows: [], seedUsed };
@@ -478,7 +589,7 @@ function renderPathModel(pathModel) {
   const { nodes } = scenario;
   const ptxt = document.getElementById('path-scenario-text');
   if (ptxt) {
-    ptxt.textContent = `Dataset 2 (${scenario.title}): gebruik dit padmodel voor vragen over exogene/endogene variabelen, indirecte effecten en totale effecten.`;
+    ptxt.textContent = `Figuur 1 — ${scenario.title}: gebruik dit padmodel voor vragen over exogene/endogene variabelen, indirecte effecten en totale effecten.`;
   }
 
   const [xa1, xa2] = splitNodeLabel(nodes.xa);
@@ -509,327 +620,413 @@ function renderPathModel(pathModel) {
   setText('pm-d', `d=${fmt2(coeffs.d)}`);
   setText('pm-e', `e=${fmt2(coeffs.e)}`);
   setText('pm-f', `f=${fmt2(coeffs.f)}`);
-  setText('pm-r2', `R^2=${fmt2(r2y)}`);
+  setText('pm-r2', `R²=${fmt2(r2y)}`);
 
-  const rows = [
-    ['a', `${nodes.xa} -> ${nodes.m1}`, fmt2(coeffs.a)],
-    ['b', `${nodes.xa} -> ${nodes.xb}`, fmt2(coeffs.b)],
-    ['c', `${nodes.xb} -> ${nodes.m2}`, fmt2(coeffs.c)],
-    ['d', `${nodes.m1} -> ${nodes.m2}`, fmt2(coeffs.d)],
-    ['e', `${nodes.m1} -> ${nodes.y}`, fmt2(coeffs.e)],
-    ['f', `${nodes.m2} -> ${nodes.y}`, fmt2(coeffs.f)],
-    ['corr', `Correlatie ${nodes.m1} en ${nodes.m2}`, fmt2(corrM1M2)],
-    ['R^2', `Verklaarde variantie in ${nodes.y}`, `${fmt2(r2y)} (${fmt2(r2y * 100)}%)`],
-    ['1-R^2', `Onverklaarde variantie in ${nodes.y}`, `${fmt2(unexplained)} (${fmt2(unexplained * 100)}%)`],
-    ['tot', `Totaal effect ${nodes.xa} op ${nodes.y}`, fmt4(effects.xaTotal)]
-  ];
-
-  const tbody = document.getElementById('path-table-body');
-  if (!tbody) return;
-  tbody.innerHTML = rows.map((r) => `
-    <tr>
-      <td>${r[0]}</td>
-      <td>${r[1]}</td>
-      <td>${r[2]}</td>
-    </tr>
-  `).join('');
+  // Figuur-only format (zoals in het echte examen): geen aparte padmodeltabel renderen.
 }
 
 function createMcq(id, question, options, correctIndex, feedbacks) {
   return { id, question, options, correctIndex, feedbacks };
 }
 
+function pickWithoutReplacement(arr, k, rng) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy.slice(0, Math.min(k, copy.length));
+}
+
+function createPoolMcq(id, question, correctOption, wrongPool, correctFeedback, rng) {
+  const selectedWrong = pickWithoutReplacement(wrongPool, 3, rng);
+  const options = [correctOption, ...selectedWrong.map((w) => w.option)];
+  const feedbacks = [correctFeedback, ...selectedWrong.map((w) => w.feedback)];
+  return createMcq(id, question, options, 0, feedbacks);
+}
+
 function shuffleMcqOptions(mcq, rng) {
   const idx = mcq.options.map((_, i) => i);
   for (let i = idx.length - 1; i > 0; i -= 1) {
     const j = Math.floor(rng() * (i + 1));
-    const tmp = idx[i];
-    idx[i] = idx[j];
-    idx[j] = tmp;
+    const tmp = idx[i]; idx[i] = idx[j]; idx[j] = tmp;
   }
-
   const shuffledOptions = idx.map((i) => mcq.options[i]);
   const shuffledFeedbacks = idx.map((i) => mcq.feedbacks[i]);
+  if (mcq.multiSelect) {
+    const newCorrectIndices = mcq.correctIndices.map((ci) => idx.indexOf(ci));
+    return { ...mcq, options: shuffledOptions, feedbacks: shuffledFeedbacks, correctIndices: newCorrectIndices };
+  }
   const newCorrectIndex = idx.indexOf(mcq.correctIndex);
-
-  return {
-    ...mcq,
-    options: shuffledOptions,
-    feedbacks: shuffledFeedbacks,
-    correctIndex: newCorrectIndex
-  };
+  return { ...mcq, options: shuffledOptions, feedbacks: shuffledFeedbacks, correctIndex: newCorrectIndex };
 }
 
 function shuffleMcqList(mcqs, rng) {
+  // Only shuffle option order; keep question order fixed for numbered exam format
   return mcqs.map((m) => shuffleMcqOptions(m, rng));
 }
 
-function buildDatasetMcqs(sc, stats, pathModel) {
-  const partialTrend = Math.abs(stats.partial1) < Math.abs(stats.bivar.r) ? 'gedaald' : 'gestegen';
-  const strongest = Math.abs(stats.beta1) >= Math.abs(stats.beta2) ? sc.vars.x1.name : sc.vars.x2.name;
-  const dir12 = stats.rx1x2 >= 0 ? 'positieve' : 'negatieve';
+function buildDatasetMcqs(sc, stats, pathModel, rng) {
   const pm = pathModel || buildPathModel(state.seedUsed || 1);
   const pmNodes = pm.scenario.nodes;
   const pmEffects = pm.effects;
+  const ct = state.crossTab;
 
-  return [
-    createMcq(
-      'q1',
-      'Welke waarde benadert de multiple correlatiecoefficient R het best?',
-      [`R = ${fmt2(Math.sqrt(Math.max(0, stats.multi.r2)))}`, `R = ${fmt2(stats.multi.r2)}`, `R = ${fmt2(1 - stats.multi.r2)}`, `R = ${fmt2(Math.abs(stats.rx1x2))}`],
-      0,
-      [
-        'R is de wortel van R^2 en geeft de correlatie tussen geobserveerde en voorspelde Y.',
-        'Dit is R^2, niet R.',
-        'Dit is de onverklaarde proportie, niet R.',
-        'Dit is de correlatie tussen de predictoren, niet de multiple R.'
-      ]
-    ),
-    createMcq(
-      'q2',
-      `Hoeveel procent van de variatie in ${sc.vars.y.name} kan niet verklaard worden door het meervoudige model?`,
-      [`${fmt2(stats.unexplained * 100)}%`, `${fmt2(stats.multi.r2 * 100)}%`, `${fmt2(Math.abs(stats.rx1x2) * 100)}%`, `${fmt2((1 - Math.sqrt(Math.max(0, stats.multi.r2))) * 100)}%`],
-      0,
-      [
-        'Onverklaarde variantie = 1 - R^2.',
-        'Dit is de verklaarde variantie (R^2).',
-        'Dit is een correlatie-interpretatie, geen onverklaarde variantie.',
-        'Deze omzetting gebruikt niet de juiste definitie van onverklaarde variantie.'
-      ]
-    ),
-    createMcq(
-      'q3',
-      `Welke uitspraak over b1 (voor ${sc.vars.x1.name}) is statistisch correct?`,
-      [
-        `Als ${sc.vars.x1.name} met 1 stijgt, verandert de verwachte ${sc.vars.y.name} met ${fmt2(stats.multi.b1)}, onder controle van ${sc.vars.x2.name}.`,
-        `Als ${sc.vars.x1.name} met 1 stijgt, verandert ${sc.vars.x2.name} met ${fmt2(stats.multi.b1)}.`,
-        `b1 is gelijk aan de correlatie tussen ${sc.vars.x1.name} en ${sc.vars.y.name}.`,
-        'b1 is enkel interpreteerbaar als b2 exact nul is.'
-      ],
-      0,
-      [
-        'Correct: dit is de ceteris paribus-interpretatie van b1.',
-        'Dit verwart regressiecoefficienten met onderlinge predictorrelaties.',
-        'b1 is een netto-effect, geen correlatiecoefficient.',
-        'b1 blijft interpreteerbaar zolang de modelaannames redelijk zijn.'
-      ]
-    ),
-    createMcq(
-      'q4',
-      `Welke predictor heeft het sterkste relatieve effect op ${sc.vars.y.name} (op basis van |gestandaardiseerde beta|)?`,
-      [`${strongest}`, `${strongest === sc.vars.x1.name ? sc.vars.x2.name : sc.vars.x1.name}`, 'Beide exact even sterk', 'Dit kan niet bepaald worden uit regressie-uitvoer'],
-      0,
-      [
-        'Correct: vergelijk absolute gestandaardiseerde beta-waarden.',
-        'Deze predictor heeft een kleinere absolute gestandaardiseerde impact.',
-        'De absolute beta-waarden zijn niet exact gelijk.',
-        'Met gestandaardiseerde beta kan dit juist wel bepaald worden.'
-      ]
-    ),
-    createMcq(
-      'q5',
-      `Wat is de verwachte ${sc.vars.y.name} voor X1=${state.predCase.x1} en X2=${state.predCase.x2}?`,
-      [`${fmt2(stats.pred)}`, `${fmt2(stats.pred + 4)}`, `${fmt2(stats.pred - 4)}`, `${fmt2(stats.multi.a)}`],
-      0,
-      [
-        'Correct ingevuld via Yhat = a + b1*X1 + b2*X2.',
-        'Controleer de substitutie in de regressievergelijking.',
-        'Controleer de substitutie in de regressievergelijking.',
-        'Dit is enkel het intercept (X1=X2=0).'
-      ]
-    ),
-    createMcq(
-      'q6',
-      `Wat gebeurt er met r(${sc.vars.x1.name}, ${sc.vars.y.name}) wanneer je controleert voor ${sc.vars.x2.name}?`,
-      [
-        `De samenhang is ${partialTrend}: van ${fmt2(stats.bivar.r)} naar ${fmt2(stats.partial1)}.`,
-        `De samenhang blijft exact gelijk: ${fmt2(stats.bivar.r)}.`,
-        'De samenhang wordt per definitie nul.',
-        'De samenhang wordt per definitie 1.'
-      ],
-      0,
-      [
-        'Correct: partiele correlatie kan dalen of stijgen ten opzichte van zero-order.',
-        'Controle verandert meestal wel de samenhang.',
-        'Partiele correlatie is niet per definitie nul.',
-        'Partiele correlatie is niet per definitie 1.'
-      ]
-    ),
-    createMcq(
-      'q7',
-      `Welke uitspraak over r(${sc.vars.x1.name}, ${sc.vars.x2.name}) is het meest correct?`,
-      [
-        `Er is een ${dir12} lineaire samenhang (r=${fmt2(stats.rx1x2)}).`,
-        `r=${fmt2(stats.rx1x2)} betekent noodzakelijk causaliteit.`,
-        `r=${fmt2(stats.rx1x2)} is gelijk aan R^2 van het meervoudig model.`,
-        `r=${fmt2(stats.rx1x2)} betekent dat er geen lineaire samenhang is.`
-      ],
-      0,
-      [
-        'Correct: r beschrijft richting en sterkte van lineaire samenhang.',
-        'Correlatie impliceert geen causaliteit.',
-        'r(X1,X2) is niet hetzelfde als R^2 van het model.',
-        'r dicht bij nul wijst op zwakke lineaire samenhang; hier is dat niet het geval.'
-      ]
-    ),
-    createMcq(
-      'q8',
-      `In de bivariate regressie van ${sc.vars.y.name} op ${sc.vars.x1.name}: hoeveel procent variantie wordt verklaard?`,
-      [`${fmt2(stats.bivar.r2 * 100)}%`, `${fmt2((1 - stats.bivar.r2) * 100)}%`, `${fmt2(Math.abs(stats.bivar.r) * 100)}%`, `${fmt2(stats.multi.r2 * 100)}%`],
-      0,
-      [
-        'Correct: verklaarde variantie in bivariate regressie is R^2 = r^2.',
-        'Dit is juist de onverklaarde variantie.',
-        'De absolute correlatie is geen percentage verklaarde variantie.',
-        'Dit percentage hoort bij het meervoudige model, niet het bivariate model.'
-      ]
-    ),
-    createMcq(
-      'q9',
-      `In het padmodel (Dataset 2): welke variabele is exogeen?`,
-      [pmNodes.xa, pmNodes.xb, pmNodes.m2, pmNodes.y],
-      0,
-      [
-        `Correct: ${pmNodes.xa} heeft in dit model geen inkomende pijlen.`,
-        `${pmNodes.xb} wordt verklaard door ${pmNodes.xa} en is dus endogeen.`,
-        `${pmNodes.m2} wordt verklaard door meerdere variabelen en is endogeen.`,
-        `${pmNodes.y} is de uitkomstvariabele en dus endogeen.`
-      ]
-    ),
-    createMcq(
-      'q10',
-      `In het padmodel (Dataset 2): hoeveel procent van de variatie in ${pmNodes.y} blijft onverklaard?`,
-      [`${fmt2(pm.unexplained * 100)}%`, `${fmt2(pm.r2y * 100)}%`, `${fmt2((1 - pm.unexplained) * 10)}%`, `${fmt2(pm.r2y)}%`],
-      0,
-      [
-        'Correct: onverklaarde variantie = 1 - R^2.',
-        'Dit is de verklaarde variantie, niet de onverklaarde.',
-        'Deze omzetting gebruikt een foutieve schaal.',
-        'Dit leest R^2 fout als percentage.'
-      ]
-    ),
-    createMcq(
-      'q11',
-      `In het padmodel (Dataset 2): wat is het totale effect van ${pmNodes.xa} op ${pmNodes.y}?`,
-      [
-        `${fmt4(pmEffects.xaTotal)}`,
-        `${fmt4(pmEffects.xaViaM1)}`,
-        `${fmt4(pmEffects.xaViaM1M2)}`,
-        `${fmt4(pmEffects.xaViaXbM2)}`
-      ],
-      0,
-      [
-        `Correct: totaal effect = a*e + a*d*f + b*c*f = ${fmt4(pmEffects.xaTotal)}.`,
-        'Dit is slechts 1 indirect pad (via M1).',
-        'Dit is slechts 1 indirect pad (via M1 en M2).',
-        'Dit is slechts 1 indirect pad (via Xb en M2).'
-      ]
-    )
-  ];
+  // ── Q1: Conditional probability from Tabel 1 (2-option JUIST/FOUT) ─────────
+  const useCorrect1 = rng() > 0.5;
+  const presentedP = useCorrect1 ? ct.p2no : ct.p1no;
+  const presentedPct = round(presentedP * 100, 2);
+  const q1 = createMcq(
+    'q1',
+    `Gebruik Tabel 1. De voorwaardelijke kans dat een aselect gekozen persoon geen ${ct.sc.colLabel.replace('?', '').trim().toLowerCase()} had, gegeven dat het een ${ct.sc.rows[1].toLowerCase()} is, is ongeveer ${presentedP.toFixed(4)} of ${fmt2(presentedPct)}%. Deze uitspraak is...`,
+    ['Juist.', 'Fout.'],
+    useCorrect1 ? 0 : 1,
+    [
+      useCorrect1
+        ? `Correct: P(${ct.sc.colNo} | ${ct.sc.rows[1]}) = ${ct.r2no}/${ct.n2} = ${ct.p2no.toFixed(4)}.`
+        : `Fout: de getoonde waarde hoort bij ${ct.sc.rows[0]} (${ct.p1no.toFixed(4)}), niet bij ${ct.sc.rows[1]} (${ct.p2no.toFixed(4)}).`,
+      useCorrect1
+        ? `Fout: de berekening klopt. P(${ct.sc.colNo} | ${ct.sc.rows[1]}) = ${ct.r2no}/${ct.n2} = ${ct.p2no.toFixed(4)}.`
+        : `Juist: ${fmt2(presentedPct)}% hoort bij ${ct.sc.rows[0]}, niet ${ct.sc.rows[1]}. P(${ct.sc.colNo} | ${ct.sc.rows[1]}) = ${ct.p2no.toFixed(4)}.`
+    ]
+  );
+
+  // ── Q6: Multi-select from Tabel 1 (TWO correct of 5) ─────────────────────
+  const realPctDiff = round(Math.abs(ct.p1no - ct.p2no) * 100, 2);
+  const realOddsRatio = round(ct.odds1 / ct.odds2, 2);
+  const wrongPctDiff = round(Math.abs(ct.p1yes - ct.p2yes) * 100, 2);
+  const wrongOddsRat = round(ct.odds2 / ct.odds1, 2);
+  const wrongAbsDiff = round(Math.abs(ct.r1no - ct.r2no) / (ct.n1 + ct.n2) * 100, 2);
+  const q6 = createMultiMcq(
+    'q6',
+    `Gebruik Tabel 1. Welke TWEE uitspraken zijn JUIST over "${ct.sc.colLabel}" naar ${ct.sc.rowLabel}? Maak TWEE keuzes.`,
+    [
+      `Het relevante percentageverschil bedraagt ${fmt2(realPctDiff)} percentagepunten.`,
+      `De verhouding ${ct.sc.colNo}/${ct.sc.colYes} bij ${ct.sc.rows[0]} is ${fmt2(realOddsRatio)} keer ${realOddsRatio > 1 ? 'hoger' : 'lager'} dan bij ${ct.sc.rows[1]}.`,
+      `Het absolute verschil in aantallen (${ct.sc.colNo}) is ${fmt2(wrongAbsDiff)}% van de totale steekproef.`,
+      `De odds-ratio is ${fmt2(wrongOddsRat)} (${ct.sc.rows[1]} / ${ct.sc.rows[0]}).`,
+      `Het percentageverschil voor "${ct.sc.colYes.toLowerCase()}" bedraagt ${fmt2(wrongPctDiff)} pp.`
+    ],
+    [0, 1],
+    [
+      `Correct: |${ct.p1no.toFixed(4)}×100 − ${ct.p2no.toFixed(4)}×100| = ${fmt2(realPctDiff)} pp.`,
+      `Correct: odds(${ct.sc.rows[0]})=${ct.odds1.toFixed(4)}, odds(${ct.sc.rows[1]})=${ct.odds2.toFixed(4)}, ratio=${fmt2(realOddsRatio)}.`,
+      `Fout: dit vergelijkt absolute aantallen, geen conditionele proporties.`,
+      `Fout: dit is de omgekeerde odds-ratio (${ct.sc.rows[1]}/${ct.sc.rows[0]}=${fmt2(wrongOddsRat)}).`,
+      `Fout: ${fmt2(wrongPctDiff)} pp is het verschil voor "${ct.sc.colYes.toLowerCase()}", niet "${ct.sc.colNo.toLowerCase()}".`
+    ]
+  );
+
+  // ── Q9: Path model TWO WRONG statements (multi-select) ───────────────────
+  const q9FalseA = `Het padmodel maakt geen onderscheid tussen manifeste en latente variabelen; alle variabelen zijn latent.`;
+  const q9FalseB = `${fmt2(pm.r2y * 100)}% van de variatie in '${pmNodes.y}' wordt verklaard door factoren buiten het padmodel, zoals meetfouten en niet-gemeten variabelen.`;
+  const q9TrueC = `De directe coëfficiënt van '${pmNodes.m2}' op '${pmNodes.y}' bedraagt ${fmt2(pm.coeffs.f)}.`;
+  const q9TrueD = `Het totale effect van '${pmNodes.xa}' op '${pmNodes.y}' bedraagt afgerond ${fmt2(pmEffects.xaTotal)}.`;
+  const q9TrueE = `'${pmNodes.m1}' fungeert als mediator: het verklaart gedeeltelijk het effect van '${pmNodes.xa}' op '${pmNodes.y}'.`;
+  const q9 = createMultiMcq(
+    'q9',
+    `Gebruik Figuur 1. Welke TWEE uitspraken zijn FOUT? Maak TWEE keuzes.`,
+    [q9FalseA, q9FalseB, q9TrueC, q9TrueD, q9TrueE],
+    [0, 1],
+    [
+      `Correct dat dit FOUT is: padmodellen gebruiken MANIFESTE (rechtstreeks gemeten) variabelen. Latente variabelen zijn het domein van SEM/factoranalyse.`,
+      `Correct dat dit FOUT is: R²=${fmt2(pm.r2y * 100)}% is de VERKLAARDE proportie. De ONverklaarde (${fmt2(pm.unexplained * 100)}%) verwijst naar factoren buiten het model.`,
+      `Dit is JUIST: de pijlcoëfficiënt f=${fmt2(pm.coeffs.f)}.`,
+      `Dit is JUIST: totaal effect = a·e + a·d·f + b·c·f = ${pmEffects.xaTotal.toFixed(4)}.`,
+      `Dit is JUIST: '${pmNodes.m1}' ontvangt een pijl van '${pmNodes.xa}' en stuurt er naar '${pmNodes.y}'.`
+    ],
+    'Selecteer de 2 FOUTE uitspraken.'
+  );
+
+  // ── Q10: Bivariate regression from Tabel 2 (TWO correct of 5) ────────────
+  const unexpBivar = round(1 - stats.bivar.r2, 2);
+  const betaBivar = round(Math.abs(stats.bivar.r), 2); // β = r for bivariate
+  const wrongPred3 = round(stats.bivar.a + stats.bivar.b * 3, 2);
+  const wrongSlope = round(stats.bivar.b * 10, 2);
+  const wrongIntcpt = round(stats.bivar.a * 2, 2);
+  const q10 = createMultiMcq(
+    'q10',
+    `Gebruik Tabel 2. Bekijk het bivariaat verband tussen '${sc.vars.x1.name}' en '${sc.vars.y.name}'. Welke TWEE uitspraken zijn JUIST? Maak TWEE keuzes.`,
+    [
+      `Ongeveer ${fmt2(unexpBivar * 100)}% van de variatie in '${sc.vars.y.name}' kan NIET verklaard worden door '${sc.vars.x1.name}'.`,
+      `Als '${sc.vars.x1.name}' met 1 standaardafwijking toeneemt, verwachten we een toename van ±${fmt2(betaBivar)} standaardafwijkingen in '${sc.vars.y.name}'.`,
+      `De verwachte ${sc.vars.y.name} voor een waarde van 3 ${sc.vars.x1.unit} is ${fmt2(wrongPred3)}.`,
+      `Als '${sc.vars.x1.name}' met 1 eenheid toeneemt, verwachten we een toename van ${fmt2(wrongSlope)} in '${sc.vars.y.name}'.`,
+      `Bij ${sc.vars.x1.name}=0 verwachten we een waarde van ${fmt2(wrongIntcpt)} op '${sc.vars.y.name}'.`
+    ],
+    [0, 1],
+    [
+      `Correct: 1 − R² = 1 − ${fmt2(stats.bivar.r2)} = ${fmt2(unexpBivar)}.`,
+      `Correct: gestandaardiseerde β = r = ${fmt4(stats.bivar.r)}, afgerond ${fmt2(betaBivar)}.`,
+      `Fout: Ŷ = ${fmt4(stats.bivar.a)} + ${fmt4(stats.bivar.b)}×3 = ${fmt2(stats.bivar.a + stats.bivar.b * 3)}.`,
+      `Fout: b = ${fmt2(stats.bivar.b)} per 1 eenheid, niet ${fmt2(wrongSlope)} (dat zou b×10 zijn).`,
+      `Fout: intercept a = ${fmt2(stats.bivar.a)}, niet ${fmt2(wrongIntcpt)}.`
+    ]
+  );
+
+  // ── Q11: ANOVA from Tabel 2 (single choice) ──────────────────────────────
+  const av = stats.anovaBin;
+  const eta = round(Math.sqrt(av.eta2), 2);
+  const critF = 11.26; // df1=1, df2=8, α=0.01
+  const rejectH0 = av.f > critF;
+  const q11 = createPoolMcq(
+    'q11',
+    `Gebruik Tabel 2. Toets of '${sc.bin.name}' een effect heeft op '${sc.vars.y.name}' via one-way ANOVA (α=0.01). Welke uitspraak is JUIST?`,
+    `De totale variantie TUSSEN de groepen (SSBetween) bedraagt ${fmt2(av.ssBetween)}.`,
+    [
+      { option: `De kritieke F-waarde (df1=1, df2=8, α=0.01) bedraagt ${fmt2(av.f)}.`, feedback: `Fout: ${fmt2(av.f)} is de berekende F-waarde. De kritieke waarde (df1=1, df2=8, α=0.01) ≈ ${critF}.` },
+      { option: `Eta (η) bedraagt ${fmt2(av.f * 0.1)}, wat op een zeer zwakke samenhang wijst.`, feedback: `Fout: η = √(SSBetween/SSTotal) = ${fmt2(eta)}, niet ${fmt2(av.f * 0.1)}.` },
+      { option: `We verwerpen H0: er is een statistisch significant effect van '${sc.bin.name}' op '${sc.vars.y.name}'.`, feedback: `Fout: F=${fmt2(av.f)} is ${rejectH0 ? 'groter' : 'kleiner'} dan de kritieke waarde (${critF}), dus H0 wordt ${rejectH0 ? 'verworpen' : 'behouden'}.` },
+      { option: `De verschillen tussen de groepen zijn aanzienlijk groter dan de verschillen binnen de groepen.`, feedback: `Fout: F=${fmt2(av.f)}${av.f < 1 ? ' < 1 — zelfs kleiner dan 1' : ' < kritieke waarde'}; de within-group variantie domineert.` }
+    ],
+    `Correct: SSBetween = ${av.n0}×(${fmt2(av.m0)}−${fmt2((av.m0 * av.n0 + av.m1 * av.n1) / (av.n0 + av.n1))})² + ${av.n1}×(${fmt2(av.m1)}−${fmt2((av.m0 * av.n0 + av.m1 * av.n1) / (av.n0 + av.n1))})² = ${fmt2(av.ssBetween)}.`,
+    rng
+  );
+
+  // ── Q12: Partial correlation from Tabel 2 (TWO correct of 5) ─────────────
+  const ptrendLabel = Math.abs(stats.partial1) < Math.abs(stats.bivar.r) ? 'gedaald' : 'gestegen';
+  const pr1dec = round(stats.partial1, 1);
+  const pr2dec = round(stats.partial2, 1);
+  const q12 = createMultiMcq(
+    'q12',
+    `Gebruik Tabel 2. Welke TWEE uitspraken over de partiële correlatie zijn JUIST? Maak TWEE keuzes.`,
+    [
+      `Wanneer we het bivariaat verband tussen '${sc.vars.x1.name}' en '${sc.vars.y.name}' controleren voor '${sc.vars.x2.name}', stellen we vast dat de zero-order r (${fmt2(stats.bivar.r)}) is ${ptrendLabel} naar ${pr1dec} (afgerond decimaal getal).`,
+      `De partiële correlatiecoëfficiënt is de correlatie tussen de residuen van de regressie van '${sc.vars.y.name}' op '${sc.vars.x1.name}' en de regressie van '${sc.vars.x2.name}' op '${sc.vars.x1.name}': deze bedraagt ${pr2dec}.`,
+      `De partiële r(X1,Y|X2) stelt de GEDEELDE variatie voor: X1 en Y delen, controlerend voor X2, afgerond ${fmt2(round(stats.partial1 ** 2 * 100, 1))}% van de variatie.`,
+      `De partiële correlatiecoëfficiënt is altijd nul als de zero-order correlatie ook nul is.`,
+      `Als de partiële correlatiecoëfficiënt nul is, bestaat er geen enkel verband tussen X en Y.`
+    ],
+    [0, 1],
+    [
+      `Correct: partiële r(X1,Y|X2) = ${stats.partial1.toFixed(4)} ≈ ${pr1dec}. Zero-order r was ${fmt2(stats.bivar.r)}.`,
+      `Correct: partiële correlatie = r tussen residuen van beide regressies op de controlevariabele = ${stats.partial2.toFixed(4)} ≈ ${pr2dec}.`,
+      `Fout: partiële r² = ${fmt2(stats.partial1 ** 2 * 100)}% is de UNIEKE variatie die X1 en Y nog delen ná controle voor X2, niet de gedeelde variatie.`,
+      `Fout: de partiële correlatie kan ook nul worden terwijl de zero-order correlatie niet nul is (suppressor of mediator).`,
+      `Fout: partiële correlatie nul betekent geen LINEAIRE partiële samenhang, niet dat er absoluut geen verband is.`
+    ]
+  );
+
+  return [q1, q6, q9, q10, q11, q12];
 }
 
-function buildGeneralMcqs() {
-  return [
-    createMcq(
-      'q12',
-      'Als het betrouwbaarheidsniveau stijgt (bij gelijke n en sigma), wat gebeurt er met de foutenmarge?',
-      ['De foutenmarge neemt toe.', 'De foutenmarge neemt af.', 'De foutenmarge blijft exact gelijk.', 'Dit kan enkel bepaald worden met een ANOVA-tabel.'],
-      0,
-      [
-        'Correct: hogere betrouwbaarheid vereist een bredere marge.',
-        'Dit geldt net omgekeerd.',
-        'De foutenmarge hangt mee af van het gekozen betrouwbaarheidsniveau.',
-        'ANOVA is hiervoor niet nodig.'
-      ]
-    ),
-    createMcq(
-      'q13',
-      'Welke combinatie is correct voor Type-I en Type-II fout?',
-      [
-        'Type-I: onterecht H0 verwerpen. Type-II: H0 onterecht behouden.',
-        'Type-I: H0 onterecht behouden. Type-II: onterecht H0 verwerpen.',
-        'Type-I en Type-II betekenen exact hetzelfde.',
-        'Type-I en Type-II bestaan niet bij regressie.'
-      ],
-      0,
-      [
-        'Correcte definities van beide fouttypes.',
-        'Deze definities zijn omgewisseld.',
-        'Type-I en Type-II zijn verschillende fouttypes.',
-        'Beide fouten bestaan in alle hypothesetoetsen, ook in regressiecontext.'
-      ]
-    ),
-    createMcq(
-      'q14',
-      'Welke uitspraak beschrijft een interactie-effect het best?',
-      [
-        'Het effect van X op Y hangt af van het niveau van een derde variabele Z.',
-        'X beinvloedt Z, en Z beinvloedt Y, dus er is altijd interactie.',
-        'Interactie betekent dat er per definitie geen hoofdeffecten zijn.',
-        'Interactie kan enkel bij nominale variabelen.'
-      ],
-      0,
-      [
-        'Correct: interactie betekent conditioneel effect van X op Y afhankelijk van Z.',
-        'Dit beschrijft eerder mediatie dan interactie.',
-        'Hoofdeffecten kunnen naast interactie bestaan.',
-        'Interactie kan ook met metrische variabelen via producttermen.'
-      ]
-    ),
-    createMcq(
-      'q15',
-      'Wat betekent het begrip vrijheidsgraden in statistische berekeningen?',
-      [
-        'Het aantal onderling onafhankelijke informatie-eenheden dat vrij kan varieren.',
-        'Het aantal variabelen in de dataset.',
-        'Het aantal respondenten minus 1 ongeacht de analyse.',
-        'Het aantal significante regressiecoefficienten.'
-      ],
-      0,
-      [
-        'Correcte conceptuele definitie van vrijheidsgraden.',
-        'Dit is geen definitie van vrijheidsgraden.',
-        'n-1 geldt enkel in specifieke situaties, niet algemeen.',
-        'Significantie bepaalt de vrijheidsgraden niet.'
-      ]
-    ),
-    createMcq(
-      'q16',
-      'Kan een niet-significante predictor toch nuttig zijn in een model?',
-      [
-        'Ja, afhankelijk van theorie, controlefunctie of modeldoel.',
-        'Nee, die predictor moet altijd meteen verwijderd worden.',
-        'Nee, want niet-significant betekent altijd meetfout.',
-        'Ja, maar alleen als de predictor nominaal is.'
-      ],
-      0,
-      [
-        'Correct: interpretatie hangt af van theorie, design en modeldoel.',
-        'Automatisch verwijderen is methodologisch vaak te simplistisch.',
-        'Niet-significant is niet hetzelfde als meetfout.',
-        'Dit is te restrictief; bruikbaarheid hangt niet af van meetniveau alleen.'
-      ]
-    )
-  ];
+function buildGeneralMcqs(rng) {
+  // Q2: Confidence interval / margin of error (single, 3 wrong options)
+  const q2 = createPoolMcq('q2',
+    'Welke uitspraak is JUIST? (Veronderstel gelijke n en σ)',
+    'Als het betrouwbaarheidsniveau toeneemt, neemt de foutenmarge toe.',
+    [
+      { option: 'Bij een grotere steekproef wordt het 95% betrouwbaarheidsinterval breder.', feedback: 'Fout: grotere n verkleint de foutenmarge.' },
+      { option: 'Bij een grotere steekproef daalt de betrouwbaarheid bij een vaste foutenmarge.', feedback: 'Fout: grotere n laat toe om bij dezelfde foutenmarge een hogere betrouwbaarheid te bereiken.' },
+      { option: 'Bij grotere steekproeven neemt de spreiding in de steekproevenverdeling toe.', feedback: 'Fout: de standaardfout σ/√n daalt bij grotere n.' }
+    ],
+    'Correct: hogere betrouwbaarheid vereist een groter z*-getal.',
+    rng
+  );
+
+  // Q3: Type I/II errors, criminological context (2 options)
+  const q3 = createMcq('q3',
+    'Lees de stellingen. Stelling 1: een onderzoeker besluit dat een nieuw opsporingsbeleid effectief is, terwijl dit in realiteit niet zo is. Stelling 2: een re-integratieprogramma vermindert in realiteit recidive, maar de onderzoeker vindt geen significant effect. Welke uitspraak is JUIST?',
+    ['Stelling 1 is een Type-I fout. Stelling 2 is een Type-II fout.',
+      'Stelling 1 is een Type-II fout. Stelling 2 is een Type-I fout.'],
+    0,
+    ['Correct: Type-I = H0 onterecht verwerpen; Type-II = H0 onterecht behouden.',
+      'Fout: de definities zijn omgewisseld.']
+  );
+
+  // Q4: Multiple R properties (2 options)
+  const q4 = createMcq('q4',
+    'Evalueer: "De multiple correlatiecoëfficiënt R meet de lineaire relatie tussen geobserveerde en voorspelde Y. Multiple R is steeds positief." Deze uitspraak is...',
+    ['Juist.', 'Fout.'],
+    0,
+    ['Correct: R = cor(Y, Ŷ) ≥ 0 per definitie.',
+      'Fout: dit is de correcte definitie van R.']
+  );
+
+  // Q5: Ordinal/median from frequency distribution (generated, single choice 3 wrong)
+  const catLabels = ['Volledig oneens', 'Oneens', 'Neutraal', 'Eens', 'Volledig eens'];
+  const totalN5 = Math.floor(2500 + rng() * 2000);
+  const rawP = [0.10 + rng() * 0.08, 0.16 + rng() * 0.10, 0.24 + rng() * 0.12, 0.22 + rng() * 0.08, 0.11 + rng() * 0.08];
+  const sumP = rawP.reduce((a, b) => a + b, 0);
+  let counts5 = rawP.map(v => Math.round(v / sumP * totalN5));
+  counts5[2] += totalN5 - counts5.reduce((a, b) => a + b, 0);
+  let cumul = 0; let medianIdx = 0;
+  for (let i = 0; i < 5; i++) { cumul += counts5[i]; if (cumul >= totalN5 / 2) { medianIdx = i; break; } }
+  const medLbl = catLabels[medianIdx];
+  const maxIdx = counts5.indexOf(Math.max(...counts5));
+  const maxLbl = catLabels[maxIdx];
+  const q5 = createPoolMcq('q5',
+    `In een steekproef (N=${totalN5}) vulden respondenten een tevredenheidsvraag in. Verdeling: ${catLabels.map((c, i) => c + ': ' + counts5[i]).join(', ')}. Welke uitspraak is JUIST?`,
+    `De mediaan ligt in de categorie '${medLbl}'.`,
+    [
+      { option: `Omdat '${maxLbl}' de grootste categorie is, is de variantie minimaal.`, feedback: 'Fout: de modus bepaalt niet de minimale variantie.' },
+      { option: 'Omdat er meer positieve dan negatieve antwoorden zijn, is de verdeling linksscheef.', feedback: 'Fout: meer positieve antwoorden wijst eerder op negatieve scheefheid (staart links).' },
+      { option: `Omdat '${maxLbl}' het meest voorkomt, geeft dit het beste de gemiddelde tevredenheid weer.`, feedback: 'Fout: de modus ≠ gemiddelde.' }
+    ],
+    'Correct: cumulatief bereik je de helft van N in die categorie.',
+    rng
+  );
+
+  // Q7: Normal distribution multi-select (TWO correct of 5)
+  const muZ = round(3.5 + rng() * 3.0, 1);
+  const sigZ = round(1.0 + rng() * 1.5, 1);
+  const zA = round(0.50 + rng() * 0.80, 2);
+  const valA = round(muZ + zA * sigZ, 2);
+  const pAboveA = round(1 - normalCDF(zA), 4);
+  const lo1 = round(muZ - (0.5 + rng() * 0.5) * sigZ, 2);
+  const hi1 = round(muZ - (0.1 + rng() * 0.3) * sigZ, 2);
+  const lo2 = round(muZ + (0.1 + rng() * 0.3) * sigZ, 2);
+  const hi2 = round(muZ + (0.5 + rng() * 0.5) * sigZ, 2);
+  const p1 = round(normalCDF((hi1 - muZ) / sigZ) - normalCDF((lo1 - muZ) / sigZ), 4);
+  const p2 = round(normalCDF((hi2 - muZ) / sigZ) - normalCDF((lo2 - muZ) / sigZ), 4);
+  const itv1smaller = p1 < p2;
+  const wrongPct95lo = round(muZ - 2.0 * sigZ, 2);
+  const wrongPct95hi = round(muZ + 2.0 * sigZ, 2);
+  const someBelow = round(muZ - 0.2 * sigZ, 2);
+  const pBelowTrue = round(normalCDF((someBelow - muZ) / sigZ) * 100, 2);
+  const pBelowWrong = round(pBelowTrue + 12 + rng() * 10, 2);
+  const varTrue = round(sigZ ** 2, 2);
+  const varWrong = round(sigZ * 3, 2);
+  const q7 = createMultiMcq('q7',
+    `Het dagelijks internetgebruik is normaal verdeeld: μ=${fmt2(muZ)} uur, σ=${fmt2(sigZ)} uur. Welke TWEE beweringen zijn JUIST? Maak TWEE keuzes.`,
+    [
+      `${Math.round(pAboveA * 100)}% spendeert dagelijks ${fmt2(valA)} uur of meer.`,
+      `De populatie die dagelijks tussen ${fmt2(lo1)} en ${fmt2(hi1)} uur online is, is ${itv1smaller ? 'kleiner' : 'groter'} dan de populatie die dagelijks tussen ${fmt2(lo2)} en ${fmt2(hi2)} uur online is.`,
+      `95% van de populatie zit dagelijks tussen ${fmt2(wrongPct95lo)} en ${fmt2(wrongPct95hi)} uur online.`,
+      `${fmt2(pBelowWrong)}% spendeert dagelijks ${fmt2(someBelow)} uur en minder.`,
+      `De variantie bedraagt ${fmt2(varWrong)}.`
+    ],
+    [0, 1],
+    [
+      `Correct: z=(${fmt2(valA)}-${fmt2(muZ)})/${fmt2(sigZ)}=${fmt2(zA)}, P(Z≥${fmt2(zA)})=${fmt4(pAboveA)}.`,
+      `Correct: P([${fmt2(lo1)},${fmt2(hi1)}])=${fmt4(p1)}, P([${fmt2(lo2)},${fmt2(hi2)}])=${fmt4(p2)}.`,
+      `Fout: 95%-interval = μ±1.96σ = [${fmt2(muZ - 1.96 * sigZ)}, ${fmt2(muZ + 1.96 * sigZ)}].`,
+      `Fout: P(X≤${fmt2(someBelow)})=${fmt2(pBelowTrue)}%, niet ${fmt2(pBelowWrong)}%.`,
+      `Fout: variantie = σ² = ${fmt2(sigZ)}² = ${fmt2(varTrue)}, niet ${fmt2(varWrong)}.`
+    ]
+  );
+
+  // Q8: Sample size n = ceil((z*sigma/E)^2) (single, 4 options)
+  const sigma8 = Math.round((3000 + rng() * 12000) / 100) * 100;
+  const E8 = Math.round((300 + rng() * 1200) / 100) * 100;
+  const z95 = 1.96;
+  const rawN8 = (z95 * sigma8 / E8) ** 2;
+  const nTrue8 = Math.ceil(rawN8);
+  const nWrong1 = Math.ceil(rawN8 * 4);
+  const nWrong2 = Math.ceil(z95 ** 2 * sigma8 / E8);
+  const nWrong3 = Math.ceil((z95 * sigma8 / (E8 * 2)) ** 2);
+  const q8 = createPoolMcq('q8',
+    `Je plant een onderzoek met σ≈${sigma8.toLocaleString('nl-BE')} en foutmarge ${E8.toLocaleString('nl-BE')}, betrouwbaarheid 95% (z=1.96). Welke steekproefomvang is nodig? (Rond tussenberekeningen op 4 dec., eindresultaat op geheel getal naar boven.)`,
+    `n = ${nTrue8}`,
+    [
+      { option: `n = ${nWrong1}`, feedback: `Fout: je hebt E per abuis gehalveerd. Gebruik E=${E8.toLocaleString('nl-BE')}.` },
+      { option: `n = ${nWrong2}`, feedback: 'Fout: je bent vergeten het gehele resultaat te kwadrateren. n = (z·σ/E)².' },
+      { option: `n = ${nWrong3}`, feedback: `Fout: je hebt de foutenmarge verdubbeld naar ${(E8 * 2).toLocaleString('nl-BE')}.` }
+    ],
+    `Correct: n = (1.96×${sigma8}/${E8})² = ${fmt4(rawN8)} → afronden: ${nTrue8}.`,
+    rng
+  );
+
+  // Q13: Chi-square rapportage (2 options, generated chi2 value)
+  const chi2Val = round(2.0 + rng() * 8.0, 2);
+  const critChi2 = 5.991;
+  const rejectChi = chi2Val > critChi2;
+  const correctRep = rejectChi
+    ? `χ²=${fmt2(chi2Val)} > ${critChi2} (critisch). We verwerpen H0: statistisch significante samenhang (α=0.05).`
+    : `χ²=${fmt2(chi2Val)} < ${critChi2} (critisch). We behouden H0: geen statistisch significante samenhang (α=0.05).`;
+  const q13 = createMcq('q13',
+    `Chi-kwadraattoets, df=2, α=0.05 (kritieke waarde=${critChi2}): χ²=${fmt2(chi2Val)}. Rapportage: "${correctRep}" — Is deze rapportage...`,
+    ['Juist.', 'Fout.'],
+    0,
+    [`Correct: χ²=${fmt2(chi2Val)} ${rejectChi ? '>' : '<'} ${critChi2} → H0 ${rejectChi ? 'verwerpen' : 'behouden'}.`,
+    `Fout: de rapportage is wel degelijk correct. χ²=${fmt2(chi2Val)} ${rejectChi ? '>' : '<'} ${critChi2}.`]
+  );
+
+  // Q14: z-test p-value (single, 3 wrong options)
+  const mu0 = Math.round(400 + rng() * 200);
+  const xbar = round(mu0 + 8 + rng() * 20, 1);
+  const sig14 = Math.round(80 + rng() * 80);
+  const n14 = Math.round(400 + rng() * 400);
+  const z14 = round((xbar - mu0) / (sig14 / Math.sqrt(n14)), 4);
+  const pval = round(1 - normalCDF(z14), 4);
+  const pPct = round(pval * 100, 2);
+  const q14 = createPoolMcq('q14',
+    `H₀: μ=${mu0}, Hₐ: μ>${mu0}. Steekproef: n=${n14}, x̄=${fmt2(xbar)}, σ=${sig14}. Wat is de kans om x̄=${fmt2(xbar)} te vinden als H₀ waar is? (Rond tussenberekeningen op 4 dec., einduitkomst op 2 dec.)`,
+    `Ongeveer ${fmt2(pPct)}%.`,
+    [
+      { option: `Ongeveer ${fmt2(round((1 - pval) * 100, 2))}%.`, feedback: 'Fout: dit is P(X̄≤x̄) — de linkerstaart. Gebruik de rechterstaart P(Z≥z).' },
+      { option: `Ongeveer ${fmt2(round(pval * 2 * 100, 2))}%.`, feedback: 'Fout: dit is tweezijdig (2×p). Bij Hₐ: μ>μ₀ gebruik je enkel de rechterstaartkans.' },
+      { option: `Ongeveer ${fmt2(round(normalCDF(-z14) * 100, 2))}%.`, feedback: `Fout: je hebt de negatieve z gebruikt. z=(${fmt2(xbar)}-${mu0})/(${sig14}/√${n14})=+${fmt4(z14)}.` }
+    ],
+    `Correct: z=${fmt4(z14)}, P(Z≥${fmt4(z14)})=${fmt4(pval)}=${fmt2(pPct)}%.`,
+    rng
+  );
+
+  // Q15: Interaction effect (3 options)
+  const q15 = createMcq('q15',
+    'In een onderzoek vinden onderzoekers dat hogere morele normen gepaard gaan met minder intenties om te stelen, maar alleen bij personen die hoge schaamtegevoelens verwachtten. Bij personen met lage schaamtegevoelens was dit verband zwakker. Welke stelling beschrijft dit het best?',
+    [
+      'Het effect van morele normen op intenties om te stelen is conditioneel op het niveau van geanticipeerde schaamtegevoelens.',
+      'Morele normen beïnvloeden intenties om te stelen via geanticipeerde schaamtegevoelens.',
+      'Morele normen en schaamtegevoelens hangen samen met intenties om te stelen doordat ze beide gerelateerd zijn aan een derde persoonlijkheidsfactor.'
+    ],
+    0,
+    [
+      'Correct: conditioneel effect = het effect van X varieert naargelang Z. Dit is een interactie-effect.',
+      'Fout: dit beschrijft mediatie (X→Z→Y), niet interactie.',
+      'Fout: dit beschrijft een spurieus/confounding-effect, niet interactie.'
+    ]
+  );
+
+  // Q16: Degrees of freedom (2 options)
+  const q16 = createMcq('q16',
+    'Evalueer: "Het aantal vrijheidsgraden is het aantal van elkaar onafhankelijke elementen in een berekening." Deze uitspraak is...',
+    ['Juist.', 'Fout.'],
+    0,
+    ['Correct: vrijheidsgraden = het aantal informatie-eenheden dat vrij kan variëren nadat constraints zijn opgelegd.',
+      'Fout: dit is de correcte definitie van vrijheidsgraden.']
+  );
+
+  // Q17: Gestandaardiseerde beta vs. onstgestandaardiseerd b (3 options)
+  const q17 = createMcq('q17',
+    'Wat is het voornaamste voordeel van een gestandaardiseerde regressiecoëfficiënt (β) ten opzichte van een ongestandaardiseerde coëfficiënt (b)?',
+    [
+      'β laat toe de relatieve sterkte van predictoren te vergelijken, ongeacht hun meeteenheid.',
+      'β geeft de absolute verandering in Y weer voor een toename van 1 eenheid in X.',
+      'β is altijd groter dan b omdat het gecorrigeerd is voor de steekproefomvang.'
+    ],
+    0,
+    [
+      'Correct: β is uitgedrukt in standaarddeviaties, waardoor predictoren met verschillende schalen vergelijkbaar worden.',
+      'Fout: dit is de definitie van de ongestandaardiseerde b, niet van β.',
+      'Fout: β heeft geen vaste grootteverhouding tot b; de waarde hangt af van de verhouding SD(X)/SD(Y).'
+    ]
+  );
+
+  return [q2, q3, q4, q5, q7, q8, q13, q14, q15, q16, q17];
 }
 
 function renderMcqList(containerId, items, prefix, startAt) {
   const wrap = document.getElementById(containerId);
   wrap.innerHTML = items.map((item, idx) => {
     const qNum = startAt + idx;
+    const inputType = item.multiSelect ? 'checkbox' : 'radio';
+    const hint = item.multiSelect ? `<p class="mcq-hint">${item.hint || 'Selecteer 2 opties.'}</p>` : '';
     const radios = item.options.map((opt, oIdx) => {
       const letter = String.fromCharCode(65 + oIdx);
       return `
         <label class="mcq-option">
-          <input type="radio" name="${prefix}-${item.id}" value="${oIdx}" />
+          <input type="${inputType}" name="${prefix}-${item.id}" value="${oIdx}" />
           <span><strong>${letter}.</strong> ${opt}</span>
         </label>
       `;
     }).join('');
-
     return `
       <article class="mcq-item" id="mcq-item-${prefix}-${item.id}">
         <p class="mcq-title">${qNum}. ${item.question}</p>
+        ${hint}
         <div class="mcq-options">${radios}</div>
         <div class="mcq-feedback" id="fb-mcq-${prefix}-${item.id}">Nog niet nagekeken.</div>
       </article>
@@ -844,33 +1041,74 @@ function markSectionFeedback(id, stateCls, message) {
   box.textContent = message || '';
 }
 
+function evaluateMultiMcqItem(prefix, item) {
+  const name = `${prefix}-${item.id}`;
+  const checked = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((el) => Number(el.value));
+  const itemBox = document.getElementById(`mcq-item-${prefix}-${item.id}`);
+  const fb = document.getElementById(`fb-mcq-${prefix}-${item.id}`);
+  if (!itemBox || !fb) return { answered: false, correct: false };
+  itemBox.classList.remove('ok', 'err');
+  const needed = item.correctIndices.length;
+  if (checked.length === 0) {
+    fb.className = 'mcq-feedback';
+    fb.textContent = `Kies ${needed} antwoorden.`;
+    return { answered: false, correct: false };
+  }
+  const correctSet = new Set(item.correctIndices);
+  const isCorrect = checked.length === needed && checked.every((i) => correctSet.has(i));
+  const isNewFirst = state.firstAttempt[item.id] === undefined;
+  const sig = `multi:${checked.slice().sort().join(',')}`;
+  if (isNewFirst) state.firstAttempt[item.id] = isCorrect ? 'ok' : 'err';
+  const attemptChanged = registerAttempt(item.id, sig, isCorrect);
+  if (isNewFirst || attemptChanged) renderFinalScore();
+  if (isCorrect) {
+    itemBox.classList.add('ok');
+    fb.className = 'mcq-feedback ok';
+    fb.textContent = 'Juist. ' + item.correctIndices.map((i) => item.feedbacks[i]).join(' | ');
+    return { answered: true, correct: true };
+  }
+  itemBox.classList.add('err');
+  fb.className = 'mcq-feedback err';
+  const wrongChosen = checked.filter((i) => !correctSet.has(i));
+  const missedRight = item.correctIndices.filter((i) => !checked.includes(i));
+  let msg = 'Fout.';
+  if (wrongChosen.length) msg += ' ' + wrongChosen.map((i) => item.feedbacks[i]).join(' ');
+  if (missedRight.length) msg += ` Je miste: ${missedRight.map((i) => String.fromCharCode(65 + item.options.indexOf(item.options[i]))).join(', ')}.`;
+  fb.textContent = msg;
+  return { answered: true, correct: false };
+}
+
 function evaluateMcqItem(prefix, item) {
+  if (item.multiSelect) return evaluateMultiMcqItem(prefix, item);
   const name = `${prefix}-${item.id}`;
   const selected = document.querySelector(`input[name="${name}"]:checked`);
   const itemBox = document.getElementById(`mcq-item-${prefix}-${item.id}`);
   const fb = document.getElementById(`fb-mcq-${prefix}-${item.id}`);
   if (!itemBox || !fb) return { answered: false, correct: false };
-
   itemBox.classList.remove('ok', 'err');
-
   if (!selected) {
     fb.className = 'mcq-feedback';
     fb.textContent = 'Kies 1 antwoord.';
     return { answered: false, correct: false };
   }
-
   const sel = Number(selected.value);
   const isCorrect = sel === item.correctIndex;
+  const isNewFirst = state.firstAttempt[item.id] === undefined;
+  if (isNewFirst) state.firstAttempt[item.id] = isCorrect ? 'ok' : 'err';
+  const attemptChanged = registerAttempt(item.id, `mcq:${sel}`, isCorrect);
+  if (isNewFirst || attemptChanged) renderFinalScore();
   if (isCorrect) {
     itemBox.classList.add('ok');
     fb.className = 'mcq-feedback ok';
     fb.textContent = `Juist. ${item.feedbacks[sel]}`;
     return { answered: true, correct: true };
   }
-
   itemBox.classList.add('err');
   fb.className = 'mcq-feedback err';
-  fb.textContent = `Fout. ${item.feedbacks[sel]} Denk aan de definities en de stappen in de formule.`;
+  const closingSuffix = (prefix === 'gen' || prefix === 'general')
+    ? 'Herbekijk de conceptuele definities uit de cursus.'
+    : 'Controleer de formule en de berekeningsstappen.';
+  fb.textContent = `Fout. ${item.feedbacks[sel]} ${closingSuffix}`;
   return { answered: true, correct: false };
 }
 
@@ -912,19 +1150,19 @@ function updateVariableLabels(sc) {
   const x1Text = `${sc.vars.x1.name} (X1)`;
   const x2Text = `${sc.vars.x2.name} (X2)`;
   const yText = `${sc.vars.y.name} (Y)`;
+  const st = state.stats;
 
   document.querySelectorAll('.var-x1-name').forEach((el) => { el.textContent = x1Text; });
   document.querySelectorAll('.var-x2-name').forEach((el) => { el.textContent = x2Text; });
   document.querySelectorAll('.var-y-name').forEach((el) => { el.textContent = yText; });
+  document.querySelectorAll('.var-x1-name-opt').forEach((el) => { el.textContent = x1Text; });
+  document.querySelectorAll('.var-x2-name-opt').forEach((el) => { el.textContent = x2Text; });
+  document.querySelectorAll('.var-y-name-opt').forEach((el) => { el.textContent = yText; });
 
   document.getElementById('th-x1').textContent = x1Text;
   document.getElementById('th-x2').textContent = x2Text;
   document.getElementById('th-y').textContent = yText;
   document.getElementById('th-bin').textContent = sc.bin.name;
-
-  document.getElementById('model-x1-name').textContent = sc.vars.x1.name;
-  document.getElementById('model-x2-name').textContent = sc.vars.x2.name;
-  document.getElementById('model-y-name').textContent = sc.vars.y.name;
 
   const opgaveX1 = document.getElementById('opgave-x1-name');
   const opgaveX2 = document.getElementById('opgave-x2-name');
@@ -932,6 +1170,11 @@ function updateVariableLabels(sc) {
   if (opgaveX1) opgaveX1.textContent = sc.vars.x1.name;
   if (opgaveX2) opgaveX2.textContent = sc.vars.x2.name;
   if (opgaveY) opgaveY.textContent = sc.vars.y.name;
+
+  // Fill sentence-blank span values (only non-answer labels; b values come from student input)
+  const setSpan = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  // Reset b-abs mirror spans to blank on each new generate
+  ['lbl-bivar-b-abs', 'lbl-multi-b1-abs', 'lbl-multi-b2-abs'].forEach(id => setSpan(id, '___'));
 }
 
 function renderScenarioText(sc) {
@@ -940,19 +1183,12 @@ function renderScenarioText(sc) {
     `${sc.vignette}`;
 }
 
-function updateConceptModelValues(stats) {
-  document.getElementById('model-b1-label').textContent = `b1 = ${fmt2(stats.multi.b1)}`;
-  document.getElementById('model-b2-label').textContent = `b2 = ${fmt2(stats.multi.b2)}`;
-  document.getElementById('model-r-label').textContent = `r = ${fmt2(stats.rx1x2)}`;
-  document.getElementById('model-r2-label').textContent = `R^2 = ${fmt2(stats.multi.r2)}`;
-}
-
 function renderOpenQuestionContext(sc, stats, seedUsed) {
   const rng = mulberry32((safeSeed(seedUsed) || 1) + 991);
   const template = OPEN_PROMPT_TEMPLATES[Math.floor(rng() * OPEN_PROMPT_TEMPLATES.length)];
   const txt = [
     `Datasetvariant ${seedUsed}: ${template}`,
-    `Voor deze dataset geldt r(X1,X2)=${fmt2(stats.rx1x2)} en R^2=${fmt2(stats.multi.r2)}.`,
+    `Voor deze dataset geldt r(X1,X2)=${fmt2(stats.rx1x2)} en R²=${fmt2(stats.multi.r2)}.`,
     `Werk je interpretatie inhoudelijk uit binnen de context van ${sc.title.toLowerCase()}.`
   ].join(' ');
   document.getElementById('open-question-context').textContent = txt;
@@ -960,20 +1196,26 @@ function renderOpenQuestionContext(sc, stats, seedUsed) {
 
 function renderDataset(rows) {
   const tbody = document.getElementById('dataset-body');
+  const showVal = (v) => (Number.isInteger(v) ? String(v) : fmt2(v));
   tbody.innerHTML = rows.map((row) => `
     <tr>
       <td>${row.respondent}</td>
-      <td>${row.x1}</td>
-      <td>${row.x2}</td>
-      <td>${row.y}</td>
+      <td>${showVal(row.x1)}</td>
+      <td>${showVal(row.x2)}</td>
+      <td>${showVal(row.y)}</td>
       <td>${row.binLabel}</td>
     </tr>
   `).join('');
 }
 
 function updatePredictionQuestion() {
-  document.getElementById('pred-question').textContent =
-    `Bereken Yhat voor X1 = ${state.predCase.x1} en X2 = ${state.predCase.x2}`;
+  const el = document.getElementById('pred-question');
+  if (!el) return;
+  if (!state.rows.length) {
+    el.textContent = 'Genereer eerst een dataset om de voorspellingsvraag te zien.';
+    return;
+  }
+  el.textContent = `Bereken Yhat voor X1 = ${state.predCase.x1} en X2 = ${state.predCase.x2}`;
 }
 
 function ensureOpenFeedbackSlots() {
@@ -990,11 +1232,105 @@ function ensureOpenFeedbackSlots() {
   });
 }
 
+function updateSentencePreview(sentenceDiv) {
+  if (!sentenceDiv) return;
+  const previewId = 'preview-' + sentenceDiv.id;
+  let preview = document.getElementById(previewId);
+  if (!preview) {
+    preview = document.createElement('div');
+    preview.id = previewId;
+    preview.className = 'sentence-preview';
+    sentenceDiv.insertAdjacentElement('afterend', preview);
+  }
+  const selects = sentenceDiv.querySelectorAll('.blank-select');
+  const allFilled = [...selects].every((s) => s.value !== '');
+  if (!allFilled) {
+    preview.innerHTML = '';
+    return;
+  }
+  let html = '';
+  sentenceDiv.childNodes.forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      html += node.textContent;
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.classList.contains('blank-select')) {
+        const opt = node.options[node.selectedIndex];
+        html += `<strong class="chosen-blank">${opt ? opt.textContent.trim() : ''}</strong>`;
+      } else {
+        html += node.outerHTML;
+      }
+    }
+  });
+  preview.innerHTML = html.trim();
+}
+
+function debounce(fn, ms) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
+
+function registerAttempt(id, signature, isCorrect) {
+  if (!id) return false;
+  const sig = String(signature ?? '').trim();
+  if (!sig) return false;
+  if (state.lastAttemptSignature[id] === sig) return false;
+  state.lastAttemptSignature[id] = sig;
+  state.attemptCount[id] = (state.attemptCount[id] || 0) + 1;
+  if (isCorrect && state.firstCorrectAttempt[id] === undefined) {
+    state.firstCorrectAttempt[id] = state.attemptCount[id];
+  }
+  return true;
+}
+
+function getOpenAnswerSignature(id) {
+  const pick = (elId) => document.getElementById(elId)?.value || '';
+  if (id === 'ans-bivar-b-int') return `dir:${pick('ans-bivar-b-dir')}`;
+  if (id === 'ans-bivar-r2-int') return `type:${pick('ans-bivar-r2-type')}`;
+  if (id === 'ans-multi-b1-int') return `dir:${pick('ans-multi-b1-dir')}|ctrl:${pick('ans-multi-b1-ctrl')}`;
+  if (id === 'ans-multi-b2-int') return `dir:${pick('ans-multi-b2-dir')}|ctrl:${pick('ans-multi-b2-ctrl')}`;
+  if (id === 'ans-multi-r2-int') return `type:${pick('ans-multi-r2-type')}|comb:${pick('ans-multi-r2-comb')}`;
+  if (id === 'ans-rx1x2-int') return `dir:${pick('ans-rx1x2-dir')}`;
+  const el = document.getElementById(id);
+  if (!el) return '';
+  return String(el.value ?? '').trim();
+}
+
+function renderFinalScore() {
+  const panel = document.getElementById('final-score-panel');
+  if (!panel) return;
+  const total = 36;
+  const scored = Object.values(state.firstAttempt).filter((v) => v === 'ok').length;
+  const attempted = Object.keys(state.firstAttempt).length;
+  const firstCorrect = Object.values(state.firstCorrectAttempt);
+  const rightFirst = firstCorrect.filter((n) => n === 1).length;
+  const rightSecond = firstCorrect.filter((n) => n === 2).length;
+  const rightThird = firstCorrect.filter((n) => n === 3).length;
+  const rightOverThree = firstCorrect.filter((n) => n > 3).length;
+  panel.innerHTML = `
+    <strong>Eindscore (eerste poging): ${scored} / ${total} punten</strong>
+    <span class="score-attempted">${attempted} van ${total} vragen beantwoord</span>
+    <ul class="score-breakdown">
+      <li>Juist op 1e poging: <strong>${rightFirst}</strong></li>
+      <li>Juist op 2e poging: <strong>${rightSecond}</strong></li>
+      <li>Juist op 3e poging: <strong>${rightThird}</strong></li>
+      <li>Juist na meer dan 3 pogingen: <strong>${rightOverThree}</strong></li>
+    </ul>
+    <span class="score-note">Voor een mogelijke examenscore is vooral <strong>'Juist op 1e poging'</strong> relevant. De andere aantallen tonen je leerprogressie. Genereer een nieuwe dataset om opnieuw te oefenen.</span>
+  `;
+  const sidebarScore = document.getElementById('sidebar-score-display');
+  if (sidebarScore) sidebarScore.textContent = `${scored} / ${total}`;
+}
+
 function resetAnswers() {
   document.querySelectorAll('.answer-table input, .answer-table textarea').forEach((el) => {
     el.value = '';
     el.classList.remove('correct', 'incorrect');
   });
+  document.querySelectorAll('.blank-select').forEach((el) => { el.value = ''; });
+  document.querySelectorAll('.sentence-preview').forEach((el) => { el.innerHTML = ''; });
   document.querySelectorAll('.ans-feedback').forEach((fb) => {
     fb.className = 'ans-feedback';
     fb.textContent = 'Nog niet nagekeken.';
@@ -1005,6 +1341,11 @@ function resetAnswers() {
     fb.className = 'mcq-feedback';
     fb.textContent = 'Nog niet nagekeken.';
   });
+  state.firstAttempt = {};
+  state.attemptCount = {};
+  state.firstCorrectAttempt = {};
+  state.lastAttemptSignature = {};
+  renderFinalScore();
   markSectionFeedback('fb-mcq-dataset-summary', '', '');
   markSectionFeedback('fb-mcq-general-summary', '', '');
   markSectionFeedback('fb-open-summary', '', '');
@@ -1075,6 +1416,15 @@ function textFeedbackForGroups(text, groups, fullMsg) {
   return { state: 'err', msg: `Onvoldoende. Neem zeker op: ${r.missing.join(', ')}.` };
 }
 
+function selectBlankFeedback(id, correctValue, wrongMsg) {
+  const el = document.getElementById(id);
+  if (!el) return { state: 'pending', msg: 'Nog geen antwoord.' };
+  const val = el.value;
+  if (!val) return { state: 'pending', msg: 'Nog geen keuze gemaakt.' };
+  if (val === correctValue) return { state: 'ok', msg: null };
+  return { state: 'err', msg: wrongMsg };
+}
+
 function setOpenFieldFeedback(id, result) {
   const input = document.getElementById(id);
   const fb = document.getElementById(`fb-${id}`);
@@ -1087,7 +1437,7 @@ function setOpenFieldFeedback(id, result) {
   fb.textContent = result.msg;
 }
 
-function checkOpenAnswers() {
+function checkOpenAnswers(recordAttempts = false) {
   if (!state.stats || !state.scenario) return;
   const sc = state.scenario;
   const st = state.stats;
@@ -1099,7 +1449,7 @@ function checkOpenAnswers() {
   });
   checks.push({
     id: 'ans-bivar-r2',
-    result: numericFeedback(document.getElementById('ans-bivar-r2').value, st.bivar.r2, 'gebruik R^2 = r^2 in bivariate regressie.')
+    result: numericFeedback(document.getElementById('ans-bivar-r2').value, st.bivar.r2, 'gebruik R² = r² in bivariate regressie.')
   });
   checks.push({
     id: 'ans-bivar-b',
@@ -1123,7 +1473,7 @@ function checkOpenAnswers() {
   });
   checks.push({
     id: 'ans-multi-r2',
-    result: numericFeedback(document.getElementById('ans-multi-r2').value, st.multi.r2, 'gebruik R^2 = 1 - SSE/SST.')
+    result: numericFeedback(document.getElementById('ans-multi-r2').value, st.multi.r2, 'gebruik R² = 1 - SSE/SST.')
   });
   checks.push({
     id: 'ans-rx1x2',
@@ -1142,73 +1492,95 @@ function checkOpenAnswers() {
     result: numericFeedback(document.getElementById('ans-pred').value, st.pred, 'substitueer X1 en X2 in Yhat = a + b1*X1 + b2*X2.')
   });
 
-  const dirBivar = st.bivar.b >= 0 ? ['stijgt', 'neemt toe', 'hoger'] : ['daalt', 'neemt af', 'lager'];
-  const dirB1 = st.multi.b1 >= 0 ? ['stijgt', 'neemt toe', 'hoger'] : ['daalt', 'neemt af', 'lager'];
-  const dirB2 = st.multi.b2 >= 0 ? ['stijgt', 'neemt toe', 'hoger'] : ['daalt', 'neemt af', 'lager'];
-  const dirR12 = st.rx1x2 >= 0 ? ['positief'] : ['negatief'];
+  // ans-bivar-b-int: direction of bivariate b
+  {
+    const dir = selectBlankFeedback(
+      'ans-bivar-b-dir',
+      st.bivar.b >= 0 ? 'stijgt' : 'daalt',
+      `Fout: b = ${fmt2(st.bivar.b)} is ${st.bivar.b >= 0 ? 'positief' : 'negatief'}, dus de verwachte Y ${st.bivar.b >= 0 ? 'stijgt' : 'daalt'}.`
+    );
+    checks.push({ id: 'ans-bivar-b-int', result: dir.state === 'ok' ? { state: 'ok', msg: 'Correct: de richting klopt.' } : dir });
+  }
 
-  checks.push({
-    id: 'ans-bivar-b-int',
-    result: textFeedbackForGroups(document.getElementById('ans-bivar-b-int').value, [
-      { label: `${sc.vars.x1.name} expliciet noemen`, keys: [normalizeText(sc.vars.x1.name), 'x1'] },
-      { label: `${sc.vars.y.name} expliciet noemen`, keys: [normalizeText(sc.vars.y.name), 'y'] },
-      { label: '1-eenheidstoename noemen', keys: ['met 1', '1 eenheid', 'toename met 1'] },
-      { label: 'richting van effect benoemen', keys: dirBivar },
-      { label: 'verwachte waarde-taal gebruiken', keys: ['verwachte', 'voorspelde'] }
-    ], 'Correct: volledige bivariate b-interpretatie.')
-  });
+  // ans-bivar-r2-int: explained vs unexplained
+  {
+    const type = selectBlankFeedback(
+      'ans-bivar-r2-type',
+      'verklaarde',
+      `Fout: R² geeft de VERKLAARDE proportie. De onverklaarde proportie is 1 - R² = ${fmt2((1 - st.bivar.r2) * 100)}%.`
+    );
+    checks.push({ id: 'ans-bivar-r2-int', result: type.state === 'ok' ? { state: 'ok', msg: 'Correct: R² is de verklaarde proportie variatie.' } : type });
+  }
 
-  checks.push({
-    id: 'ans-bivar-r2-int',
-    result: textFeedbackForGroups(document.getElementById('ans-bivar-r2-int').value, [
-      { label: 'variantie/proportie noemen', keys: ['variantie', 'proportie', 'percentage'] },
-      { label: 'verklaard noemen', keys: ['verklaard', 'uitleggen'] },
-      { label: `${sc.vars.y.name} noemen`, keys: [normalizeText(sc.vars.y.name), 'y'] },
-      { label: `${sc.vars.x1.name} noemen`, keys: [normalizeText(sc.vars.x1.name), 'x1'] }
-    ], 'Correct: R^2 geeft de verklaarde variantie van Y door X1 in het bivariate model.')
-  });
+  // ans-multi-b1-int: direction + control variable
+  {
+    const dir = selectBlankFeedback(
+      'ans-multi-b1-dir',
+      st.multi.b1 >= 0 ? 'stijgt' : 'daalt',
+      `Fout: b1 = ${fmt2(st.multi.b1)} is ${st.multi.b1 >= 0 ? 'positief' : 'negatief'}, dus de verwachte Y ${st.multi.b1 >= 0 ? 'stijgt' : 'daalt'}.`
+    );
+    const ctrl = selectBlankFeedback(
+      'ans-multi-b1-ctrl',
+      'x2',
+      `Fout: bij b1 controleer je voor ${sc.vars.x2.name} (de andere predictor), niet voor iets anders.`
+    );
+    const combined = (dir.state === 'pending' || ctrl.state === 'pending')
+      ? { state: 'pending', msg: 'Nog niet alle keuzes gemaakt.' }
+      : (dir.state === 'ok' && ctrl.state === 'ok')
+        ? { state: 'ok', msg: 'Correct: richting en controlevariabele kloppen.' }
+        : { state: 'err', msg: [dir, ctrl].filter((r) => r.state === 'err').map((r) => r.msg).join(' ') };
+    checks.push({ id: 'ans-multi-b1-int', result: combined });
+  }
 
-  checks.push({
-    id: 'ans-multi-b1-int',
-    result: textFeedbackForGroups(document.getElementById('ans-multi-b1-int').value, [
-      { label: `${sc.vars.x1.name} noemen`, keys: [normalizeText(sc.vars.x1.name), 'x1'] },
-      { label: `${sc.vars.y.name} noemen`, keys: [normalizeText(sc.vars.y.name), 'y'] },
-      { label: '1-eenheidstoename noemen', keys: ['met 1', '1 eenheid', 'toename met 1'] },
-      { label: `controle voor ${sc.vars.x2.name} noemen`, keys: ['onder controle', 'ceteris paribus', normalizeText(sc.vars.x2.name)] },
-      { label: 'richting van effect benoemen', keys: dirB1 }
-    ], 'Correct: volledige ceteris paribus-interpretatie van b1.')
-  });
+  // ans-multi-b2-int: direction + control variable
+  {
+    const dir = selectBlankFeedback(
+      'ans-multi-b2-dir',
+      st.multi.b2 >= 0 ? 'stijgt' : 'daalt',
+      `Fout: b2 = ${fmt2(st.multi.b2)} is ${st.multi.b2 >= 0 ? 'positief' : 'negatief'}, dus de verwachte Y ${st.multi.b2 >= 0 ? 'stijgt' : 'daalt'}.`
+    );
+    const ctrl = selectBlankFeedback(
+      'ans-multi-b2-ctrl',
+      'x1',
+      `Fout: bij b2 controleer je voor ${sc.vars.x1.name} (de andere predictor), niet voor iets anders.`
+    );
+    const combined = (dir.state === 'pending' || ctrl.state === 'pending')
+      ? { state: 'pending', msg: 'Nog niet alle keuzes gemaakt.' }
+      : (dir.state === 'ok' && ctrl.state === 'ok')
+        ? { state: 'ok', msg: 'Correct: richting en controlevariabele kloppen.' }
+        : { state: 'err', msg: [dir, ctrl].filter((r) => r.state === 'err').map((r) => r.msg).join(' ') };
+    checks.push({ id: 'ans-multi-b2-int', result: combined });
+  }
 
-  checks.push({
-    id: 'ans-multi-b2-int',
-    result: textFeedbackForGroups(document.getElementById('ans-multi-b2-int').value, [
-      { label: `${sc.vars.x2.name} noemen`, keys: [normalizeText(sc.vars.x2.name), 'x2'] },
-      { label: `${sc.vars.y.name} noemen`, keys: [normalizeText(sc.vars.y.name), 'y'] },
-      { label: '1-eenheidstoename noemen', keys: ['met 1', '1 eenheid', 'toename met 1'] },
-      { label: `controle voor ${sc.vars.x1.name} noemen`, keys: ['onder controle', 'ceteris paribus', normalizeText(sc.vars.x1.name)] },
-      { label: 'richting van effect benoemen', keys: dirB2 }
-    ], 'Correct: volledige ceteris paribus-interpretatie van b2.')
-  });
+  // ans-multi-r2-int: explained/unexplained + samen/afzonderlijk
+  {
+    const type = selectBlankFeedback(
+      'ans-multi-r2-type',
+      'verklaarde',
+      `Fout: R² is de VERKLAARDE proportie, niet de onverklaarde. De onverklaarde is ${fmt2((1 - st.multi.r2) * 100)}%.`
+    );
+    const comb = selectBlankFeedback(
+      'ans-multi-r2-comb',
+      'samen',
+      'Fout: in meervoudige regressie verklaren X1 en X2 SAMEN de variatie in Y — niet elk afzonderlijk.'
+    );
+    const combined = (type.state === 'pending' || comb.state === 'pending')
+      ? { state: 'pending', msg: 'Nog niet alle keuzes gemaakt.' }
+      : (type.state === 'ok' && comb.state === 'ok')
+        ? { state: 'ok', msg: 'Correct: R² is de verklaarde proportie door X1 en X2 samen.' }
+        : { state: 'err', msg: [type, comb].filter((r) => r.state === 'err').map((r) => r.msg).join(' ') };
+    checks.push({ id: 'ans-multi-r2-int', result: combined });
+  }
 
-  checks.push({
-    id: 'ans-multi-r2-int',
-    result: textFeedbackForGroups(document.getElementById('ans-multi-r2-int').value, [
-      { label: 'variantie/proportie noemen', keys: ['variantie', 'proportie', 'percentage'] },
-      { label: 'verklaard noemen', keys: ['verklaard', 'uitleggen'] },
-      { label: `${sc.vars.y.name} noemen`, keys: [normalizeText(sc.vars.y.name), 'y'] },
-      { label: `${sc.vars.x1.name} en ${sc.vars.x2.name} samen noemen`, keys: [normalizeText(sc.vars.x1.name), normalizeText(sc.vars.x2.name), 'samen'] }
-    ], 'Correct: R^2 in meervoudige regressie is de verklaarde variantie in Y door X1 en X2 samen.')
-  });
-
-  checks.push({
-    id: 'ans-rx1x2-int',
-    result: textFeedbackForGroups(document.getElementById('ans-rx1x2-int').value, [
-      { label: 'samenhang/correlatie noemen', keys: ['samenhang', 'correlatie', 'verband'] },
-      { label: 'richting noemen', keys: dirR12 },
-      { label: `${sc.vars.x1.name} noemen`, keys: [normalizeText(sc.vars.x1.name), 'x1'] },
-      { label: `${sc.vars.x2.name} noemen`, keys: [normalizeText(sc.vars.x2.name), 'x2'] }
-    ], 'Correct: interpretatie van de correlatie tussen de predictoren.')
-  });
+  // ans-rx1x2-int: direction of predictor correlation
+  {
+    const dir = selectBlankFeedback(
+      'ans-rx1x2-dir',
+      st.rx1x2 >= 0 ? 'positieve' : 'negatieve',
+      `Fout: r = ${fmt2(st.rx1x2)} is ${st.rx1x2 >= 0 ? 'positief' : 'negatief'}, dus de samenhang is ${st.rx1x2 >= 0 ? 'positief' : 'negatief'}.`
+    );
+    checks.push({ id: 'ans-rx1x2-int', result: dir.state === 'ok' ? { state: 'ok', msg: 'Correct: de richting van de samenhang klopt.' } : dir });
+  }
 
   const assumptionText = normalizeText(document.getElementById('ans-assumption').value);
   const rawAssumption = document.getElementById('ans-assumption').value;
@@ -1224,15 +1596,25 @@ function checkOpenAnswers() {
     result: !String(rawAssumption || '').trim()
       ? { state: 'pending', msg: 'Nog geen antwoord.' }
       : (okAssumption
-        ? { state: 'ok', msg: 'Correct: dit verwijst naar homoscedasticiteit (constante variantie).' }
-        : { state: 'err', msg: 'Fout: gezochte term is homoscedasticiteit (constante variantie van de foutentermen).' })
+        ? { state: 'ok', msg: 'Correct: dit verwijst naar constante spreiding van de foutentermen.' }
+        : { state: 'err', msg: 'Fout. Denk aan de assumptie over gelijke spreiding van de foutentermen.' })
   });
 
   let okCount = 0;
   let partialCount = 0;
   let pendingCount = 0;
+  let scoreChanged = false;
   checks.forEach((c) => {
     setOpenFieldFeedback(c.id, c.result);
+    if (recordAttempts && c.result.state !== 'pending') {
+      if (state.firstAttempt[c.id] === undefined) {
+        state.firstAttempt[c.id] = c.result.state;
+        scoreChanged = true;
+      }
+      if (registerAttempt(c.id, getOpenAnswerSignature(c.id), c.result.state === 'ok')) {
+        scoreChanged = true;
+      }
+    }
     if (c.result.state === 'ok') okCount += 1;
     else if (c.result.state === 'partial') partialCount += 1;
     else if (c.result.state === 'pending') pendingCount += 1;
@@ -1254,6 +1636,7 @@ function checkOpenAnswers() {
       `${okCount}/${total} volledig correct, ${partialCount} gedeeltelijk. Verbeter met de hints per veld.`
     );
   }
+  if (scoreChanged) renderFinalScore();
 }
 
 function generate(randomScenario = false) {
@@ -1266,7 +1649,21 @@ function generate(randomScenario = false) {
     sel.value = scenario.id;
   }
 
-  const made = makeRowsForScenario(scenario, seedEl.value);
+  const enteredSeed = safeSeed(seedEl.value);
+  const manualSeed = seedEl.dataset.seedManual === '1';
+  const forceRandom = seedEl.dataset.nextRandom === '1';
+  let seedToUse;
+  if (manualSeed && enteredSeed != null && !forceRandom) {
+    seedToUse = enteredSeed;
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '1';
+  } else {
+    seedToUse = nextRandomSeed();
+    seedEl.value = String(seedToUse);
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '0';
+  }
+  const made = makeRowsForScenario(scenario, seedToUse);
   if (!made.rows.length) return;
 
   state.scenario = scenario;
@@ -1277,12 +1674,14 @@ function generate(randomScenario = false) {
   const scenarioOffset = scenario.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   state.pathModel = buildPathModel(made.seedUsed + scenarioOffset);
   const mcqRng = mulberry32(made.seedUsed + scenarioOffset * 97 + 8801);
+  state.crossTab = buildCrossTab(mcqRng);
+  renderCrossTab(state.crossTab);
   state.datasetMcqs = shuffleMcqList(
-    buildDatasetMcqs(scenario, state.stats, state.pathModel),
+    buildDatasetMcqs(scenario, state.stats, state.pathModel, mcqRng),
     mcqRng
   );
   state.generalMcqs = shuffleMcqList(
-    buildGeneralMcqs(),
+    buildGeneralMcqs(mcqRng),
     mcqRng
   );
 
@@ -1291,14 +1690,12 @@ function generate(randomScenario = false) {
   renderDataset(made.rows);
   renderPathModel(state.pathModel);
   updatePredictionQuestion();
-  updateConceptModelValues(state.stats);
   renderOpenQuestionContext(scenario, state.stats, made.seedUsed);
   renderMcqList('mcq-dataset-list', state.datasetMcqs, 'dataset', 1);
   renderMcqList('mcq-general-list', state.generalMcqs, 'general', state.datasetMcqs.length + 1);
   ensureOpenFeedbackSlots();
 
   document.getElementById('seed-used').textContent = String(made.seedUsed);
-  seedEl.value = String(made.seedUsed);
 
   resetAnswers();
   bindInstantMcqFeedback('dataset', state.datasetMcqs, 'fb-mcq-dataset-summary');
@@ -1315,7 +1712,7 @@ function printQuestionPaper() {
   const seedUsed = document.getElementById('seed-used')?.textContent || '-';
 
   const dsRows = Array.from(document.querySelectorAll('#dataset-body tr')).map((tr) => tr.outerHTML).join('');
-  const pathRows = Array.from(document.querySelectorAll('#path-table-body tr')).map((tr) => tr.outerHTML).join('');
+  const pathFigureSvg = document.querySelector('#deel-path svg')?.outerHTML || '';
   const pathTitle = state.pathModel?.scenario?.title || 'Padmodel';
   const mcqRows = Array.from(document.querySelectorAll('.mcq-item')).map((item, i) => {
     const q = item.querySelector('.mcq-title')?.textContent || '';
@@ -1334,71 +1731,455 @@ function printQuestionPaper() {
     return `<tr class="${divCls}"><td>${qCell.innerHTML}</td>${ansCell}</tr>`;
   }).join('');
 
+  // Build MCQ block — span innerHTML already contains "A. text" from renderMcqList, use directly
+  const mcqPrint = Array.from(document.querySelectorAll('.mcq-item')).map((item, i) => {
+    const q = item.querySelector('.mcq-title')?.textContent || '';
+    const opts = Array.from(item.querySelectorAll('.mcq-option span'))
+      .map((s) => `<li>${s.innerHTML}</li>`)
+      .join('');
+    return `<div class="mcq-block"><p><strong>${i + 1}.</strong> ${q.replace(/^\d+\.\s*/, '')}</p><ul>${opts}</ul></div>`;
+  }).join('');
+
+  // Build answer rows with clean write lines (no inline colours)
+  const ansRowsPrint = Array.from(document.querySelectorAll('.answer-table tbody tr')).map((tr) => {
+    const qCell = tr.querySelector('td:first-child');
+    if (!qCell) return '';
+    const hasSentenceBlank = !!tr.querySelector('.sentence-blank');
+    const divCls = tr.classList.contains('divider-row') ? ' class="divider-row"' : '';
+    const ansCell = hasSentenceBlank
+      ? '<td><div class="write-box"></div></td>'
+      : '<td><div class="write-line"></div></td>';
+    return `<tr${divCls}><td>${qCell.innerHTML}</td>${ansCell}</tr>`;
+  }).join('');
+
   const win = window.open('', '_blank');
   if (!win) return;
   win.document.write(`<!DOCTYPE html>
 <html lang="nl"><head>
   <meta charset="UTF-8"/>
-  <title>Vragenblad - Synthese-oefening</title>
+  <title>Vragenblad – Statistiek Synthese-oefening</title>
   <style>
-    body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;margin:30px 40px;color:#111}
-    h1{font-size:15px;margin-bottom:4px}
-    h2{font-size:13px;margin:14px 0 6px}
-    .meta{font-size:12px;color:#555;margin-bottom:12px}
-    .context{background:#f8f9fc;border-left:3px solid #1a4799;padding:9px 13px;margin-bottom:14px;font-size:13px}
-    table{width:100%;border-collapse:collapse;margin-bottom:16px}
-    th,td{border:1px solid #ccc;padding:5px 8px;font-size:12px;vertical-align:top}
-    th{background:#1a4799;color:#fff;text-align:left}
-    tr.divider-row td:first-child{border-top:2px solid #1a4799;font-weight:700}
-    .q{border:1px solid #d5dbe7;padding:8px;margin:0 0 8px}
-    .q p{margin:0 0 6px}
-    .q ul{margin:0;padding-left:18px}
-    .q li{margin:4px 0}
-    @media print{@page{margin:15mm 20mm}}
+    @page {
+      size: A4 portrait;
+      margin: 15mm 15mm 15mm 15mm;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.45;
+      color: #000;
+      margin: 0;
+      width: 100%;
+    }
+    .doc-header {
+      border-bottom: 2pt solid #000;
+      padding-bottom: 8pt;
+      margin-bottom: 14pt;
+    }
+    .doc-header h1 {
+      font-size: 13pt;
+      font-weight: 700;
+      margin: 0 0 3pt;
+      text-transform: uppercase;
+      letter-spacing: 0.3pt;
+    }
+    .doc-header .meta {
+      font-size: 9.5pt;
+      color: #333;
+      margin: 0;
+    }
+    h2 {
+      font-size: 11.5pt;
+      font-weight: 700;
+      border-bottom: 1pt solid #000;
+      padding-bottom: 2pt;
+      margin: 16pt 0 7pt;
+      text-transform: uppercase;
+      page-break-after: avoid;
+    }
+    .context {
+      border-left: 3pt solid #000;
+      padding: 6pt 10pt;
+      margin-bottom: 12pt;
+      font-size: 10.5pt;
+    }
+    .var-info {
+      font-size: 10pt;
+      margin: 0 0 12pt;
+    }
+    table.data-table {
+      width: calc(100% - 2pt);
+      max-width: calc(100% - 2pt);
+      border-collapse: collapse;
+      margin: 0 0 14pt 1pt;
+      font-size: 10pt;
+      table-layout: fixed;
+    }
+    table.data-table th {
+      border: 1pt solid #000;
+      padding: 4pt 5pt;
+      font-weight: 700;
+      text-align: left;
+      word-break: break-word;
+    }
+    table.data-table td {
+      border: 1pt solid #000;
+      padding: 3pt 5pt;
+      text-align: center;
+      word-break: break-word;
+    }
+    .keep-together {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .print-path {
+      border: 1pt solid #999;
+      padding: 8pt;
+      margin-bottom: 14pt;
+    }
+    .print-path svg { width: 100%; height: auto; max-height: 190pt; }
+    .print-path .node       { fill: #fff; stroke: #000; stroke-width: 1.5; }
+    .print-path .node-y     { fill: #f0f0f0; }
+    .print-path .node-main  { font-size: 14px; fill: #000; font-weight: 700; }
+    .print-path .node-sub   { font-size: 11px; fill: #000; }
+    .print-path .edge       { stroke: #000; stroke-width: 1.8; fill: none; }
+    .print-path .edge-label { fill: #000; font-size: 12px; font-weight: 700; }
+    .print-path marker polygon { fill: #000; }
+    .mcq-block {
+      margin-bottom: 7pt;
+      page-break-inside: avoid;
+    }
+    .mcq-block p  { margin: 0 0 3pt; font-size: 10.5pt; font-weight: 700; }
+    .mcq-block ul { margin: 0; padding-left: 0; list-style: none; }
+    .mcq-block li { margin: 2pt 0; font-size: 10.5pt; padding-left: 18pt; text-indent: -18pt; }
+    table.ans-table {
+      width: calc(100% - 2pt);
+      max-width: calc(100% - 2pt);
+      border-collapse: collapse;
+      margin: 0 0 14pt 1pt;
+      font-size: 10pt;
+      table-layout: fixed;
+    }
+    table.ans-table th {
+      border: 1pt solid #000;
+      padding: 4pt 6pt;
+      font-weight: 700;
+      text-align: left;
+    }
+    table.ans-table td {
+      border: 1pt solid #000;
+      padding: 4pt 6pt;
+      vertical-align: top;
+      word-break: break-word;
+    }
+    table.ans-table td:first-child { width: 50%; }
+    table.ans-table tr.divider-row td:first-child {
+      font-weight: 700;
+      border-top: 1.5pt solid #000;
+    }
+    .write-line {
+      border-bottom: 0.75pt solid #999;
+      min-height: 18pt;
+      margin: 2pt 0;
+    }
+    .write-box {
+      border: 0.75pt solid #999;
+      min-height: 54pt;
+    }
+    .break-before { page-break-before: always; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
   </style>
 </head><body>
-  <h1>OPEN EXAMENVRAAG STATISTIEK AJ 2024-2025 1ste zittijd</h1>
-  <p class="meta">Datasetcode: ${seedUsed}</p>
-  <h2>OPGAVE</h2>
+
+  <div class="doc-header">
+    <h1>Hoofdstuk 13 Synthesis Oefeningen</h1>
+    <p class="meta">Datasetcode: <strong>${seedUsed}</strong></p>
+  </div>
+
+  <table class="ans-table" style="margin-bottom:18pt">
+    <tbody>
+      <tr><td><strong>Naam student</strong></td><td><div class="write-line"></div></td></tr>
+      <tr><td><strong>Studentennummer</strong></td><td><div class="write-line"></div></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Opgave</h2>
   <div class="context">${context}</div>
-  <h2>Tabel 2 - Dataset 1</h2>
-  <table>
+  <p class="var-info">
+    <strong>X1</strong> = ${x1name} (verklarende) &emsp;
+    <strong>X2</strong> = ${x2name} (verklarende) &emsp;
+    <strong>Y</strong> = ${yname} (afhankelijke)
+  </p>
+
+  <h2>Tabel 1 — ${state.crossTab.sc.rowLabel} × ${state.crossTab.sc.colLabel}</h2>
+  <table class="data-table">
+    <thead><tr><th>${state.crossTab.sc.rowLabel}</th><th>${state.crossTab.sc.colNo}</th><th>${state.crossTab.sc.colYes}</th></tr></thead>
+    <tbody>
+      <tr><td>${state.crossTab.sc.rows[0]}</td><td>${state.crossTab.r1no.toLocaleString('nl-BE')}</td><td>${state.crossTab.r1yes.toLocaleString('nl-BE')}</td></tr>
+      <tr><td>${state.crossTab.sc.rows[1]}</td><td>${state.crossTab.r2no.toLocaleString('nl-BE')}</td><td>${state.crossTab.r2yes.toLocaleString('nl-BE')}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Tabel 2 — Dataset voor regressie en correlatie</h2>
+  <table class="data-table">
     <thead><tr><th>Respondent</th><th>${x1name}</th><th>${x2name}</th><th>${yname}</th><th>${bname}</th></tr></thead>
     <tbody>${dsRows}</tbody>
   </table>
-  <h2>Figuur 2 - Padmodel (${pathTitle})</h2>
-  <table>
-    <thead><tr><th>Pad</th><th>Interpretatie</th><th>Waarde</th></tr></thead>
-    <tbody>${pathRows}</tbody>
+
+  <div class="keep-together">
+    <h2>Figuur 1 — Padmodel: ${pathTitle}</h2>
+    <div class="print-path">${pathFigureSvg}</div>
+  </div>
+
+  <h2 class="break-before">Meerkeuzevragen (17 vragen)</h2>
+  <p style="font-size:10pt;margin:0 0 10pt"><em>Omcirkel telkens het gevraagde aantal antwoorden (1 of 2) per vraag.</em></p>
+  ${mcqPrint}
+
+  <h2 class="break-before">Antwoordformulier — Open vragen</h2>
+  <table class="ans-table">
+    <thead><tr><th>Onderdeel</th><th>Jouw antwoord</th></tr></thead>
+    <tbody>${ansRowsPrint}</tbody>
   </table>
-  <h2>Meerkeuzevragen</h2>
-  ${mcqRows}
-  <h2>Open antwoorden</h2>
-  <table>
-    <thead><tr><th style="width:55%">Onderdeel</th><th>Antwoord</th></tr></thead>
-    <tbody>${ansRows}</tbody>
-  </table>
+
 </body></html>`);
   win.document.close();
-  win.print();
+  setTimeout(() => { win.print(); }, 400);
+}
+
+function openDatasetInNewWindow() {
+  const x1name = document.querySelector('.var-x1-name')?.textContent || 'X1';
+  const x2name = document.querySelector('.var-x2-name')?.textContent || 'X2';
+  const yname = document.querySelector('.var-y-name')?.textContent || 'Y';
+  const bname = document.getElementById('th-bin')?.textContent || 'Groep';
+  const seedUsed = document.getElementById('seed-used')?.textContent || '-';
+  const context = document.getElementById('scenario-text')?.textContent || '';
+  const dsRows = Array.from(document.querySelectorAll('#dataset-body tr')).map((tr) => tr.outerHTML).join('');
+  const pathTitle = state.pathModel?.scenario?.title || 'Padmodel';
+  const pathFigureSvg = document.querySelector('#deel-path svg')?.outerHTML || '';
+
+  const win = window.open('', '_blank');
+  if (!win) return;
+  win.document.write(`<!DOCTYPE html>
+<html lang="nl"><head>
+  <meta charset="UTF-8"/>
+  <title>Bijlage datasets</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; margin: 20px; color: #111; }
+    h1 { font-size: 18px; margin: 0 0 8px; color: #133e87; }
+    h2 { font-size: 15px; margin: 0 0 8px; color: #133e87; }
+    p { margin: 4px 0 10px; line-height: 1.45; }
+    .meta { color: #475569; font-size: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+    .panel { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; background: #fff; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px; }
+    th { background: #e9f0ff; color: #133e87; text-align: left; }
+    .path-wrap svg { width: 100%; height: auto; }
+    .path-wrap .node { fill: #eef4ff; stroke: #1d4ed8; stroke-width: 1.4; }
+    .path-wrap .node-y { fill: #dbeafe; }
+    .path-wrap .node-main { font-size: 15px; fill: #0f172a; font-weight: 700; }
+    .path-wrap .node-sub { font-size: 12px; fill: #0f172a; }
+    .path-wrap .edge { stroke: #1d4ed8; stroke-width: 2; fill: none; }
+    .path-wrap .edge-dashed { stroke-dasharray: 6 5; }
+    .path-wrap .edge-label { fill: #1d4ed8; font-size: 13px; font-weight: 700; }
+    .path-wrap marker polygon { fill: #1d4ed8; }
+    @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head><body>
+  <h1>Bijlage datasets</h1>
+  <p class="meta"><strong>Datasetcode:</strong> ${seedUsed}</p>
+  <p>${context}</p>
+  <div class="grid">
+    <section class="panel">
+      <h2>Tabel 1 — ${state.crossTab.sc.rowLabel} × ${state.crossTab.sc.colLabel}</h2>
+      <table>
+        <thead><tr><th>${state.crossTab.sc.rowLabel}</th><th>${state.crossTab.sc.colNo}</th><th>${state.crossTab.sc.colYes}</th></tr></thead>
+        <tbody>
+          <tr><td>${state.crossTab.sc.rows[0]}</td><td>${state.crossTab.r1no.toLocaleString('nl-BE')}</td><td>${state.crossTab.r1yes.toLocaleString('nl-BE')}</td></tr>
+          <tr><td>${state.crossTab.sc.rows[1]}</td><td>${state.crossTab.r2no.toLocaleString('nl-BE')}</td><td>${state.crossTab.r2yes.toLocaleString('nl-BE')}</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="panel">
+      <h2>Tabel 2 — Dataset voor regressie en correlatie</h2>
+      <table>
+        <thead><tr><th>Respondent</th><th>${x1name}</th><th>${x2name}</th><th>${yname}</th><th>${bname}</th></tr></thead>
+        <tbody>${dsRows}</tbody>
+      </table>
+    </section>
+    <section class="panel">
+      <h2>Figuur 1 — Padmodel (${pathTitle})</h2>
+      <div class="path-wrap">${pathFigureSvg}</div>
+    </section>
+  </div>
+</body></html>`);
+  win.document.close();
+}
+
+function setSectionCollapsed(section, collapsed) {
+  const btn = section.querySelector('.section-toggle');
+  const body = section.querySelector('.section-body');
+  if (!btn || !body) return;
+  section.classList.toggle('is-collapsed', collapsed);
+  btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  btn.textContent = collapsed ? 'Uitklappen' : 'Inklappen';
+}
+
+function initSectionNavigation() {
+  const main = document.querySelector('.main');
+  if (!main) return;
+
+  const sections = Array.from(main.querySelectorAll(':scope > section.card'))
+    .filter((s) => !s.classList.contains('hero'));
+  if (!sections.length) return;
+
+  sections.forEach((section, idx) => {
+    const h3 = section.querySelector(':scope > h3');
+    const title = (h3?.textContent || '').trim();
+    if (!section.id) {
+      if (title.toUpperCase() === 'OPGAVE') section.id = 'deel-opgave';
+      else if (title.toLowerCase().includes('formule')) section.id = 'deel-formules';
+      else section.id = `deel-${idx + 1}`;
+    }
+  });
+
+  sections.forEach((section) => {
+    const h3 = section.querySelector(':scope > h3');
+    if (!h3 || section.dataset.collapsibleInit === '1') return;
+
+    const header = document.createElement('div');
+    header.className = 'section-head';
+    section.insertBefore(header, h3);
+    header.appendChild(h3);
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'section-toggle';
+    toggleBtn.setAttribute('aria-expanded', 'true');
+    toggleBtn.textContent = 'Inklappen';
+    header.appendChild(toggleBtn);
+
+    const body = document.createElement('div');
+    body.className = 'section-body';
+    Array.from(section.children).forEach((child) => {
+      if (child !== header) body.appendChild(child);
+    });
+    section.appendChild(body);
+
+    body.querySelectorAll('.move-to-section-head').forEach((el) => {
+      header.insertBefore(el, toggleBtn);
+    });
+
+    section.dataset.collapsibleInit = '1';
+
+    toggleBtn.addEventListener('click', () => {
+      setSectionCollapsed(section, !section.classList.contains('is-collapsed'));
+    });
+  });
 }
 
 function bindEvents() {
+  const seedEl = document.getElementById('seed');
   document.getElementById('btn-generate').addEventListener('click', () => generate(false));
   document.getElementById('btn-random').addEventListener('click', () => generate(true));
   document.getElementById('btn-reset-answers').addEventListener('click', resetAnswers);
   document.getElementById('btn-print').addEventListener('click', printQuestionPaper);
+  document.getElementById('btn-open-dataset-window')?.addEventListener('click', openDatasetInNewWindow);
+  document.querySelectorAll('.nav-list a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', () => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (!target) return;
+      const card = target.closest('.card');
+      if (card && card.classList.contains('is-collapsed')) setSectionCollapsed(card, false);
+    });
+  });
   document.getElementById('scenario').addEventListener('change', () => generate(false));
-  document.querySelectorAll('.answer-table input:not(.no-eval), .answer-table textarea').forEach((el) => {
-    el.addEventListener('input', checkOpenAnswers);
+  if (seedEl) {
+    const markManual = () => {
+      seedEl.dataset.seedManual = '1';
+      seedEl.dataset.nextRandom = '0';
+    };
+    seedEl.addEventListener('input', markManual);
+    seedEl.addEventListener('change', markManual);
+  }
+  document.querySelectorAll('.answer-table input:not(.no-eval), .answer-table textarea, .answer-table select.blank-select').forEach((el) => {
+    el.addEventListener('input', debounce(() => checkOpenAnswers(false), 300));
+    el.addEventListener('change', () => checkOpenAnswers(true));
+  });
+  // Mirror student-typed b values into interpretation sentence spans
+  const mirrorAbs = (inputId, spanId) => {
+    const input = document.getElementById(inputId);
+    const span = document.getElementById(spanId);
+    if (!input || !span) return;
+    const update = () => {
+      const v = parseFloat(String(input.value).replace(',', '.'));
+      span.textContent = Number.isFinite(v) ? fmt2(Math.abs(v)) : '___';
+    };
+    input.addEventListener('input', update);
+    input.addEventListener('change', update);
+  };
+  mirrorAbs('ans-bivar-b', 'lbl-bivar-b-abs');
+  mirrorAbs('ans-multi-b1', 'lbl-multi-b1-abs');
+  mirrorAbs('ans-multi-b2', 'lbl-multi-b2-abs');
+  document.querySelector('.answer-table')?.addEventListener('change', (e) => {
+    if (e.target.classList.contains('blank-select')) {
+      const container = e.target.closest('.sentence-blank');
+      if (container) updateSentencePreview(container);
+    }
+  });
+}
+
+function initResizeHandle() {
+  const handle = document.getElementById('resize-handle');
+  const layout = document.querySelector('.layout');
+  if (!handle || !layout) return;
+
+  const MIN_WIDTH = 200;
+  const MAX_WIDTH = 600;
+  let dragging = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  handle.addEventListener('mousedown', (e) => {
+    dragging = true;
+    startX = e.clientX;
+    startWidth = parseInt(getComputedStyle(layout).getPropertyValue('--sidebar-width') || '320', 10);
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + (e.clientX - startX)));
+    layout.style.setProperty('--sidebar-width', `${newWidth}px`);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
   });
 }
 
 function init() {
+  initSectionNavigation();
+  initResizeHandle();
   populateScenarioSelect();
   bindEvents();
+  const seedEl = document.getElementById('seed');
+  if (seedEl) {
+    seedEl.value = String(nextRandomSeed());
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '0';
+  }
   generate(false);
 }
 
 document.addEventListener('DOMContentLoaded', init);
-

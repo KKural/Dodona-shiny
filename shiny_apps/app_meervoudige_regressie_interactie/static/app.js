@@ -37,6 +37,27 @@ const SCENARIOS = [
   }
 ];
 
+function humanizeLabel(label) {
+  if (typeof label !== 'string') return label;
+  return label
+    .replace(/_/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeScenarioLabels() {
+  SCENARIOS.forEach((sc) => {
+    if (sc?.vars?.x1) sc.vars.x1 = humanizeLabel(sc.vars.x1);
+    if (sc?.vars?.x2) sc.vars.x2 = humanizeLabel(sc.vars.x2);
+    if (sc?.vars?.y) sc.vars.y = humanizeLabel(sc.vars.y);
+    if (sc?.entity) sc.entity = humanizeLabel(sc.entity);
+  });
+}
+
+normalizeScenarioLabels();
+
 const FIELD_MAP = {
   mean_X1: { label: 'Gemiddelde X1', truth: 'x1_bar' },
   mean_X2: { label: 'Gemiddelde X2', truth: 'x2_bar' },
@@ -102,6 +123,10 @@ function safeSeed(seedRaw) {
   if (!Number.isFinite(s) || s <= 0) return null;
   const maxInt = 2147483647;
   return Math.floor(Math.abs(s)) % maxInt;
+}
+
+function nextRandomSeed() {
+  return Math.floor(Math.random() * 1000000000) + 1;
 }
 
 function mulberry32(seed) {
@@ -425,12 +450,15 @@ function renderPredTable() {
 
     const tdX1c = document.createElement('td');
     tdX1c.textContent = truth.x1c[i].toFixed(4);
+    tdX1c.className = 'readonly-cell';
 
     const tdX2c = document.createElement('td');
     tdX2c.textContent = truth.x2c[i].toFixed(4);
+    tdX2c.className = 'readonly-cell';
 
     const tdInt = document.createElement('td');
     tdInt.textContent = truth.int_term[i].toFixed(4);
+    tdInt.className = 'readonly-cell';
 
     const tdY = document.createElement('td');
     tdY.textContent = r.y.toFixed(2);
@@ -906,9 +934,23 @@ function generate(random = false) {
 
   const sc = random ? randomScenario() : getScenarioById(scenarioSelect.value);
   scenarioSelect.value = sc.id;
+  const enteredSeed = safeSeed(seedEl.value);
+  const manualSeed = seedEl.dataset.seedManual === '1';
+  const forceRandom = seedEl.dataset.nextRandom === '1';
+  let seedToUse;
+  if (manualSeed && enteredSeed != null && !forceRandom) {
+    seedToUse = enteredSeed;
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '1';
+  } else {
+    seedToUse = nextRandomSeed();
+    seedEl.value = String(seedToUse);
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '0';
+  }
 
   state.scenario = sc;
-  state.data = makeData(sc, nEl.value, seedEl.value);
+  state.data = makeData(sc, nEl.value, seedToUse);
   state.truth = calcTruth(state.data);
 
   setScenarioText(sc);
@@ -931,9 +973,18 @@ function initScenarioSelect() {
 }
 
 function bindControls() {
+  const seedEl = document.getElementById('seed');
   document.getElementById('btn-generate').addEventListener('click', () => generate(false));
   document.getElementById('btn-random').addEventListener('click', () => generate(true));
   document.getElementById('scenario').addEventListener('change', () => generate(false));
+  if (seedEl) {
+    const markManual = () => {
+      seedEl.dataset.seedManual = '1';
+      seedEl.dataset.nextRandom = '0';
+    };
+    seedEl.addEventListener('input', markManual);
+    seedEl.addEventListener('change', markManual);
+  }
 }
 
 function init() {
@@ -942,6 +993,12 @@ function init() {
   setupNav();
   setupSidebarChrome();
   bindControls();
+  const seedEl = document.getElementById('seed');
+  if (seedEl) {
+    seedEl.value = String(nextRandomSeed());
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '0';
+  }
   generate(false);
 }
 

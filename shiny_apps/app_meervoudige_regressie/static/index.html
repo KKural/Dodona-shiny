@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="nl">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
+
 <body>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
@@ -56,7 +58,9 @@
       <div class="sidebar-divider"></div>
       <div class="progress-block" id="progress-block">
         <div class="progress-label">Voortgang</div>
-        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
         <div class="progress-text" id="progress-text">0 / 0 correct</div>
       </div>
 
@@ -89,51 +93,69 @@
       <section class="card" id="deel1">
         <div class="card-header">Deel I - Dataset</div>
         <div class="card-body">
-          <div class="table-wrap"><table id="dataset-table"></table></div>
+          <div class="table-wrap">
+            <table id="dataset-table"></table>
+          </div>
         </div>
       </section>
 
       <section class="card" id="deel2">
         <div class="card-header">Deel II - Stap 1: Rekenkundige Gemiddelden</div>
-        <div class="card-body"><div class="grid three" id="means-grid"></div></div>
+        <div class="card-body">
+          <div class="grid three" id="means-grid"></div>
+        </div>
       </section>
 
       <section class="card" id="deel3">
         <div class="card-header">Deel III - Stappen 2-6: Afwijkingen, Kwadraten en Kruisproducten</div>
-        <div class="card-body"><div class="grid two" id="totals-grid"></div></div>
+        <div class="card-body">
+          <div class="grid two" id="totals-grid"></div>
+        </div>
       </section>
 
       <section class="card" id="deel4">
         <div class="card-header">Deel IV - Stappen 7-8: Varianties en Standaardafwijkingen</div>
-        <div class="card-body"><div class="grid three" id="varsd-grid"></div></div>
+        <div class="card-body">
+          <div class="grid three" id="varsd-grid"></div>
+        </div>
       </section>
 
       <section class="card" id="deel4a">
         <div class="card-header">Deel IV-A - Stappen 9-11: Covarianties</div>
-        <div class="card-body"><div class="grid three" id="cov-grid"></div></div>
+        <div class="card-body">
+          <div class="grid three" id="cov-grid"></div>
+        </div>
       </section>
 
       <section class="card" id="deel4b">
         <div class="card-header">Deel IV-B - Stappen 12-14: Correlatiecoëfficiënten</div>
-        <div class="card-body"><div class="grid three" id="corr-grid"></div></div>
+        <div class="card-body">
+          <div class="grid three" id="corr-grid"></div>
+        </div>
       </section>
 
       <section class="card" id="deel5">
         <div class="card-header">Deel V - Stappen 15-18: Regressiecoëfficiënten</div>
-        <div class="card-body"><div class="grid two" id="coef-grid"></div></div>
+        <div class="card-body">
+          <div class="grid two" id="coef-grid"></div>
+        </div>
       </section>
 
       <section class="card" id="deel6">
         <div class="card-header">Deel VI - Stap 19: Voorspellingen Yhat</div>
         <div class="card-body">
-          <div class="table-wrap"><table id="pred-table"></table></div>
+          <div class="table-wrap">
+            <table id="pred-table"></table>
+          </div>
           <div id="pred-msg" class="status"></div>
         </div>
       </section>
 
       <section class="card" id="deel7">
         <div class="card-header">Deel VII-VIII - Stappen 20-23: Model Fit en F-toets</div>
-        <div class="card-body"><div class="grid three" id="fit-grid"></div></div>
+        <div class="card-body">
+          <div class="grid three" id="fit-grid"></div>
+        </div>
       </section>
 
       <section class="card success hidden" id="success-card">
@@ -141,8 +163,9 @@
       </section>
 
       <section class="card locked" id="viz-card">
-        <div class="card-header">Deel IX - Visualisaties</div>
+        <div class="card-header">Deel IX - Visualisaties &#128274;</div>
         <div class="card-body">
+          <p class="lock-notice" id="lock-viz">Voltooi Deel I t/m VIII correct om de visualisaties te ontgrendelen.</p>
           <div class="chart-wrap"><canvas id="calibration-chart"></canvas></div>
           <div class="chart-wrap"><canvas id="residual-chart"></canvas></div>
           <div class="chart-wrap"><canvas id="predictor-chart"></canvas></div>
@@ -154,4 +177,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>

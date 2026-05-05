@@ -71,6 +71,37 @@ const SCENARIOS = [
 
 const state = { scenario: null, rows: [], truth: null };
 
+function humanizeLabel(label) {
+  if (typeof label !== 'string') return label;
+  return label
+    .replace(/_/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeScenarioLabels() {
+  SCENARIOS.forEach((sc) => {
+    if (sc?.x1?.name) sc.x1.name = humanizeLabel(sc.x1.name);
+    if (sc?.x2?.name) sc.x2.name = humanizeLabel(sc.x2.name);
+    if (sc?.y?.name) sc.y.name = humanizeLabel(sc.y.name);
+    if (sc?.group?.name) sc.group.name = humanizeLabel(sc.group.name);
+  });
+}
+
+normalizeScenarioLabels();
+
+function safeSeed(seedRaw) {
+  const s = Number(seedRaw);
+  if (!Number.isFinite(s) || s <= 0) return null;
+  return Math.floor(Math.abs(s)) % 2147483647;
+}
+
+function nextRandomSeed() {
+  return Math.floor(Math.random() * 1000000000) + 1;
+}
+
 function r4(v) { return Math.round(v * 10000) / 10000; }
 function mean(arr) { return arr.reduce((s, v) => s + v, 0) / arr.length; }
 function sampleVariance(arr) { const m = mean(arr); return arr.reduce((s, v) => s + (v - m) ** 2, 0) / (arr.length - 1); }
@@ -351,12 +382,26 @@ function updateProgress(fm) {
 function generate() {
   const scIdx = parseInt(document.getElementById('scenario').value, 10);
   const n = parseInt(document.getElementById('n-input').value, 10) || 20;
-  const seedRaw = document.getElementById('seed').value;
+  const seedEl = document.getElementById('seed');
+  const enteredSeed = safeSeed(seedEl.value);
+  const manualSeed = seedEl.dataset.seedManual === '1';
+  const forceRandom = seedEl.dataset.nextRandom === '1';
+  let seedStart;
+  if (manualSeed && enteredSeed != null && !forceRandom) {
+    seedStart = enteredSeed;
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '1';
+  } else {
+    seedStart = nextRandomSeed();
+    seedEl.value = String(seedStart);
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '0';
+  }
   const sc = SCENARIOS[scIdx];
   state.scenario = sc;
 
-  let rows, seedUsed = (Number.isFinite(Number(seedRaw)) && Number(seedRaw) > 0)
-    ? Math.floor(Math.abs(Number(seedRaw))) : Math.floor(Math.random() * 100000);
+  let rows;
+  let seedUsed = seedStart;
   for (let i = 0; i < 50; i++) {
     rows = generateData(sc, n, seedUsed);
     if (isGoodDataset(rows)) break;
@@ -566,9 +611,20 @@ function init() {
   document.getElementById('btn-generate').addEventListener('click', generate);
   document.getElementById('btn-random').addEventListener('click', ()=>{
     document.getElementById('scenario').value = Math.floor(Math.random()*SCENARIOS.length);
-    document.getElementById('seed').value = Math.floor(Math.random()*99999)+1;
     generate();
   });
+  const seedEl = document.getElementById('seed');
+  if (seedEl) {
+    const markManual = () => {
+      seedEl.dataset.seedManual = '1';
+      seedEl.dataset.nextRandom = '0';
+    };
+    seedEl.addEventListener('input', markManual);
+    seedEl.addEventListener('change', markManual);
+    seedEl.value = String(nextRandomSeed());
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '0';
+  }
   const sb=document.querySelector('.sidebar'),ov=document.getElementById('sidebar-overlay');
   const bt=document.getElementById('btn-sidebar-toggle'),bc=document.getElementById('btn-sidebar-close');
   const close=()=>{if(sb)sb.classList.remove('open');if(ov)ov.classList.remove('visible');};

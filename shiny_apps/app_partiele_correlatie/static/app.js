@@ -77,6 +77,27 @@ const SCENARIOS = [
   }
 ];
 
+function humanizeLabel(label) {
+  if (typeof label !== 'string') return label;
+  return label
+    .replace(/_/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeScenarioLabels() {
+  SCENARIOS.forEach((sc) => {
+    if (sc?.vars?.x?.name) sc.vars.x.name = humanizeLabel(sc.vars.x.name);
+    if (sc?.vars?.y?.name) sc.vars.y.name = humanizeLabel(sc.vars.y.name);
+    if (sc?.vars?.z?.name) sc.vars.z.name = humanizeLabel(sc.vars.z.name);
+    if (sc?.entity) sc.entity = humanizeLabel(sc.entity);
+  });
+}
+
+normalizeScenarioLabels();
+
 const FIELD_GROUPS = {
   means: [['x_bar', 'Gemiddelde X'], ['y_bar', 'Gemiddelde Y'], ['z_bar', 'Gemiddelde Z']],
   partial: [['partial_num', 'Teller'], ['partial_denom', 'Noemer'], ['r_xy_z', 'r_xy.z']]
@@ -155,6 +176,10 @@ function safeSeed(seedRaw) {
   const s = Number(seedRaw);
   if (!Number.isFinite(s) || s <= 0) return null;
   return Math.floor(Math.abs(s)) % 2147483647;
+}
+
+function nextRandomSeed() {
+  return Math.floor(Math.random() * 1000000000) + 1;
 }
 
 function mulberry32(seed) {
@@ -899,8 +924,22 @@ function generate(random = false) {
   if (random) sc = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
   else sc = SCENARIOS.find(s => s.id === sel.value) || SCENARIOS[0];
   sel.value = sc.id;
+  const enteredSeed = safeSeed(seedEl.value);
+  const manualSeed = seedEl.dataset.seedManual === '1';
+  const forceRandom = seedEl.dataset.nextRandom === '1';
+  let seedToUse;
+  if (manualSeed && enteredSeed != null && !forceRandom) {
+    seedToUse = enteredSeed;
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '1';
+  } else {
+    seedToUse = nextRandomSeed();
+    seedEl.value = String(seedToUse);
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '0';
+  }
 
-  const made = makePartialData(sc, nEl.value, seedEl.value);
+  const made = makePartialData(sc, nEl.value, seedToUse);
   state.scenario = sc;
   state.rows = made.rows;
   state.names = made.names;
@@ -915,9 +954,18 @@ function generate(random = false) {
 }
 
 function bindEvents() {
+  const seedEl = document.getElementById('seed');
   document.getElementById('btn-generate').addEventListener('click', () => generate(false));
   document.getElementById('btn-random').addEventListener('click', () => generate(true));
   document.getElementById('scenario').addEventListener('change', () => generate(false));
+  if (seedEl) {
+    const markManual = () => {
+      seedEl.dataset.seedManual = '1';
+      seedEl.dataset.nextRandom = '0';
+    };
+    seedEl.addEventListener('input', markManual);
+    seedEl.addEventListener('change', markManual);
+  }
 }
 
 function init() {
@@ -926,6 +974,12 @@ function init() {
   setupNav();
   setupSidebarChrome();
   bindEvents();
+  const seedEl = document.getElementById('seed');
+  if (seedEl) {
+    seedEl.value = String(nextRandomSeed());
+    seedEl.dataset.seedManual = '0';
+    seedEl.dataset.nextRandom = '0';
+  }
   generate(false);
 }
 

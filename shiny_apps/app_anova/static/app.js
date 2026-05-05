@@ -106,6 +106,26 @@ const SCENARIOS = [
     }
 ];
 
+function humanizeLabel(label) {
+    if (typeof label !== 'string') return label;
+    return label
+        .replace(/_/g, ' ')
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function normalizeScenarioLabels() {
+    SCENARIOS.forEach((sc) => {
+        if (Array.isArray(sc?.groups)) sc.groups = sc.groups.map((g) => humanizeLabel(g));
+        if (sc?.yName) sc.yName = humanizeLabel(sc.yName);
+        if (sc?.entity) sc.entity = humanizeLabel(sc.entity);
+    });
+}
+
+normalizeScenarioLabels();
+
 // \u2500\u2500\u2500 SEEDED PRNG (Mulberry32) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function mulberry32(seed) {
     return function () {
@@ -144,6 +164,16 @@ const state = {
 
 // Feedback message store (mirrors R app feedback_store)
 const feedbackStore = {};
+
+function safeSeed(seedRaw) {
+    const s = Number(seedRaw);
+    if (!Number.isFinite(s) || s <= 0) return null;
+    return Math.floor(Math.abs(s)) % 2147483647;
+}
+
+function nextRandomSeed() {
+    return Math.floor(Math.random() * 1000000000) + 1;
+}
 
 // \u2500\u2500\u2500 DEBOUNCE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function debounce(fn, ms) {
@@ -1141,8 +1171,21 @@ function doGenerate() {
     const maxN = Math.floor(50 / sc.groups.length);
     n = Math.min(n, maxN);
 
-    let seed = parseInt(document.getElementById('inp-seed').value, 10);
-    if (isNaN(seed) || seed < 1) seed = 42;
+    const seedEl = document.getElementById('inp-seed');
+    const enteredSeed = safeSeed(seedEl.value);
+    const manualSeed = seedEl.dataset.seedManual === '1';
+    const forceRandom = seedEl.dataset.nextRandom === '1';
+    let seed;
+    if (manualSeed && enteredSeed != null && !forceRandom) {
+        seed = enteredSeed;
+        seedEl.dataset.seedManual = '0';
+        seedEl.dataset.nextRandom = '1';
+    } else {
+        seed = nextRandomSeed();
+        seedEl.value = String(seed);
+        seedEl.dataset.seedManual = '0';
+        seedEl.dataset.nextRandom = '0';
+    }
 
     state.scenario = sc;
     state.data = generateData(sc, n, seed);
@@ -1299,9 +1342,17 @@ function attachGlobalListeners() {
         const sel = document.getElementById('sel-scenario');
         const idx = Math.floor(Math.random() * SCENARIOS.length);
         sel.value = SCENARIOS[idx].id;
-        document.getElementById('inp-seed').value = Math.floor(Math.random() * 9000) + 1000;
         doGenerate();
     });
+    const seedEl = document.getElementById('inp-seed');
+    if (seedEl) {
+        const markManual = () => {
+            seedEl.dataset.seedManual = '1';
+            seedEl.dataset.nextRandom = '0';
+        };
+        seedEl.addEventListener('input', markManual);
+        seedEl.addEventListener('change', markManual);
+    }
     // Sidebar mobile toggle
     const sidebarEl = document.querySelector('.sidebar');
     const overlayEl = document.getElementById('sidebar-overlay');
@@ -1349,6 +1400,12 @@ function init() {
     populateScenarioDropdown();
     setupNav();
     attachGlobalListeners();
+    const seedEl = document.getElementById('inp-seed');
+    if (seedEl) {
+        seedEl.value = String(nextRandomSeed());
+        seedEl.dataset.seedManual = '0';
+        seedEl.dataset.nextRandom = '0';
+    }
     doGenerate();
 }
 
