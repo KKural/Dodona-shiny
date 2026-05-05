@@ -218,6 +218,26 @@ const PATH_SCENARIOS = [
       m2: 'Zelfregulatie',
       y: 'Regelnaleving'
     }
+  },
+  {
+    title: 'Empathie en moreel oordeel',
+    nodes: {
+      xa: 'Empathische perspectiefneming',
+      xb: 'Empathische bezorgdheid',
+      m1: 'Morele intuïties',
+      m2: 'Geanticipeerde schuld',
+      y: 'Moreel oordeel'
+    }
+  },
+  {
+    title: 'Re-integratie na detentie',
+    nodes: {
+      xa: 'Begeleidingskwaliteit',
+      xb: 'Sociale steun',
+      m1: 'Legitieme kansen',
+      m2: 'Zelfcontrole',
+      y: 'Regelnaleving na vrijlating'
+    }
   }
 ];
 
@@ -262,6 +282,14 @@ const state = {
   firstCorrectAttempt: {},
   lastAttemptSignature: {}
 };
+
+const OPEN_SCORE_ITEMS = 19;
+const EXPECTED_MCQ_ITEMS = 21;
+
+function getScoreTotal() {
+  const mcqTotal = (state.datasetMcqs.length || 0) + (state.generalMcqs.length || 0);
+  return OPEN_SCORE_ITEMS + (mcqTotal || EXPECTED_MCQ_ITEMS);
+}
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function round(v, digits) { const f = 10 ** digits; return Math.round(v * f) / f; }
@@ -620,7 +648,7 @@ function renderPathModel(pathModel) {
   setText('pm-d', `d=${fmt2(coeffs.d)}`);
   setText('pm-e', `e=${fmt2(coeffs.e)}`);
   setText('pm-f', `f=${fmt2(coeffs.f)}`);
-  setText('pm-r2', `R²=${fmt2(r2y)}`);
+  setText('pm-r2', `R²=${Math.round(r2y * 100)}%`);
 
   // Figuur-only format (zoals in het echte examen): geen aparte padmodeltabel renderen.
 }
@@ -720,8 +748,10 @@ function buildDatasetMcqs(sc, stats, pathModel, rng) {
   );
 
   // ── Q9: Path model TWO WRONG statements (multi-select) ───────────────────
+  const pmR2Pct = Math.round(pm.r2y * 100);
+  const pmUnexplainedPct = Math.round(pm.unexplained * 100);
   const q9FalseA = `Het padmodel maakt geen onderscheid tussen manifeste en latente variabelen; alle variabelen zijn latent.`;
-  const q9FalseB = `${fmt2(pm.r2y * 100)}% van de variatie in '${pmNodes.y}' wordt verklaard door factoren buiten het padmodel, zoals meetfouten en niet-gemeten variabelen.`;
+  const q9FalseB = `${pmR2Pct}% van de variatie in '${pmNodes.y}' wordt verklaard door factoren buiten het padmodel, zoals meetfouten en niet-gemeten variabelen.`;
   const q9TrueC = `De directe coëfficiënt van '${pmNodes.m2}' op '${pmNodes.y}' bedraagt ${fmt2(pm.coeffs.f)}.`;
   const q9TrueD = `Het totale effect van '${pmNodes.xa}' op '${pmNodes.y}' bedraagt afgerond ${fmt2(pmEffects.xaTotal)}.`;
   const q9TrueE = `'${pmNodes.m1}' fungeert als mediator: het verklaart gedeeltelijk het effect van '${pmNodes.xa}' op '${pmNodes.y}'.`;
@@ -732,12 +762,76 @@ function buildDatasetMcqs(sc, stats, pathModel, rng) {
     [0, 1],
     [
       `Correct dat dit FOUT is: padmodellen gebruiken MANIFESTE (rechtstreeks gemeten) variabelen. Latente variabelen zijn het domein van SEM/factoranalyse.`,
-      `Correct dat dit FOUT is: R²=${fmt2(pm.r2y * 100)}% is de VERKLAARDE proportie. De ONverklaarde (${fmt2(pm.unexplained * 100)}%) verwijst naar factoren buiten het model.`,
+      `Correct dat dit FOUT is: R²=${pmR2Pct}% is de VERKLAARDE proportie. De ONverklaarde (${pmUnexplainedPct}%) verwijst naar factoren buiten het model.`,
       `Dit is JUIST: de pijlcoëfficiënt f=${fmt2(pm.coeffs.f)}.`,
       `Dit is JUIST: totaal effect = a·e + a·d·f + b·c·f = ${pmEffects.xaTotal.toFixed(4)}.`,
       `Dit is JUIST: '${pmNodes.m1}' ontvangt een pijl van '${pmNodes.xa}' en stuurt er naar '${pmNodes.y}'.`
     ],
     'Selecteer de 2 FOUTE uitspraken.'
+  );
+
+  const q18 = createPoolMcq(
+    'q18',
+    `Gebruik Figuur 1. Welke variabele is exogeen in dit padmodel?`,
+    pmNodes.xa,
+    [
+      { option: pmNodes.xb, feedback: `${pmNodes.xb} krijgt een inkomende pijl van ${pmNodes.xa}; daardoor is deze variabele endogeen.` },
+      { option: pmNodes.m1, feedback: `${pmNodes.m1} krijgt een inkomende pijl en is dus geen exogene variabele.` },
+      { option: pmNodes.m2, feedback: `${pmNodes.m2} wordt verklaard door andere variabelen in het model.` },
+      { option: pmNodes.y, feedback: `${pmNodes.y} is de uitkomstvariabele en krijgt inkomende pijlen.` }
+    ],
+    `Correct: ${pmNodes.xa} heeft geen inkomende pijlen; er vertrekken alleen effecten vanuit deze variabele.`,
+    rng
+  );
+
+  const q19 = createMultiMcq(
+    'q19',
+    `Gebruik Figuur 1. Welke TWEE uitspraken over endogene en intermediaire variabelen zijn JUIST? Maak TWEE keuzes.`,
+    [
+      `'${pmNodes.y}' is endogeen omdat er pijlen naar deze variabele toekomen.`,
+      `'${pmNodes.m2}' is intermediair omdat deze variabele wordt verklaard door andere variabelen en zelf '${pmNodes.y}' verklaart.`,
+      `'${pmNodes.xa}' is endogeen omdat er pijlen vanuit deze variabele vertrekken.`,
+      `'${pmNodes.xb}' is exogeen omdat deze variabele links in de figuur staat.`,
+      `'${pmNodes.m1}' is de finale uitkomstvariabele van het model.`
+    ],
+    [0, 1],
+    [
+      `Correct: endogene variabelen hebben minstens één inkomende pijl.`,
+      `Correct: ${pmNodes.m2} ligt tussen verklarende variabelen en de uitkomstvariabele.`,
+      `Fout: uitgaande pijlen maken een variabele niet endogeen; daarvoor kijk je naar inkomende pijlen.`,
+      `Fout: positie links is niet genoeg. ${pmNodes.xb} krijgt een pijl van ${pmNodes.xa}.`,
+      `Fout: de finale uitkomstvariabele is ${pmNodes.y}.`
+    ],
+    'Selecteer de 2 JUISTE uitspraken.'
+  );
+
+  const q20 = createPoolMcq(
+    'q20',
+    `Gebruik Figuur 1. Hoeveel indirecte effecten van '${pmNodes.xa}' op '${pmNodes.y}' worden in het model weergegeven?`,
+    '3 indirecte effecten',
+    [
+      { option: '1 indirect effect', feedback: `Er zijn meer routes dan alleen ${pmNodes.xa} → ${pmNodes.m1} → ${pmNodes.y}.` },
+      { option: '2 indirecte effecten', feedback: `Je mist één route: via ${pmNodes.xb} en ${pmNodes.m2}.` },
+      { option: '4 indirecte effecten', feedback: `Er is geen extra route rechtstreeks via ${pmNodes.xb} naar ${pmNodes.y}; die loopt eerst via ${pmNodes.m2}.` },
+      { option: 'Geen indirect effect', feedback: `Er zijn meerdere routes van ${pmNodes.xa} naar ${pmNodes.y} via tussenliggende variabelen.` }
+    ],
+    `Correct: de routes zijn via ${pmNodes.m1}; via ${pmNodes.m1} en ${pmNodes.m2}; en via ${pmNodes.xb} en ${pmNodes.m2}.`,
+    rng
+  );
+
+  const m1Total = pmEffects.m1TotalOnY;
+  const q21 = createPoolMcq(
+    'q21',
+    `Gebruik Figuur 1. Hoeveel bedraagt het totale effect van '${pmNodes.m1}' op '${pmNodes.y}'?`,
+    `${fmt4(m1Total)}`,
+    [
+      { option: `${fmt4(pm.coeffs.e)}`, feedback: `Dit is alleen het directe effect van ${pmNodes.m1} op ${pmNodes.y}.` },
+      { option: `${fmt4(pm.coeffs.d * pm.coeffs.f)}`, feedback: `Dit is alleen het indirecte effect via ${pmNodes.m2}.` },
+      { option: `${fmt4(pm.coeffs.e + pm.coeffs.d + pm.coeffs.f)}`, feedback: `Bij een indirect pad vermenigvuldig je padcoëfficiënten; je telt d en f niet los op.` },
+      { option: `${fmt4(pmEffects.xaTotal)}`, feedback: `Dit is het totale effect van ${pmNodes.xa} op ${pmNodes.y}, niet van ${pmNodes.m1}.` }
+    ],
+    `Correct: totaal effect = direct effect e + indirect effect d×f = ${fmt2(pm.coeffs.e)} + ${fmt2(pm.coeffs.d)}×${fmt2(pm.coeffs.f)} = ${fmt4(m1Total)}.`,
+    rng
   );
 
   // ── Q10: Bivariate regression from Tabel 2 (TWO correct of 5) ────────────
@@ -809,7 +903,7 @@ function buildDatasetMcqs(sc, stats, pathModel, rng) {
     ]
   );
 
-  return [q1, q6, q9, q10, q11, q12];
+  return [q1, q6, q9, q18, q19, q20, q21, q10, q11, q12];
 }
 
 function buildGeneralMcqs(rng) {
@@ -1301,7 +1395,7 @@ function getOpenAnswerSignature(id) {
 function renderFinalScore() {
   const panel = document.getElementById('final-score-panel');
   if (!panel) return;
-  const total = 36;
+  const total = getScoreTotal();
   const scored = Object.values(state.firstAttempt).filter((v) => v === 'ok').length;
   const attempted = Object.keys(state.firstAttempt).length;
   const firstCorrect = Object.values(state.firstCorrectAttempt);
@@ -1714,6 +1808,7 @@ function printQuestionPaper() {
   const dsRows = Array.from(document.querySelectorAll('#dataset-body tr')).map((tr) => tr.outerHTML).join('');
   const pathFigureSvg = document.querySelector('#deel-path svg')?.outerHTML || '';
   const pathTitle = state.pathModel?.scenario?.title || 'Padmodel';
+  const mcqCount = document.querySelectorAll('.mcq-item').length || EXPECTED_MCQ_ITEMS;
   const mcqRows = Array.from(document.querySelectorAll('.mcq-item')).map((item, i) => {
     const q = item.querySelector('.mcq-title')?.textContent || '';
     const opts = Array.from(item.querySelectorAll('.mcq-option span')).map((s) => `<li>${s.innerHTML}</li>`).join('');
@@ -1934,7 +2029,7 @@ function printQuestionPaper() {
     <div class="print-path">${pathFigureSvg}</div>
   </div>
 
-  <h2 class="break-before">Meerkeuzevragen (17 vragen)</h2>
+  <h2 class="break-before">Meerkeuzevragen (${mcqCount} vragen)</h2>
   <p style="font-size:10pt;margin:0 0 10pt"><em>Omcirkel telkens het gevraagde aantal antwoorden (1 of 2) per vraag.</em></p>
   ${mcqPrint}
 

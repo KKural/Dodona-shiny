@@ -521,6 +521,56 @@ body {
     margin-bottom: 6px;
 }
 
+/* ── PATH MODEL ── */
+.model-box {
+    width: 100%;
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 0;
+}
+
+.model-box svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.node {
+    fill: #1e40af;
+    rx: 8px;
+}
+
+.node-y {
+    fill: #164e63;
+}
+
+.node-main {
+    fill: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.node-sub {
+    fill: #bfdbfe;
+    font-size: 12px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.edge {
+    stroke: #64748b;
+    stroke-width: 2;
+    fill: none;
+}
+
+.edge-label {
+    fill: #1e293b;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
 /* ── MOBILE ── */
 @media (max-width: 700px) {
     .sidebar {

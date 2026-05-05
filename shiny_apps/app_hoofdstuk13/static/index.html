@@ -2,501 +2,535 @@
 <html lang="nl">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hoofdstuk 13 Synthesis Oefeningen</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 13 Synthesis Oefeningen</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <h1>Hoofdstuk 13 Synthesis Oefeningen</h1>
-      <p class="muted">Statische examenoefening met automatische feedback.</p>
+    <div class="layout">
+        <aside class="sidebar">
+            <h1>Hoofdstuk 13 Synthesis Oefeningen</h1>
+            <p class="muted">Statische examenoefening met automatische feedback.</p>
 
-      <div class="panel">
-        <h2>Dataset genereren</h2>
-        <label for="scenario">Scenario</label>
-        <select id="scenario"></select>
+            <div class="panel">
+                <h2>Dataset genereren</h2>
+                <label for="scenario">Scenario</label>
+                <select id="scenario"></select>
 
-        <label for="n-input">Aantal respondenten (vast)</label>
-        <input id="n-input" type="number" value="10" readonly />
+                <label for="n-input">Aantal respondenten (vast)</label>
+                <input id="n-input" type="number" value="10" readonly />
 
-        <label for="seed">Datasetcode (seed, optioneel)</label>
-        <input id="seed" type="number" min="1" placeholder="bijv. 2026" />
+                <label for="seed">Datasetcode (seed, optioneel)</label>
+                <input id="seed" type="number" min="1" placeholder="bijv. 2026" />
 
-        <div class="btn-row">
-          <button id="btn-generate" class="btn btn-primary">Genereer dataset</button>
-          <button id="btn-random" class="btn btn-secondary">Willekeurig scenario</button>
-        </div>
-      </div>
+                <div class="btn-row">
+                    <button id="btn-generate" class="btn btn-primary">Genereer dataset</button>
+                    <button id="btn-random" class="btn btn-secondary">Willekeurig scenario</button>
+                </div>
+            </div>
 
-      <div class="panel">
-        <h2>Instructies</h2>
-        <ul>
-          <li>Rond tussenstappen af op 4 decimalen.</li>
-          <li>Rond einduitkomsten af op 2 decimalen.</li>
-          <li>MCQ + open antwoorden worden enkel opgeslagen op dit toestel (geen backend).</li>
-        </ul>
-        <button id="btn-reset-answers" class="btn btn-secondary">Reset antwoorden</button>
-        <button id="btn-print" class="btn btn-outline">Vragenblad printen</button>
-      </div>
+            <div class="panel">
+                <h2>Instructies</h2>
+                <ul>
+                    <li>Rond tussenstappen af op 4 decimalen.</li>
+                    <li>Rond einduitkomsten af op 2 decimalen.</li>
+                    <li>MCQ + open antwoorden worden enkel opgeslagen op dit toestel (geen backend).</li>
+                </ul>
+                <button id="btn-reset-answers" class="btn btn-secondary">Reset antwoorden</button>
+                <button id="btn-print" class="btn btn-outline">Vragenblad printen</button>
+            </div>
 
-      <div class="panel">
-        <h2>Navigatie</h2>
-        <nav>
-          <ul class="nav-list">
-            <li><a href="#deel-scenario">Scenario</a></li>
-            <li><a href="#deel-tabel1">Tabel 1 - Kruistabel</a></li>
-            <li><a href="#deel-a">Tabel 2 - Dataset</a></li>
-            <li><a href="#deel-path">Figuur 1 - Padmodel</a></li>
-          </ul>
+            <div class="panel">
+                <h2>Navigatie</h2>
+                <nav>
+                    <ul class="nav-list">
+                        <li><a href="#deel-scenario">Scenario</a></li>
+                        <li><a href="#deel-tabel1">Tabel 1 - Kruistabel</a></li>
+                        <li><a href="#deel-a">Tabel 2 - Dataset</a></li>
+                        <li><a href="#deel-path">Figuur 1 - Padmodel</a></li>
+                    </ul>
 
-          <details class="nav-group">
-            <summary>MCQ datasetgebonden (1-6)</summary>
-            <ul class="nav-list">
-              <li><a href="#mcq-item-dataset-q1">Vraag 1</a></li>
-              <li><a href="#mcq-item-dataset-q6">Vraag 2</a></li>
-              <li><a href="#mcq-item-dataset-q9">Vraag 3</a></li>
-              <li><a href="#mcq-item-dataset-q10">Vraag 4</a></li>
-              <li><a href="#mcq-item-dataset-q11">Vraag 5</a></li>
-              <li><a href="#mcq-item-dataset-q12">Vraag 6</a></li>
-            </ul>
-          </details>
+                    <details class="nav-group">
+                        <summary>MCQ datasetgebonden (1-10)</summary>
+                        <ul class="nav-list">
+                            <li><a href="#mcq-item-dataset-q1">Vraag 1</a></li>
+                            <li><a href="#mcq-item-dataset-q6">Vraag 2</a></li>
+                            <li><a href="#mcq-item-dataset-q9">Vraag 3</a></li>
+                            <li><a href="#mcq-item-dataset-q18">Vraag 4</a></li>
+                            <li><a href="#mcq-item-dataset-q19">Vraag 5</a></li>
+                            <li><a href="#mcq-item-dataset-q20">Vraag 6</a></li>
+                            <li><a href="#mcq-item-dataset-q21">Vraag 7</a></li>
+                            <li><a href="#mcq-item-dataset-q10">Vraag 8</a></li>
+                            <li><a href="#mcq-item-dataset-q11">Vraag 9</a></li>
+                            <li><a href="#mcq-item-dataset-q12">Vraag 10</a></li>
+                        </ul>
+                    </details>
 
-          <details class="nav-group">
-            <summary>MCQ algemeen (7-17)</summary>
-            <ul class="nav-list">
-              <li><a href="#mcq-item-general-q2">Vraag 7</a></li>
-              <li><a href="#mcq-item-general-q3">Vraag 8</a></li>
-              <li><a href="#mcq-item-general-q4">Vraag 9</a></li>
-              <li><a href="#mcq-item-general-q5">Vraag 10</a></li>
-              <li><a href="#mcq-item-general-q7">Vraag 11</a></li>
-              <li><a href="#mcq-item-general-q8">Vraag 12</a></li>
-              <li><a href="#mcq-item-general-q13">Vraag 13</a></li>
-              <li><a href="#mcq-item-general-q14">Vraag 14</a></li>
-              <li><a href="#mcq-item-general-q15">Vraag 15</a></li>
-              <li><a href="#mcq-item-general-q16">Vraag 16</a></li>
-              <li><a href="#mcq-item-general-q17">Vraag 17</a></li>
-            </ul>
-          </details>
+                    <details class="nav-group">
+                        <summary>MCQ algemeen (11-21)</summary>
+                        <ul class="nav-list">
+                            <li><a href="#mcq-item-general-q2">Vraag 11</a></li>
+                            <li><a href="#mcq-item-general-q3">Vraag 12</a></li>
+                            <li><a href="#mcq-item-general-q4">Vraag 13</a></li>
+                            <li><a href="#mcq-item-general-q5">Vraag 14</a></li>
+                            <li><a href="#mcq-item-general-q7">Vraag 15</a></li>
+                            <li><a href="#mcq-item-general-q8">Vraag 16</a></li>
+                            <li><a href="#mcq-item-general-q13">Vraag 17</a></li>
+                            <li><a href="#mcq-item-general-q14">Vraag 18</a></li>
+                            <li><a href="#mcq-item-general-q15">Vraag 19</a></li>
+                            <li><a href="#mcq-item-general-q16">Vraag 20</a></li>
+                            <li><a href="#mcq-item-general-q17">Vraag 21</a></li>
+                        </ul>
+                    </details>
 
-          <details class="nav-group">
-            <summary>Open vragen (directe velden)</summary>
-            <ul class="nav-list">
-              <li><a href="#ans-bivar-r">Bivariate r</a></li>
-              <li><a href="#ans-bivar-r2">Bivariate R²</a></li>
-              <li><a href="#ans-bivar-b">Bivariate b</a></li>
-              <li><a href="#ans-multi-b1">Meervoudige b1</a></li>
-              <li><a href="#ans-multi-b2">Meervoudige b2</a></li>
-              <li><a href="#ans-multi-r2">Meervoudige R²</a></li>
-              <li><a href="#ans-rx1x2">Correlatie X1-X2</a></li>
-              <li><a href="#ans-partial-1">Partiele r(X1,Y|X2)</a></li>
-              <li><a href="#ans-partial-2">Partiele r(X2,Y|X1)</a></li>
-              <li><a href="#ans-pred">Verwachte waarde</a></li>
-              <li><a href="#ans-assumption">Assumptie</a></li>
-            </ul>
-          </details>
+                    <details class="nav-group">
+                        <summary>Open vragen (directe velden)</summary>
+                        <ul class="nav-list">
+                            <li><a href="#ans-bivar-r">Bivariate r</a></li>
+                            <li><a href="#ans-bivar-r2">Bivariate R²</a></li>
+                            <li><a href="#ans-bivar-b">Bivariate b</a></li>
+                            <li><a href="#ans-multi-b1">Meervoudige b1</a></li>
+                            <li><a href="#ans-multi-b2">Meervoudige b2</a></li>
+                            <li><a href="#ans-multi-r2">Meervoudige R²</a></li>
+                            <li><a href="#ans-rx1x2">Correlatie X1-X2</a></li>
+                            <li><a href="#ans-partial-1">Partiele r(X1,Y|X2)</a></li>
+                            <li><a href="#ans-partial-2">Partiele r(X2,Y|X1)</a></li>
+                            <li><a href="#ans-pred">Verwachte waarde</a></li>
+                            <li><a href="#ans-assumption">Assumptie</a></li>
+                        </ul>
+                    </details>
 
-          <ul class="nav-list">
-            <li><a href="#final-score-section">Eindscore</a></li>
-          </ul>
-        </nav>
-      </div>
+                    <ul class="nav-list">
+                        <li><a href="#final-score-section">Eindscore</a></li>
+                    </ul>
+                </nav>
+            </div>
 
-      <div class="panel" id="sidebar-score-panel">
-        <h2>Score <span id="sidebar-score-display" class="sidebar-score-inline">0 / 35</span></h2>
-        <p class="score-note" style="margin:0 0 4px;font-size:0.82rem;">Eerste poging telt. <a
-            href="#final-score-section" class="sidebar-score-link">Details ↓</a></p>
-      </div>
+            <div class="panel" id="sidebar-score-panel">
+                <h2>Score <span id="sidebar-score-display" class="sidebar-score-inline">0 / 40</span></h2>
+                <p class="score-note" style="margin:0 0 4px;font-size:0.82rem;">Eerste poging telt. <a
+                        href="#final-score-section" class="sidebar-score-link">Details ↓</a></p>
+            </div>
 
-      <div class="panel">
-        <h2>Formule-overzicht</h2>
-        <ul class="formula-list">
-          <li><strong>r</strong> = cov(X,Y) / (SD(X) · SD(Y))</li>
-          <li><strong>Bivariate b</strong> = cov(X,Y) / var(X)</li>
-          <li><strong>Bivariate a</strong> = Ȳ - b·X̄</li>
-          <li><strong>Ŷ bivariate</strong> = a + bX</li>
-          <li><strong>Ŷ meervoudig</strong> = a + b₁X₁ + b₂X₂</li>
-          <li><strong>a meervoudig</strong> = Ȳ - b₁·X̄₁ - b₂·X̄₂</li>
-          <li><strong>R²</strong> = 1 - SSE/SST</li>
-          <li><strong>Partiele r</strong><br />r₁₂.₃ = (r₁₂ - r₁₃·r₂₃) / √((1-r₁₃²)(1-r₂₃²))</li>
-          <li><strong>Gestand. beta</strong><br />β₁ = b₁ · SD(X₁) / SD(Y)</li>
-        </ul>
-      </div>
-    </aside>
+            <div class="panel">
+                <h2>Formule-overzicht</h2>
+                <ul class="formula-list">
+                    <li><strong>r</strong> = cov(X,Y) / (SD(X) · SD(Y))</li>
+                    <li><strong>Bivariate b</strong> = cov(X,Y) / var(X)</li>
+                    <li><strong>Bivariate a</strong> = Ȳ - b·X̄</li>
+                    <li><strong>Ŷ bivariate</strong> = a + bX</li>
+                    <li><strong>Ŷ meervoudig</strong> = a + b₁X₁ + b₂X₂</li>
+                    <li><strong>a meervoudig</strong> = Ȳ - b₁·X̄₁ - b₂·X̄₂</li>
+                    <li><strong>R²</strong> = 1 - SSE/SST</li>
+                    <li><strong>Pad totaal effect</strong><br />direct effect + som van alle indirecte paden</li>
+                    <li><strong>Partiele r</strong><br />r₁₂.₃ = (r₁₂ - r₁₃·r₂₃) / √((1-r₁₃²)(1-r₂₃²))</li>
+                    <li><strong>Gestand. beta</strong><br />β₁ = b₁ · SD(X₁) / SD(Y)</li>
+                </ul>
+            </div>
+        </aside>
 
-    <div id="resize-handle" class="resize-handle" title="Sleep om de breedte aan te passen"></div>
+        <div id="resize-handle" class="resize-handle" title="Sleep om de breedte aan te passen"></div>
 
-    <main class="main">
-      <section class="card hero">
-        <p class="hero-hint">Selecteer een scenario in de zijbalk en klik <strong>Genereer dataset</strong> om te
-          starten. Jouw voortgang wordt automatisch nagekeken.</p>
-      </section>
+        <main class="main">
+            <section class="card hero">
+                <p class="hero-hint">Selecteer een scenario in de zijbalk en klik <strong>Genereer dataset</strong> om
+                    te
+                    starten. Jouw voortgang wordt automatisch nagekeken.</p>
+            </section>
 
-      <section class="card" id="deel-scenario">
-        <h3>Scenario</h3>
-        <p id="scenario-text" class="context-text">Genereer een dataset om te starten.</p>
-        <ul>
-          <li><strong id="opgave-x1-name">X1</strong> (verklarende variabele)</li>
-          <li><strong id="opgave-x2-name">X2</strong> (verklarende variabele)</li>
-          <li><strong id="opgave-y-name">Y</strong> (afhankelijke variabele)</li>
-        </ul>
-        <p class="context-text">
-          In <strong>Tabel 2</strong> vind je de gegevens voor regressie/correlatie.
-          Gebruik daarnaast <strong>Figuur 1</strong> (padmodel) voor de pathmodel-vragen.
-        </p>
-        <p class="dataset-meta"><strong>Datasetcode:</strong> <span id="seed-used">-</span></p>
-      </section>
+            <section class="card" id="deel-scenario">
+                <h3>Scenario</h3>
+                <p id="scenario-text" class="context-text">Genereer een dataset om te starten.</p>
+                <ul>
+                    <li><strong id="opgave-x1-name">X1</strong> (verklarende variabele)</li>
+                    <li><strong id="opgave-x2-name">X2</strong> (verklarende variabele)</li>
+                    <li><strong id="opgave-y-name">Y</strong> (afhankelijke variabele)</li>
+                </ul>
+                <p class="context-text">
+                    In <strong>Tabel 2</strong> vind je de gegevens voor regressie/correlatie.
+                    Gebruik daarnaast <strong>Figuur 1</strong> (padmodel) voor de pathmodel-vragen.
+                </p>
+                <p class="dataset-meta"><strong>Datasetcode:</strong> <span id="seed-used">-</span></p>
+            </section>
 
-      <section class="card" id="deel-tabel1">
-        <h3>Tabel 1 — Kruistabel</h3>
-        <p class="context-text" id="ct-context">Genereer een dataset om de kruistabel te laden.</p>
-        <div class="table-wrap">
-          <table id="crosstab-table">
-            <thead>
-              <tr>
-                <th id="ct-rowlabel" rowspan="2">GROEP</th>
-                <th id="ct-collabel" colspan="2">KOLOM VARIABELE?</th>
-              </tr>
-              <tr>
-                <th id="ct-col-no">Nee</th>
-                <th id="ct-col-yes">Ja</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td id="ct-row1-label">–</td>
-                <td id="ct-r1-no">–</td>
-                <td id="ct-r1-yes">–</td>
-              </tr>
-              <tr>
-                <td id="ct-row2-label">–</td>
-                <td id="ct-r2-no">–</td>
-                <td id="ct-r2-yes">–</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+            <section class="card" id="deel-tabel1">
+                <h3>Tabel 1 — Kruistabel</h3>
+                <p class="context-text" id="ct-context">Genereer een dataset om de kruistabel te laden.</p>
+                <div class="table-wrap">
+                    <table id="crosstab-table">
+                        <thead>
+                            <tr>
+                                <th id="ct-rowlabel" rowspan="2">GROEP</th>
+                                <th id="ct-collabel" colspan="2">KOLOM VARIABELE?</th>
+                            </tr>
+                            <tr>
+                                <th id="ct-col-no">Nee</th>
+                                <th id="ct-col-yes">Ja</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="ct-row1-label">–</td>
+                                <td id="ct-r1-no">–</td>
+                                <td id="ct-r1-yes">–</td>
+                            </tr>
+                            <tr>
+                                <td id="ct-row2-label">–</td>
+                                <td id="ct-r2-no">–</td>
+                                <td id="ct-r2-yes">–</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-      <section class="card" id="deel-a">
-        <h3>Tabel 2 — Dataset voor regressie en correlatie</h3>
-        <button id="btn-open-dataset-window" class="btn btn-outline move-to-section-head">Open bijlage (Tabel 1, Tabel 2
-          &amp; Figuur 1) in nieuw venster</button>
-        <p class="context-text muted"><strong>Opmerking:</strong> de kolom <em>Groep</em> toont een binaire variabele en
-          wordt gebruikt in MCQ-vragen over ANOVA (groepsverschillen).</p>
-        <div class="table-wrap">
-          <table id="dataset-table">
-            <thead>
-              <tr>
-                <th>Respondent</th>
-                <th id="th-x1">X1</th>
-                <th id="th-x2">X2</th>
-                <th id="th-y">Y</th>
-                <th id="th-bin">Groep</th>
-              </tr>
-            </thead>
-            <tbody id="dataset-body"></tbody>
-          </table>
-        </div>
-      </section>
+            <section class="card" id="deel-a">
+                <h3>Tabel 2 — Dataset voor regressie en correlatie</h3>
+                <button id="btn-open-dataset-window" class="btn btn-outline move-to-section-head">Open bijlage (Tabel 1,
+                    Tabel 2
+                    &amp; Figuur 1) in nieuw venster</button>
+                <p class="context-text muted"><strong>Opmerking:</strong> de kolom <em>Groep</em> toont een binaire
+                    variabele en
+                    wordt gebruikt in MCQ-vragen over ANOVA (groepsverschillen).</p>
+                <div class="table-wrap">
+                    <table id="dataset-table">
+                        <thead>
+                            <tr>
+                                <th>Respondent</th>
+                                <th id="th-x1">X1</th>
+                                <th id="th-x2">X2</th>
+                                <th id="th-y">Y</th>
+                                <th id="th-bin">Groep</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataset-body"></tbody>
+                    </table>
+                </div>
+            </section>
 
-      <section class="card" id="deel-path">
-        <h3>Figuur 1 — Padmodel</h3>
-        <p class="context-text" id="path-scenario-text">
-          Gebruik Figuur 1 voor padmodelvragen (rechtstreekse, onrechtstreekse en totale effecten).
-        </p>
-        <div class="model-box" style="margin-top:10px">
-          <svg viewBox="0 0 900 310" role="img" aria-label="Padmodel">
-            <defs>
-              <marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-                <polygon points="0,0 10,4 0,8"></polygon>
-              </marker>
-            </defs>
+            <section class="card" id="deel-path">
+                <h3>Figuur 1 — Padmodel</h3>
+                <p class="context-text" id="path-scenario-text">
+                    Gebruik Figuur 1 voor padmodelvragen (rechtstreekse, onrechtstreekse en totale effecten).
+                </p>
+                <div class="model-box" style="margin-top:10px">
+                    <svg viewBox="0 0 900 310" role="img" aria-label="Padmodel">
+                        <defs>
+                            <marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                                <polygon points="0,0 10,4 0,8" fill="#64748b"></polygon>
+                            </marker>
+                        </defs>
 
-            <rect x="40" y="40" width="220" height="80" class="node"></rect>
-            <text x="150" y="72" text-anchor="middle" class="node-main" id="pm-node-xa-1">Hechting</text>
-            <text x="150" y="95" text-anchor="middle" class="node-sub" id="pm-node-xa-2">ouders-kind</text>
+                        <rect x="40" y="40" width="220" height="80" rx="8" class="node"></rect>
+                        <text x="150" y="72" text-anchor="middle" class="node-main" id="pm-node-xa-1">Hechting</text>
+                        <text x="150" y="95" text-anchor="middle" class="node-sub" id="pm-node-xa-2">ouders-kind</text>
 
-            <rect x="40" y="190" width="220" height="80" class="node"></rect>
-            <text x="150" y="222" text-anchor="middle" class="node-main" id="pm-node-xb-1">Sociale controle</text>
-            <text x="150" y="245" text-anchor="middle" class="node-sub" id="pm-node-xb-2">door ouders</text>
+                        <rect x="40" y="190" width="220" height="80" rx="8" class="node"></rect>
+                        <text x="150" y="222" text-anchor="middle" class="node-main" id="pm-node-xb-1">Sociale
+                            controle</text>
+                        <text x="150" y="245" text-anchor="middle" class="node-sub" id="pm-node-xb-2">door ouders</text>
 
-            <rect x="370" y="40" width="220" height="80" class="node"></rect>
-            <text x="480" y="72" text-anchor="middle" class="node-main" id="pm-node-m1-1">Conventionele</text>
-            <text x="480" y="95" text-anchor="middle" class="node-sub" id="pm-node-m1-2">morele normen</text>
+                        <rect x="370" y="40" width="220" height="80" rx="8" class="node"></rect>
+                        <text x="480" y="72" text-anchor="middle" class="node-main"
+                            id="pm-node-m1-1">Conventionele</text>
+                        <text x="480" y="95" text-anchor="middle" class="node-sub" id="pm-node-m1-2">morele
+                            normen</text>
 
-            <rect x="370" y="190" width="220" height="80" class="node"></rect>
-            <text x="480" y="232" text-anchor="middle" class="node-main" id="pm-node-m2-1">Zelfcontrole</text>
-            <text x="480" y="252" text-anchor="middle" class="node-sub" id="pm-node-m2-2"></text>
+                        <rect x="370" y="190" width="220" height="80" rx="8" class="node"></rect>
+                        <text x="480" y="232" text-anchor="middle" class="node-main"
+                            id="pm-node-m2-1">Zelfcontrole</text>
+                        <text x="480" y="252" text-anchor="middle" class="node-sub" id="pm-node-m2-2"></text>
 
-            <rect x="700" y="115" width="180" height="90" class="node node-y"></rect>
-            <text x="790" y="150" text-anchor="middle" class="node-main" id="pm-node-y-1">Altruisme</text>
-            <text x="790" y="172" text-anchor="middle" class="node-sub" id="pm-node-y-2"></text>
+                        <rect x="700" y="115" width="180" height="90" rx="8" class="node node-y"></rect>
+                        <text x="790" y="150" text-anchor="middle" class="node-main" id="pm-node-y-1">Altruisme</text>
+                        <text x="790" y="172" text-anchor="middle" class="node-sub" id="pm-node-y-2"></text>
 
-            <line x1="260" y1="80" x2="370" y2="80" class="edge" marker-end="url(#arrow2)"></line>
-            <line x1="150" y1="120" x2="150" y2="190" class="edge" marker-end="url(#arrow2)"></line>
-            <line x1="260" y1="230" x2="370" y2="230" class="edge" marker-end="url(#arrow2)"></line>
-            <line x1="480" y1="120" x2="480" y2="190" class="edge" marker-end="url(#arrow2)"></line>
-            <line x1="590" y1="80" x2="700" y2="140" class="edge" marker-end="url(#arrow2)"></line>
-            <line x1="590" y1="230" x2="700" y2="175" class="edge" marker-end="url(#arrow2)"></line>
+                        <line x1="260" y1="80" x2="370" y2="80" class="edge" marker-end="url(#arrow2)"></line>
+                        <line x1="150" y1="120" x2="150" y2="190" class="edge" marker-end="url(#arrow2)"></line>
+                        <line x1="260" y1="230" x2="370" y2="230" class="edge" marker-end="url(#arrow2)"></line>
+                        <line x1="480" y1="120" x2="480" y2="190" class="edge" marker-end="url(#arrow2)"></line>
+                        <line x1="590" y1="80" x2="700" y2="140" class="edge" marker-end="url(#arrow2)"></line>
+                        <line x1="590" y1="230" x2="700" y2="175" class="edge" marker-end="url(#arrow2)"></line>
 
-            <text x="305" y="62" class="edge-label" id="pm-a">a=?</text>
-            <text x="160" y="160" class="edge-label" id="pm-b">b=?</text>
-            <text x="305" y="212" class="edge-label" id="pm-c">c=?</text>
-            <text x="492" y="160" class="edge-label" id="pm-d">d=?</text>
-            <text x="645" y="102" class="edge-label" id="pm-e">e=?</text>
-            <text x="645" y="215" class="edge-label" id="pm-f">f=?</text>
-            <text x="760" y="108" class="edge-label" id="pm-r2">R²=?</text>
-          </svg>
-        </div>
-      </section>
+                        <text x="305" y="62" class="edge-label" id="pm-a">a=?</text>
+                        <text x="160" y="160" class="edge-label" id="pm-b">b=?</text>
+                        <text x="305" y="212" class="edge-label" id="pm-c">c=?</text>
+                        <text x="492" y="160" class="edge-label" id="pm-d">d=?</text>
+                        <text x="645" y="102" class="edge-label" id="pm-e">e=?</text>
+                        <text x="645" y="215" class="edge-label" id="pm-f">f=?</text>
+                        <text x="760" y="108" class="edge-label" id="pm-r2">R²=?</text>
+                    </svg>
+                </div>
+            </section>
 
-      <section class="card" id="deel-mcq-dataset">
-        <h3>MEERKEUZEVRAGEN - Datasetgebonden (Vraag 1-6)</h3>
-        <p class="context-text">Kies telkens het gevraagde aantal antwoorden (1 of 2). Feedback verschijnt meteen na je
-          keuze.</p>
-        <div id="mcq-dataset-list" class="mcq-list"></div>
-        <div id="fb-mcq-dataset-summary" class="section-feedback"></div>
-      </section>
+            <section class="card" id="deel-mcq-dataset">
+                <h3>MEERKEUZEVRAGEN - Datasetgebonden (Vraag 1-10)</h3>
+                <p class="context-text">Kies telkens het gevraagde aantal antwoorden (1 of 2). Feedback verschijnt
+                    meteen na je
+                    keuze.</p>
+                <div id="mcq-dataset-list" class="mcq-list"></div>
+                <div id="fb-mcq-dataset-summary" class="section-feedback"></div>
+            </section>
 
-      <section class="card" id="deel-mcq-general">
-        <h3>MEERKEUZEVRAGEN - Algemeen (Vraag 7-17)</h3>
-        <p class="context-text">Conceptuele examenvragen met onmiddellijke feedback per keuze.</p>
-        <div id="mcq-general-list" class="mcq-list"></div>
-        <div id="fb-mcq-general-summary" class="section-feedback"></div>
-      </section>
+            <section class="card" id="deel-mcq-general">
+                <h3>MEERKEUZEVRAGEN - Algemeen (Vraag 11-21)</h3>
+                <p class="context-text">Conceptuele examenvragen met onmiddellijke feedback per keuze.</p>
+                <div id="mcq-general-list" class="mcq-list"></div>
+                <div id="fb-mcq-general-summary" class="section-feedback"></div>
+            </section>
 
-      <section class="card" id="deel-open-vraag">
-        <h3>OPEN EXAMENVRAAG</h3>
-        <p>
-          Voer een meervoudige lineaire regressie-analyse uit met <span class="var-y-name">Y</span> als afhankelijke
-          variabele
-          en <span class="var-x1-name">X1</span> en <span class="var-x2-name">X2</span> als onafhankelijke variabelen.
-        </p>
-        <p id="open-question-context" class="context-text"></p>
-      </section>
+            <section class="card" id="deel-open-vraag">
+                <h3>OPEN EXAMENVRAAG</h3>
+                <p>
+                    Voer een meervoudige lineaire regressie-analyse uit met <span class="var-y-name">Y</span> als
+                    afhankelijke
+                    variabele
+                    en <span class="var-x1-name">X1</span> en <span class="var-x2-name">X2</span> als onafhankelijke
+                    variabelen.
+                </p>
+                <p id="open-question-context" class="context-text"></p>
+            </section>
 
-      <section class="card" id="deel-antwoordformulier">
-        <h3>Antwoorden — open vragen</h3>
-        <div class="table-wrap">
-          <table class="answer-table">
-            <thead>
-              <tr>
-                <th>Onderdeel</th>
-                <th>Jouw antwoord</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Bivariate regressie</strong>: r(<span class="var-x1-name">X1</span>, <span
-                    class="var-y-name">Y</span>)</td>
-                <td><input id="ans-bivar-r" type="text" placeholder="bijv. 0.4321" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>R² (bivariate regressie van <span class="var-y-name">Y</span> op <span
-                    class="var-x1-name">X1</span>)</td>
-                <td><input id="ans-bivar-r2" type="text" placeholder="bijv. 0.1870" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>Helling b (bivariate regressie)</td>
-                <td><input id="ans-bivar-b" type="text" placeholder="bijv. 1.2300" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>Intercept a (bivariate regressie)</td>
-                <td><input id="ans-bivar-a" type="text" placeholder="bijv. 3.4500" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>Interpretatie b (bivariate regressie)</td>
-                <td>
-                  <div id="ans-bivar-b-int" class="sentence-blank">
-                    Als <span class="var-x1-name">X1</span> met 1 stijgt,
-                    <select id="ans-bivar-b-dir" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="stijgt">stijgt</option>
-                      <option value="daalt">daalt</option>
-                    </select>
-                    de verwachte <span class="var-y-name">Y</span>
-                    met <strong><span id="lbl-bivar-b-abs">___</span></strong> eenheden.
-                  </div>
-                  <span id="fb-ans-bivar-b-int" class="ans-feedback"></span>
-                </td>
-              </tr>
-              <tr>
-                <td>Interpretatie R² (bivariate regressie)</td>
-                <td>
-                  <div id="ans-bivar-r2-int" class="sentence-blank">
-                    De berekende R² is de
-                    <select id="ans-bivar-r2-type" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="verklaarde">verklaarde</option>
-                      <option value="onverklaarde">onverklaarde</option>
-                    </select>
-                    proportie van de variatie in
-                    <span class="var-y-name">Y</span> door <span class="var-x1-name">X1</span> in het bivariate model.
-                  </div>
-                  <span id="fb-ans-bivar-r2-int" class="ans-feedback"></span>
-                </td>
-              </tr>
+            <section class="card" id="deel-antwoordformulier">
+                <h3>Antwoorden — open vragen</h3>
+                <div class="table-wrap">
+                    <table class="answer-table">
+                        <thead>
+                            <tr>
+                                <th>Onderdeel</th>
+                                <th>Jouw antwoord</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Bivariate regressie</strong>: r(<span class="var-x1-name">X1</span>, <span
+                                        class="var-y-name">Y</span>)</td>
+                                <td><input id="ans-bivar-r" type="text" placeholder="bijv. 0.4321" autocomplete="off" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>R² (bivariate regressie van <span class="var-y-name">Y</span> op <span
+                                        class="var-x1-name">X1</span>)</td>
+                                <td><input id="ans-bivar-r2" type="text" placeholder="bijv. 0.1870"
+                                        autocomplete="off" /></td>
+                            </tr>
+                            <tr>
+                                <td>Helling b (bivariate regressie)</td>
+                                <td><input id="ans-bivar-b" type="text" placeholder="bijv. 1.2300" autocomplete="off" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Intercept a (bivariate regressie)</td>
+                                <td><input id="ans-bivar-a" type="text" placeholder="bijv. 3.4500" autocomplete="off" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Interpretatie b (bivariate regressie)</td>
+                                <td>
+                                    <div id="ans-bivar-b-int" class="sentence-blank">
+                                        Als <span class="var-x1-name">X1</span> met 1 stijgt,
+                                        <select id="ans-bivar-b-dir" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="stijgt">stijgt</option>
+                                            <option value="daalt">daalt</option>
+                                        </select>
+                                        de verwachte <span class="var-y-name">Y</span>
+                                        met <strong><span id="lbl-bivar-b-abs">___</span></strong> eenheden.
+                                    </div>
+                                    <span id="fb-ans-bivar-b-int" class="ans-feedback"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Interpretatie R² (bivariate regressie)</td>
+                                <td>
+                                    <div id="ans-bivar-r2-int" class="sentence-blank">
+                                        De berekende R² is de
+                                        <select id="ans-bivar-r2-type" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="verklaarde">verklaarde</option>
+                                            <option value="onverklaarde">onverklaarde</option>
+                                        </select>
+                                        proportie van de variatie in
+                                        <span class="var-y-name">Y</span> door <span class="var-x1-name">X1</span> in
+                                        het bivariate model.
+                                    </div>
+                                    <span id="fb-ans-bivar-r2-int" class="ans-feedback"></span>
+                                </td>
+                            </tr>
 
-              <tr class="divider-row">
-                <td><strong>Meervoudige regressie</strong>: b1 (voor <span class="var-x1-name">X1</span>)</td>
-                <td><input id="ans-multi-b1" type="text" placeholder="bijv. 0.8765" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>Interpretatie b1 (ceteris paribus)</td>
-                <td>
-                  <div id="ans-multi-b1-int" class="sentence-blank">
-                    Als <span class="var-x1-name">X1</span> met 1 stijgt,
-                    <select id="ans-multi-b1-dir" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="stijgt">stijgt</option>
-                      <option value="daalt">daalt</option>
-                    </select>
-                    de verwachte <span class="var-y-name">Y</span>
-                    met <strong><span id="lbl-multi-b1-abs">___</span></strong> eenheden,
-                    onder controle van
-                    <select id="ans-multi-b1-ctrl" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="x2" class="var-x2-name">X2</option>
-                      <option value="x1" class="var-x1-name-opt">X1</option>
-                      <option value="y" class="var-y-name-opt">Y</option>
-                    </select>.
-                  </div>
-                  <span id="fb-ans-multi-b1-int" class="ans-feedback"></span>
-                </td>
-              </tr>
-              <tr>
-                <td>b2 (voor <span class="var-x2-name">X2</span>)</td>
-                <td><input id="ans-multi-b2" type="text" placeholder="bijv. -0.1200" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>Interpretatie b2 (ceteris paribus)</td>
-                <td>
-                  <div id="ans-multi-b2-int" class="sentence-blank">
-                    Als <span class="var-x2-name">X2</span> met 1 stijgt,
-                    <select id="ans-multi-b2-dir" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="stijgt">stijgt</option>
-                      <option value="daalt">daalt</option>
-                    </select>
-                    de verwachte <span class="var-y-name">Y</span>
-                    met <strong><span id="lbl-multi-b2-abs">___</span></strong> eenheden,
-                    onder controle van
-                    <select id="ans-multi-b2-ctrl" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="x1" class="var-x1-name-opt">X1</option>
-                      <option value="x2" class="var-x2-name-opt">X2</option>
-                      <option value="y" class="var-y-name-opt">Y</option>
-                    </select>.
-                  </div>
-                  <span id="fb-ans-multi-b2-int" class="ans-feedback"></span>
-                </td>
-              </tr>
-              <tr>
-                <td>Intercept a (meervoudige regressie)</td>
-                <td><input id="ans-multi-a" type="text" placeholder="bijv. 5.6700" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>R² (meervoudige regressie)</td>
-                <td><input id="ans-multi-r2" type="text" placeholder="bijv. 0.3050" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>Interpretatie R² (meervoudige regressie)</td>
-                <td>
-                  <div id="ans-multi-r2-int" class="sentence-blank">
-                    De berekende R² is de
-                    <select id="ans-multi-r2-type" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="verklaarde">verklaarde</option>
-                      <option value="onverklaarde">onverklaarde</option>
-                    </select>
-                    proportie van de variatie in
-                    <span class="var-y-name">Y</span> door <span class="var-x1-name">X1</span> en
-                    <span class="var-x2-name">X2</span>
-                    <select id="ans-multi-r2-comb" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="samen">samen</option>
-                      <option value="afzonderlijk">afzonderlijk</option>
-                    </select>.
-                  </div>
-                  <span id="fb-ans-multi-r2-int" class="ans-feedback"></span>
-                </td>
-              </tr>
+                            <tr class="divider-row">
+                                <td><strong>Meervoudige regressie</strong>: b1 (voor <span
+                                        class="var-x1-name">X1</span>)</td>
+                                <td><input id="ans-multi-b1" type="text" placeholder="bijv. 0.8765"
+                                        autocomplete="off" /></td>
+                            </tr>
+                            <tr>
+                                <td>Interpretatie b1 (ceteris paribus)</td>
+                                <td>
+                                    <div id="ans-multi-b1-int" class="sentence-blank">
+                                        Als <span class="var-x1-name">X1</span> met 1 stijgt,
+                                        <select id="ans-multi-b1-dir" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="stijgt">stijgt</option>
+                                            <option value="daalt">daalt</option>
+                                        </select>
+                                        de verwachte <span class="var-y-name">Y</span>
+                                        met <strong><span id="lbl-multi-b1-abs">___</span></strong> eenheden,
+                                        onder controle van
+                                        <select id="ans-multi-b1-ctrl" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="x2" class="var-x2-name">X2</option>
+                                            <option value="x1" class="var-x1-name-opt">X1</option>
+                                            <option value="y" class="var-y-name-opt">Y</option>
+                                        </select>.
+                                    </div>
+                                    <span id="fb-ans-multi-b1-int" class="ans-feedback"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>b2 (voor <span class="var-x2-name">X2</span>)</td>
+                                <td><input id="ans-multi-b2" type="text" placeholder="bijv. -0.1200"
+                                        autocomplete="off" /></td>
+                            </tr>
+                            <tr>
+                                <td>Interpretatie b2 (ceteris paribus)</td>
+                                <td>
+                                    <div id="ans-multi-b2-int" class="sentence-blank">
+                                        Als <span class="var-x2-name">X2</span> met 1 stijgt,
+                                        <select id="ans-multi-b2-dir" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="stijgt">stijgt</option>
+                                            <option value="daalt">daalt</option>
+                                        </select>
+                                        de verwachte <span class="var-y-name">Y</span>
+                                        met <strong><span id="lbl-multi-b2-abs">___</span></strong> eenheden,
+                                        onder controle van
+                                        <select id="ans-multi-b2-ctrl" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="x1" class="var-x1-name-opt">X1</option>
+                                            <option value="x2" class="var-x2-name-opt">X2</option>
+                                            <option value="y" class="var-y-name-opt">Y</option>
+                                        </select>.
+                                    </div>
+                                    <span id="fb-ans-multi-b2-int" class="ans-feedback"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Intercept a (meervoudige regressie)</td>
+                                <td><input id="ans-multi-a" type="text" placeholder="bijv. 5.6700" autocomplete="off" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>R² (meervoudige regressie)</td>
+                                <td><input id="ans-multi-r2" type="text" placeholder="bijv. 0.3050"
+                                        autocomplete="off" /></td>
+                            </tr>
+                            <tr>
+                                <td>Interpretatie R² (meervoudige regressie)</td>
+                                <td>
+                                    <div id="ans-multi-r2-int" class="sentence-blank">
+                                        De berekende R² is de
+                                        <select id="ans-multi-r2-type" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="verklaarde">verklaarde</option>
+                                            <option value="onverklaarde">onverklaarde</option>
+                                        </select>
+                                        proportie van de variatie in
+                                        <span class="var-y-name">Y</span> door <span class="var-x1-name">X1</span> en
+                                        <span class="var-x2-name">X2</span>
+                                        <select id="ans-multi-r2-comb" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="samen">samen</option>
+                                            <option value="afzonderlijk">afzonderlijk</option>
+                                        </select>.
+                                    </div>
+                                    <span id="fb-ans-multi-r2-int" class="ans-feedback"></span>
+                                </td>
+                            </tr>
 
-              <tr class="divider-row">
-                <td><strong>Correlatie tussen voorspellers</strong>: r(<span class="var-x1-name">X1</span>, <span
-                    class="var-x2-name">X2</span>)</td>
-                <td><input id="ans-rx1x2" type="text" placeholder="bijv. 0.2510" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>Interpretatie van r(<span class="var-x1-name">X1</span>, <span class="var-x2-name">X2</span>)</td>
-                <td>
-                  <div id="ans-rx1x2-int" class="sentence-blank">
-                    Er is een
-                    <select id="ans-rx1x2-dir" class="blank-select">
-                      <option value="">- kies -</option>
-                      <option value="positieve">positieve</option>
-                      <option value="negatieve">negatieve</option>
-                    </select>
-                    lineaire samenhang tussen <span class="var-x1-name">X1</span>
-                    en <span class="var-x2-name">X2</span>.
-                  </div>
-                  <span id="fb-ans-rx1x2-int" class="ans-feedback"></span>
-                </td>
-              </tr>
+                            <tr class="divider-row">
+                                <td><strong>Correlatie tussen voorspellers</strong>: r(<span
+                                        class="var-x1-name">X1</span>, <span class="var-x2-name">X2</span>)</td>
+                                <td><input id="ans-rx1x2" type="text" placeholder="bijv. 0.2510" autocomplete="off" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Interpretatie van r(<span class="var-x1-name">X1</span>, <span
+                                        class="var-x2-name">X2</span>)</td>
+                                <td>
+                                    <div id="ans-rx1x2-int" class="sentence-blank">
+                                        Er is een
+                                        <select id="ans-rx1x2-dir" class="blank-select">
+                                            <option value="">- kies -</option>
+                                            <option value="positieve">positieve</option>
+                                            <option value="negatieve">negatieve</option>
+                                        </select>
+                                        lineaire samenhang tussen <span class="var-x1-name">X1</span>
+                                        en <span class="var-x2-name">X2</span>.
+                                    </div>
+                                    <span id="fb-ans-rx1x2-int" class="ans-feedback"></span>
+                                </td>
+                            </tr>
 
-              <tr class="divider-row">
-                <td><strong>Partiele correlaties</strong>: r(<span class="var-x1-name">X1</span>,<span
-                    class="var-y-name">Y</span> | <span class="var-x2-name">X2</span>)</td>
-                <td><input id="ans-partial-1" type="text" placeholder="bijv. 0.4100" autocomplete="off" /></td>
-              </tr>
-              <tr>
-                <td>r(<span class="var-x2-name">X2</span>,<span class="var-y-name">Y</span> | <span
-                    class="var-x1-name">X1</span>)</td>
-                <td><input id="ans-partial-2" type="text" placeholder="bijv. -0.2200" autocomplete="off" /></td>
-              </tr>
+                            <tr class="divider-row">
+                                <td><strong>Partiele correlaties</strong>: r(<span class="var-x1-name">X1</span>,<span
+                                        class="var-y-name">Y</span> | <span class="var-x2-name">X2</span>)</td>
+                                <td><input id="ans-partial-1" type="text" placeholder="bijv. 0.4100"
+                                        autocomplete="off" /></td>
+                            </tr>
+                            <tr>
+                                <td>r(<span class="var-x2-name">X2</span>,<span class="var-y-name">Y</span> | <span
+                                        class="var-x1-name">X1</span>)</td>
+                                <td><input id="ans-partial-2" type="text" placeholder="bijv. -0.2200"
+                                        autocomplete="off" /></td>
+                            </tr>
 
-              <tr class="divider-row">
-                <td><strong>Verwachte waarde</strong>: <span id="pred-question">Bereken Yhat voor X1 = ... en X2 =
-                    ...</span></td>
-                <td><input id="ans-pred" type="text" placeholder="bijv. 24.35" autocomplete="off" /></td>
-              </tr>
+                            <tr class="divider-row">
+                                <td><strong>Verwachte waarde</strong>: <span id="pred-question">Bereken Yhat voor X1 =
+                                        ... en X2 =
+                                        ...</span></td>
+                                <td><input id="ans-pred" type="text" placeholder="bijv. 24.35" autocomplete="off" />
+                                </td>
+                            </tr>
 
-              <tr class="divider-row">
-                <td><strong>Assumptie</strong>: vul in<br />"zonder systematische spreiding ... aanwijzing voor
-                  ________"</td>
-                <td><input id="ans-assumption" type="text" placeholder="vul het statistische begrip in" autocomplete="off" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="fb-open-summary" class="section-feedback"></div>
-      </section>
+                            <tr class="divider-row">
+                                <td><strong>Assumptie</strong>: vul in<br />"zonder systematische spreiding ...
+                                    aanwijzing voor
+                                    ________"</td>
+                                <td><input id="ans-assumption" type="text" placeholder="vul het statistische begrip in"
+                                        autocomplete="off" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="fb-open-summary" class="section-feedback"></div>
+            </section>
 
-      <section class="card" id="final-score-section">
-        <h3>Eindscore</h3>
-        <div id="final-score-panel" class="final-score-panel">
-          <strong>Eindscore (eerste poging): 0 / 35 punten</strong>
-          <span class="score-attempted">0 van 35 vragen beantwoord</span>
-          <ul class="score-breakdown">
-            <li>Juist op 1e poging: <strong>0</strong></li>
-            <li>Juist op 2e poging: <strong>0</strong></li>
-            <li>Juist op 3e poging: <strong>0</strong></li>
-            <li>Juist na meer dan 3 pogingen: <strong>0</strong></li>
-          </ul>
-          <span class="score-note">Voor een mogelijke examenscore is vooral <strong>'Juist op 1e poging'</strong>
-            relevant. De andere aantallen tonen je leerprogressie. Genereer een nieuwe dataset om opnieuw te
-            oefenen.</span>
-        </div>
-      </section>
+            <section class="card" id="final-score-section">
+                <h3>Eindscore</h3>
+                <div id="final-score-panel" class="final-score-panel">
+                    <strong>Eindscore (eerste poging): 0 / 40 punten</strong>
+                    <span class="score-attempted">0 van 40 vragen beantwoord</span>
+                    <ul class="score-breakdown">
+                        <li>Juist op 1e poging: <strong>0</strong></li>
+                        <li>Juist op 2e poging: <strong>0</strong></li>
+                        <li>Juist op 3e poging: <strong>0</strong></li>
+                        <li>Juist na meer dan 3 pogingen: <strong>0</strong></li>
+                    </ul>
+                    <span class="score-note">Voor een mogelijke examenscore is vooral <strong>'Juist op 1e
+                            poging'</strong>
+                        relevant. De andere aantallen tonen je leerprogressie. Genereer een nieuwe dataset om opnieuw te
+                        oefenen.</span>
+                </div>
+            </section>
 
-    </main>
-  </div>
+        </main>
+    </div>
 
-  <script src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 
 </html>
