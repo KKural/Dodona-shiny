@@ -650,9 +650,9 @@ body {
 
 .dataset-table th {
     background: #f1f5f9;
-    font-size: 12px;
     font-weight: 600;
     color: #475569;
+    text-align: center;
 }
 
 .dataset-table tr:nth-child(even) {

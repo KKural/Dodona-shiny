@@ -514,7 +514,7 @@ function renderDatasetTable() {
   const { x1, x2, y } = state.names;
 
   const thead = document.createElement('thead');
-  thead.innerHTML = `<tr><th>Entity</th><th>${x1}</th><th>${x2}</th><th>${y}</th></tr>`;
+  thead.innerHTML = `<tr><th>Eenheid</th><th>${x1}</th><th>${x2}</th><th>${y}</th></tr>`;
   tbl.appendChild(thead);
 
   const tbody = document.createElement('tbody');
@@ -557,6 +557,80 @@ function renderPredictionTable() {
   });
 
   tbl.appendChild(tbody);
+}
+
+function parseExcelPasteValues(raw) {
+  return String(raw || '')
+    .trim()
+    .split(/\t|\r?\n|;|\s{2,}/)
+    .map(v => v.trim().replace(',', '.'))
+    .filter(v => v !== '');
+}
+
+function getExcelPasteFieldOrder() {
+  const labelMap = new Map(Object.values(FIELD_GROUPS).flat());
+  const fields = REQUIRED_FIELDS.map(id => ({ label: labelMap.get(id) || id, target: id }));
+  state.predInputs.forEach((input, i) => fields.push({ label: `Yhat rij ${i + 1}`, target: input }));
+  return fields;
+}
+
+function updateExcelPasteHint() {
+  const hint = document.getElementById('excel-paste-format-hint');
+  if (!hint) return;
+  const fields = getExcelPasteFieldOrder();
+  hint.innerHTML = `
+    <div class="paste-hint">Volgorde kolommen (kopieer/plak uit Excel):</div>
+    <table class="paste-cols-table">
+      <thead><tr>${fields.map(f => `<th>${f.label}</th>`).join('')}</tr></thead>
+      <tbody><tr>${fields.map(() => '<td>...</td>').join('')}</tr></tbody>
+    </table>`;
+}
+
+function setExcelPasteTarget(target, value) {
+  const el = typeof target === 'string' ? document.getElementById(target) : target;
+  if (!el) return false;
+  el.value = value;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  return true;
+}
+
+function fillFromExcelPaste() {
+  const area = document.getElementById('excel-paste-values');
+  const status = document.getElementById('excel-paste-status');
+  if (!area) return;
+  const values = parseExcelPasteValues(area.value);
+  const fields = getExcelPasteFieldOrder();
+  let filled = 0;
+  fields.forEach((field, i) => {
+    if (i < values.length && setExcelPasteTarget(field.target, values[i])) filled += 1;
+  });
+  evaluateAll();
+  if (status) {
+    status.textContent = values.length < fields.length
+      ? `${filled}/${fields.length} waarden ingevuld. Er ontbreken nog waarden.`
+      : `${filled}/${fields.length} waarden ingevuld.`;
+  }
+}
+
+function initExcelPastePanel() {
+  const anchor = document.getElementById('btn-random');
+  if (!anchor || document.getElementById('excel-paste-card')) return;
+  const card = document.createElement('div');
+  card.className = 'sidebar-card excel-paste-card';
+  card.id = 'excel-paste-card';
+  card.innerHTML = `
+    <div class="sidebar-card-title">Plakken uit Excel</div>
+    <p class="paste-hint">Plak een rij of bereik met tab-gescheiden waarden. De waarden worden van links naar rechts ingevuld.</p>
+    <div id="excel-paste-format-hint" class="paste-format-wrap"></div>
+    <textarea id="excel-paste-values" class="excel-paste-area" rows="3" placeholder="Plak hier waarden uit Excel"></textarea>
+    <button id="btn-paste-excel" class="btn-secondary" type="button">Vul waarden in</button>
+    <div id="excel-paste-status" class="paste-status"></div>`;
+  anchor.insertAdjacentElement('afterend', card);
+  document.getElementById('btn-paste-excel').addEventListener('click', fillFromExcelPaste);
+  document.getElementById('excel-paste-values').addEventListener('paste', () => {
+    window.setTimeout(fillFromExcelPaste, 0);
+  });
+  updateExcelPasteHint();
 }
 
 function clearStatuses() {
@@ -938,6 +1012,7 @@ function generate(random = false) {
   renderDatasetTable();
   renderPredictionTable();
   clearStatuses();
+  updateExcelPasteHint();
 }
 
 function bindEvents() {
@@ -961,6 +1036,7 @@ function init() {
   setupNav();
   setupSidebarChrome();
   bindEvents();
+  initExcelPastePanel();
   const seedEl = document.getElementById('seed');
   if (seedEl) {
     seedEl.value = String(nextRandomSeed());

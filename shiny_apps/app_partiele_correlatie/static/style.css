@@ -346,12 +346,12 @@ th,
 td {
   border: 1px solid #d1d5db;
   padding: 6px 8px;
-  text-align: right;
+  text-align: center;
 }
 
 th:first-child,
 td:first-child {
-  text-align: left;
+  text-align: center;
 }
 
 td .pred-input {
