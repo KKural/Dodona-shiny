@@ -409,6 +409,7 @@ body {
 .msg-row .field-diag:empty {
     display: none;
 }
+
 .msg-row td {
     padding: 0 10px;
     border-top: none;
