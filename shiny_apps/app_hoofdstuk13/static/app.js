@@ -1135,6 +1135,47 @@ function markSectionFeedback(id, stateCls, message) {
   box.textContent = message || '';
 }
 
+const OPEN_FIELD_LABELS = {
+  'Bivariate r': 'ans-bivar-r',
+  'R² (bivariate)': 'ans-bivar-r2',
+  'Helling b (bivariate)': 'ans-bivar-b',
+  'Intercept a (bivariate)': 'ans-bivar-a',
+  'Interpretatie b (bivariate)': 'ans-bivar-b-int',
+  'Interpretatie R² (bivariate)': 'ans-bivar-r2-int',
+  'b1 (meervoudig)': 'ans-multi-b1',
+  'Interpretatie b1': 'ans-multi-b1-int',
+  'b2 (meervoudig)': 'ans-multi-b2',
+  'Interpretatie b2': 'ans-multi-b2-int',
+  'Intercept a (meervoudig)': 'ans-multi-a',
+  'R² (meervoudig)': 'ans-multi-r2',
+  'Interpretatie R² (meervoudig)': 'ans-multi-r2-int',
+  'Correlatie X1–X2': 'ans-rx1x2',
+  'Interpretatie r(X1,X2)': 'ans-rx1x2-int',
+  'Partiële r(X1,Y|X2)': 'ans-partial-1',
+  'Partiële r(X2,Y|X1)': 'ans-partial-2',
+  'Verwachte waarde': 'ans-pred',
+  'Assumptie': 'ans-assumption',
+};
+
+function renderFeedbackPanel(containerId, labelToIdMap) {
+  const box = document.getElementById(containerId);
+  if (!box) return;
+  const items = Object.entries(labelToIdMap)
+    .map(([label, id]) => {
+      const fb = document.getElementById(`fb-${id}`);
+      if (!fb || !fb.classList.contains('err')) return null;
+      return `<div class="feedback-detail-item"><div class="feedback-detail-label">${label}</div><div class="feedback-detail-msg">${fb.textContent}</div></div>`;
+    })
+    .filter(Boolean);
+  if (!items.length) {
+    box.className = 'feedback-panel';
+    box.innerHTML = '';
+    return;
+  }
+  box.className = 'feedback-panel visible';
+  box.innerHTML = `<div class="feedback-detail-label">Controleer de volgende velden:</div>${items.join('')}`;
+}
+
 function evaluateMultiMcqItem(prefix, item) {
   const name = `${prefix}-${item.id}`;
   const checked = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((el) => Number(el.value));
@@ -1235,9 +1276,7 @@ function bindInstantMcqFeedback(prefix, items, summaryId) {
         updateMcqSummary(prefix, items, summaryId);
       });
     });
-    evaluateMcqItem(prefix, item);
   });
-  updateMcqSummary(prefix, items, summaryId);
 }
 
 function updateVariableLabels(sc) {
@@ -1534,10 +1573,8 @@ function resetAnswers() {
   markSectionFeedback('fb-mcq-dataset-summary', '', '');
   markSectionFeedback('fb-mcq-general-summary', '', '');
   markSectionFeedback('fb-open-summary', '', '');
-
-  if (state.datasetMcqs.length) updateMcqSummary('dataset', state.datasetMcqs, 'fb-mcq-dataset-summary');
-  if (state.generalMcqs.length) updateMcqSummary('general', state.generalMcqs, 'fb-mcq-general-summary');
-  if (state.stats) checkOpenAnswers();
+  const panel = document.getElementById('fb-open-panel');
+  if (panel) { panel.className = 'feedback-panel'; panel.innerHTML = ''; }
 }
 
 function populateScenarioSelect() {
@@ -1822,6 +1859,7 @@ function checkOpenAnswers(recordAttempts = false) {
     );
   }
   if (scoreChanged) renderFinalScore();
+  renderFeedbackPanel('fb-open-panel', OPEN_FIELD_LABELS);
 }
 
 function generate(randomScenario = false) {
@@ -1885,7 +1923,6 @@ function generate(randomScenario = false) {
   resetAnswers();
   bindInstantMcqFeedback('dataset', state.datasetMcqs, 'fb-mcq-dataset-summary');
   bindInstantMcqFeedback('general', state.generalMcqs, 'fb-mcq-general-summary');
-  checkOpenAnswers();
 }
 
 function printQuestionPaper() {

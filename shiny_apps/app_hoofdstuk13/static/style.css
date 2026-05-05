@@ -428,6 +428,38 @@ select.blank-select {
     font-size: 0.9rem;
 }
 
+/* Shiny-style feedback panel for open answer section */
+.feedback-panel {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #FFF5F5;
+    border-left: 4px solid #D50000;
+}
+
+.feedback-panel.visible {
+    display: block;
+}
+
+.feedback-detail-label {
+    font-weight: 700;
+    color: #7A1020;
+    font-size: 0.88rem;
+    margin-bottom: 4px;
+}
+
+.feedback-detail-item {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #F2C7CF;
+}
+
+.feedback-detail-msg {
+    font-size: 0.88rem;
+    color: var(--err);
+}
+
 .model-box {
     border: 1px solid var(--line);
     border-radius: 8px;
