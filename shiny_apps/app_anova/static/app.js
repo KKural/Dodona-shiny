@@ -672,6 +672,51 @@ function renderDeviationTable() {
     });
 }
 
+// ─── RENDER GROUP MEANS TABLE (HOT2 — Deel II) ───────────────────────────────
+function renderGroupMeansTable() {
+    const container = document.getElementById('hot2-container');
+    if (!container) return;
+    const sc = state.scenario;
+    if (state.hot2) { state.hot2.destroy(); state.hot2 = null; }
+    state.hot2CellClasses = {};
+    container.innerHTML = '';
+    if (!sc) return;
+
+    const k = sc.groups.length;
+    const tableData = sc.groups.map(g => [humanizeGroup(g), null]);
+    tableData.push(['Grootgemiddelde (\u0232..)', null]);
+
+    const hotValidate = debounce(validateAll, 250);
+
+    state.hot2 = new Handsontable(container, {
+        data: tableData,
+        licenseKey: 'non-commercial-and-evaluation',
+        colHeaders: ['Groep', 'Gemiddelde (\u0232<sub>j</sub>)'],
+        columns: [
+            { type: 'text', readOnly: true },
+            { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+        ],
+        colWidths: [220, 150],
+        rowHeaders: false,
+        width: 390,
+        height: 'auto',
+        stretchH: 'none',
+        cells(row, col) {
+            const key = `${row}-${col}`;
+            const cls = state.hot2CellClasses[key];
+            const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+            if (row === k) classes.push('hot-grand-mean-cell');
+            if (cls === 'correct') classes.push('htCorrect');
+            else if (cls === 'incorrect') classes.push('htIncorrect');
+            return { className: classes.join(' ') };
+        },
+        afterChange(changes, source) {
+            if (source === 'loadData') return;
+            hotValidate();
+        }
+    });
+}
+
 // ─── RENDER SS TABLE (HOT4 — Deel IV) ────────────────────────────────────────
 function renderSSTable() {
     const container = document.getElementById('hot4-container');
@@ -779,20 +824,10 @@ function renderANOVAHotTable() {
 
 // \u2500\u2500\u2500 READ ANSWERS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function readAnswers() {
-    const sc = state.scenario;
     const { data } = state;
     const ans = {};
 
-    if (sc) {
-        sc.groups.forEach((_, i) => {
-            const el = document.getElementById(`inp-grp-${i}`);
-            ans[`grp_${i}`] = el ? el.value.trim() : '';
-        });
-    }
-    const grandEl = document.getElementById('inp-grand-mean');
-    ans.grandMean = grandEl ? grandEl.value.trim() : '';
-
-    // table — read from Handsontable
+    // table (HOT3) — read from Handsontable
     const hotData = state.hot ? state.hot.getData() : [];
     const groupFirstRowMap = {};
     let lastGrp = null;
@@ -806,12 +841,6 @@ function readAnswers() {
             dB: isFirst ? (rowData[5] != null ? String(rowData[5]) : '') : null,
             dB2: isFirst ? (rowData[6] != null ? String(rowData[6]) : '') : null
         };
-    });
-
-    const ids = ['ssw', 'ssb', 'sst', 'df-between', 'df-within', 'df-total', 'msb', 'msw', 'f', 'eta'];
-    ids.forEach(id => {
-        const el = document.getElementById(`inp-${id}`);
-        ans[id] = el ? el.value.trim() : '';
     });
 
     return ans;
@@ -1072,8 +1101,9 @@ function updateSigNote() {
     const { truth } = state;
     const el = document.getElementById('sig-note');
     if (!truth || !isFinite(truth.Fratio)) { el.classList.remove('visible'); return; }
-    const fEl = document.getElementById('inp-f');
-    if (!fEl || !fEl.classList.contains('correct')) { el.classList.remove('visible'); return; }
+    // Show sig note only when the F cell in HOT5 is marked correct
+    const fCorrect = state.hot5CellClasses['0-4'] === 'correct';
+    if (!fCorrect) { el.classList.remove('visible'); return; }
     const fCrit = isFinite(truth.fCritical) ? truth.fCritical.toFixed(2) : '?';
     const sig = isFinite(truth.fCritical) && truth.Fratio > truth.fCritical;
     const p = truth.pValue;
