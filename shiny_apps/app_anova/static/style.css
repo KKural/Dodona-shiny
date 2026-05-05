@@ -999,6 +999,13 @@ details.test-panel[open]>summary::before {
     overflow: auto;
 }
 
+/* HOT3 (deviation table): fixed width, centered in section */
+#hot-container {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+}
+
 #hot-container .handsontable td,
 #hot2-container .handsontable td,
 #hot4-container .handsontable td,

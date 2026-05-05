@@ -652,11 +652,11 @@ function renderDeviationTable() {
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
         ],
         mergeCells: mergeCells,
-        colWidths: [80, 145, 72, 92, 92, 92, 92],
+        colWidths: [80, 145, 72, 88, 88, 80, 80],
         rowHeaders: false,
-        width: '100%',
+        width: 663,
         height: 'auto',
-        stretchH: 'last',
+        stretchH: 'none',
         cells(row, col) {
             const key = `${row}-${col}`;
             const cls = state.hotCellClasses[key];
@@ -993,17 +993,6 @@ function validateAll() {
     });
     state.hotCellClasses = newHotClasses;
     if (state.hot) state.hot.render();
-    // Table summary feedback
-    const tableFeedbackEl = document.getElementById('table-feedback');
-    if (tableFeedbackEl) {
-        if (tableTotal === 0) {
-            tableFeedbackEl.innerHTML = '';
-        } else if (tableCorrect === tableTotal) {
-            tableFeedbackEl.innerHTML = '<span class="ok-inline">\u2705 Afwijkingtabel volledig correct!</span>';
-        } else {
-            tableFeedbackEl.innerHTML = `<span class="partial-inline">${tableCorrect}/${tableTotal} cellen correct \u2014 controleer de afwijkingskolommen.</span>`;
-        }
-    }
     updateSectionSummary('feedback-deel3', tableCorrect, tableTotal,
         'Afwijkingtabel volledig correct', 'controleer de afwijkingskolommen');
 
