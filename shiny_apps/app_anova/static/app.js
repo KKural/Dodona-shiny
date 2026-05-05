@@ -683,7 +683,9 @@ function renderGroupMeansTable() {
     if (!sc) return;
 
     const k = sc.groups.length;
-    const tableData = sc.groups.map(g => [humanizeGroup(g), null]);
+    // Subscript digits for Ȳ₁, Ȳ₂, … (Unicode subscript numerals 0–9)
+    const toSub = n => String(n).split('').map(d => '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089'[+d]).join('');
+    const tableData = sc.groups.map((g, i) => [`${humanizeGroup(g)} (\u0232${toSub(i + 1)})`, null]);
     tableData.push(['Grootgemiddelde (\u0232..)', null]);
 
     const hotValidate = debounce(validateAll, 250);
@@ -691,7 +693,7 @@ function renderGroupMeansTable() {
     state.hot2 = new Handsontable(container, {
         data: tableData,
         licenseKey: 'non-commercial-and-evaluation',
-        colHeaders: ['Groep', 'Gemiddelde (\u0232<sub>j</sub>)'],
+        colHeaders: ['Groep', 'Gemiddelde'],
         columns: [
             { type: 'text', readOnly: true },
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -796,9 +798,9 @@ function renderANOVAHotTable() {
         ],
         colWidths: [160, 105, 58, 110, 110, 82],
         rowHeaders: false,
-        width: '100%',
+        width: 630,
         height: 'auto',
-        stretchH: 'last',
+        stretchH: 'none',
         cells(row, col) {
             const key = `${row}-${col}`;
             const classes = [col === 0 ? 'htLeft' : 'htCenter'];
@@ -1426,8 +1428,9 @@ function resetAllInputs() {
         state.hot.render();
     }
     if (state.hot2 && state.scenario) {
-        const emptyData2 = state.scenario.groups.map(g => [humanizeGroup(g), null]);
-        emptyData2.push(['Grootgemiddelde (\u0232..)', null]);
+        const toSub = n => String(n).split('').map(d => '₀₁₂₃₄₅₆₇₈₉'[+d]).join('');
+        const emptyData2 = state.scenario.groups.map((g, i) => [`${humanizeGroup(g)} (Ȳ${toSub(i + 1)})`, null]);
+        emptyData2.push(['Grootgemiddelde (Ȳ..)', null]);
         state.hot2.loadData(emptyData2);
         state.hot2CellClasses = {};
         state.hot2.render();
@@ -1493,8 +1496,9 @@ function autoFillAnswers() {
     }
 
     if (state.hot2) {
-        const fillData2 = sc.groups.map(g => [humanizeGroup(g), truth.grpMeans[g]]);
-        fillData2.push(['Grootgemiddelde (\u0232..)', truth.grandMean]);
+        const toSub = n => String(n).split('').map(d => '₀₁₂₃₄₅₆₇₈₉'[+d]).join('');
+        const fillData2 = sc.groups.map((g, i) => [`${humanizeGroup(g)} (Ȳ${toSub(i + 1)})`, truth.grpMeans[g]]);
+        fillData2.push(['Grootgemiddelde (Ȳ..)', truth.grandMean]);
         state.hot2.loadData(fillData2);
     }
 
