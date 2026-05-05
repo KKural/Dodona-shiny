@@ -1196,6 +1196,12 @@ function doGenerate() {
     // update vignette
     document.getElementById('vignette-text').textContent = sc.vignette;
 
+    // update seed display
+    const seedUsedEl = document.getElementById('seed-used');
+    const seedDisplay = document.getElementById('seed-display');
+    if (seedUsedEl) seedUsedEl.textContent = String(seed);
+    if (seedDisplay) seedDisplay.style.display = '';
+
     renderDataset();
     renderGroupMeansInputs();
     renderDeviationTable();
