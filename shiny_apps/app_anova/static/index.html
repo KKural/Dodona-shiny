@@ -119,7 +119,8 @@
                 <div class="card-body">
                     <p id="dataset-info" class="muted">Klik op <strong>Genereer dataset</strong> om een dataset te
                         laden.</p>
-                    <p class="dataset-meta" id="seed-display" style="display:none"><strong>Datasetcode (seed):</strong> <span id="seed-used">&ndash;</span></p>
+                    <p class="dataset-meta" id="seed-display" style="display:none"><strong>Datasetcode (seed):</strong>
+                        <span id="seed-used">&ndash;</span></p>
                     <div id="dataset-table-wrap"></div>
                 </div>
             </section>
@@ -171,26 +172,35 @@
                 <div class="card-body">
                     <p class="instruction">Bereken de kwadratensommen op basis van de afwijkingtabel. Rond af op 4
                         decimalen.</p>
-                    <div class="ss-grid">
-                        <div class="field-row">
-                            <label>SSW (binnen groepen)</label>
-                            <input type="number" step="any" id="inp-ssw" class="num-input" placeholder="0.0000" />
-                            <span class="light" id="light-ssw"></span>
-                        </div>
-                        <div class="field-diag" id="msg-ssw"></div>
-                        <div class="field-row">
-                            <label>SSB (tussen groepen)</label>
-                            <input type="number" step="any" id="inp-ssb" class="num-input" placeholder="0.0000" />
-                            <span class="light" id="light-ssb"></span>
-                        </div>
-                        <div class="field-diag" id="msg-ssb"></div>
-                        <div class="field-row">
-                            <label>SST (totaal)</label>
-                            <input type="number" step="any" id="inp-sst" class="num-input" placeholder="0.0000" />
-                            <span class="light" id="light-sst"></span>
-                        </div>
-                        <div class="field-diag" id="msg-sst"></div>
-                    </div>
+                    <table class="anova-table">
+                        <thead>
+                            <tr>
+                                <th>Bron</th>
+                                <th>SS</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Binnen groepen (SSW)</td>
+                                <td><input type="number" step="any" id="inp-ssw" class="num-input" placeholder="0.0000" /></td>
+                                <td><span class="light" id="light-ssw"></span></td>
+                            </tr>
+                            <tr class="msg-row"><td colspan="3"><div class="field-diag" id="msg-ssw"></div></td></tr>
+                            <tr>
+                                <td>Tussen groepen (SSB)</td>
+                                <td><input type="number" step="any" id="inp-ssb" class="num-input" placeholder="0.0000" /></td>
+                                <td><span class="light" id="light-ssb"></span></td>
+                            </tr>
+                            <tr class="msg-row"><td colspan="3"><div class="field-diag" id="msg-ssb"></div></td></tr>
+                            <tr>
+                                <td>Totaal (SST)</td>
+                                <td><input type="number" step="any" id="inp-sst" class="num-input" placeholder="0.0000" /></td>
+                                <td><span class="light" id="light-sst"></span></td>
+                            </tr>
+                            <tr class="msg-row"><td colspan="3"><div class="field-diag" id="msg-sst"></div></td></tr>
+                        </tbody>
+                    </table>
                     <div class="ss-decomp-hint" id="ss-decomp-disp"></div>
                     <div class="section-summary" id="feedback-deel4"></div>
                     <div class="feedback-panel" id="feedback-detail-deel4"></div>

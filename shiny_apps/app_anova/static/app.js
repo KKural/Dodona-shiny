@@ -241,10 +241,8 @@ function calculateTruth(data, sc) {
         SSB += nGroups[g] * r4(d * d);
     });
     SSB = r4(SSB);
-    // SST = \u03a3(Y \u2212 \u0232..)\u00b2 \u2014 computed directly; also confirms SST = SSW + SSB
-    const devTotal = data.map(d => r4(d.y - grandMean));
-    const devTotalSq = devTotal.map(v => r4(v * v));
-    const SST = r4(devTotalSq.reduce((a, b) => a + b, 0));
+    // SST = SSW + SSB — use rounded sum so student answer is always consistent with the decomposition
+    const SST = r4(SSW + SSB);
 
     const dfBetween = k - 1;
     const dfWithin = N - k;

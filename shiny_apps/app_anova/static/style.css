@@ -405,6 +405,15 @@ body {
     gap: 8px;
 }
 
+/* Hide empty diagnostic rows in the SS table */
+.msg-row .field-diag:empty {
+    display: none;
+}
+.msg-row td {
+    padding: 0 10px;
+    border-top: none;
+}
+
 .ss-decomp-hint {
     font-size: 13px;
     padding: 8px 12px;
