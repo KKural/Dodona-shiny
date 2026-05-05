@@ -1418,6 +1418,97 @@ function renderFinalScore() {
   if (sidebarScore) sidebarScore.textContent = `${scored} / ${total}`;
 }
 
+function parseExcelPasteValues(raw) {
+  return String(raw || '')
+    .trim()
+    .split(/\t|\r?\n|;|\s{2,}/)
+    .map(v => v.trim().replace(',', '.'))
+    .filter(v => v !== '');
+}
+
+function getExcelPasteFieldOrder() {
+  return [
+    ['Bivariate r', 'ans-bivar-r'],
+    ['Bivariate R2', 'ans-bivar-r2'],
+    ['Bivariate b', 'ans-bivar-b'],
+    ['Bivariate a', 'ans-bivar-a'],
+    ['Richting bivariate b', 'ans-bivar-b-dir'],
+    ['Type bivariate R2', 'ans-bivar-r2-type'],
+    ['Meervoudige b1', 'ans-multi-b1'],
+    ['Richting b1', 'ans-multi-b1-dir'],
+    ['Controlevariabele b1', 'ans-multi-b1-ctrl'],
+    ['Meervoudige b2', 'ans-multi-b2'],
+    ['Richting b2', 'ans-multi-b2-dir'],
+    ['Controlevariabele b2', 'ans-multi-b2-ctrl'],
+    ['Meervoudige a', 'ans-multi-a'],
+    ['Meervoudige R2', 'ans-multi-r2'],
+    ['Type meervoudige R2', 'ans-multi-r2-type'],
+    ['Combinatie R2', 'ans-multi-r2-comb'],
+    ['r(X1,X2)', 'ans-rx1x2'],
+    ['Richting r(X1,X2)', 'ans-rx1x2-dir'],
+    ['Partiele r X1Y|X2', 'ans-partial-1'],
+    ['Partiele r X2Y|X1', 'ans-partial-2'],
+    ['Verwachte waarde', 'ans-pred'],
+    ['Assumptie', 'ans-assumption']
+  ].map(([label, id]) => ({ label, id }));
+}
+
+function updateExcelPasteHint() {
+  const hint = document.getElementById('excel-paste-format-hint');
+  if (!hint) return;
+  const fields = getExcelPasteFieldOrder();
+  hint.innerHTML = `
+    <div class="paste-hint">Volgorde kolommen (kopieer/plak uit Excel):</div>
+    <table class="paste-cols-table">
+      <thead><tr>${fields.map(f => `<th>${f.label}</th>`).join('')}</tr></thead>
+      <tbody><tr>${fields.map(() => '<td>...</td>').join('')}</tr></tbody>
+    </table>`;
+}
+
+function fillFromExcelPaste() {
+  const area = document.getElementById('excel-paste-values');
+  const status = document.getElementById('excel-paste-status');
+  if (!area) return;
+  const values = parseExcelPasteValues(area.value);
+  const fields = getExcelPasteFieldOrder();
+  let filled = 0;
+  fields.forEach((field, i) => {
+    const el = document.getElementById(field.id);
+    if (el && i < values.length) {
+      el.value = values[i];
+      el.dispatchEvent(new Event(el.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+      filled += 1;
+    }
+  });
+  checkOpenAnswers(false);
+  if (status) {
+    status.textContent = values.length < fields.length
+      ? `${filled}/${fields.length} waarden ingevuld. Er ontbreken nog waarden.`
+      : `${filled}/${fields.length} waarden ingevuld.`;
+  }
+}
+
+function initExcelPastePanel() {
+  const anchor = document.getElementById('btn-print');
+  if (!anchor || document.getElementById('excel-paste-card')) return;
+  const card = document.createElement('div');
+  card.className = 'excel-paste-card';
+  card.id = 'excel-paste-card';
+  card.innerHTML = `
+    <h2>Plakken uit Excel</h2>
+    <p class="paste-hint">Plak een rij of bereik met tab-gescheiden waarden voor de open velden.</p>
+    <div id="excel-paste-format-hint" class="paste-format-wrap"></div>
+    <textarea id="excel-paste-values" class="excel-paste-area" rows="3" placeholder="Plak hier waarden uit Excel"></textarea>
+    <button id="btn-paste-excel" class="btn btn-secondary" type="button">Vul waarden in</button>
+    <div id="excel-paste-status" class="paste-status"></div>`;
+  anchor.insertAdjacentElement('afterend', card);
+  document.getElementById('btn-paste-excel').addEventListener('click', fillFromExcelPaste);
+  document.getElementById('excel-paste-values').addEventListener('paste', () => {
+    window.setTimeout(fillFromExcelPaste, 0);
+  });
+  updateExcelPasteHint();
+}
+
 function resetAnswers() {
   document.querySelectorAll('.answer-table input, .answer-table textarea').forEach((el) => {
     el.value = '';
