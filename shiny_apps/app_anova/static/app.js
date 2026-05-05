@@ -1206,6 +1206,7 @@ function doGenerate() {
     resetAllInputs();
     lockVisualSections();
     updateProgress(0, 0);
+    updatePasteFormatHint();
 }
 
 function resetAllInputs() {
@@ -1273,47 +1274,95 @@ function autoFillAnswers() {
 
 // \u2500\u2500\u2500 PASTE-FROM-EXCEL FILL \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Order: [G1mean G2mean ... grandMean  SSW SSB SST  dfB dfW dfT  MSB MSW F eta]
+function parseExcelPasteValues(raw) {
+    return String(raw || '')
+        .trim()
+        .split(/\t|\r?\n|;|\s{2,}/)
+        .map(s => s.trim().replace(',', '.'))
+        .filter(s => s !== '');
+}
+
+function getPasteTargets() {
+    const { scenario: sc, data } = state;
+    const targets = [];
+    if (!sc) return targets;
+
+    sc.groups.forEach((_, i) => targets.push({ label: `Ygem groep ${i + 1}`, id: `inp-grp-${i}` }));
+    targets.push({ label: 'Ygem totaal', id: 'inp-grand-mean' });
+
+    data.forEach((_, i) => {
+        targets.push({ label: `Rij ${i + 1} (Y-Yj)`, id: `tbl-dW-${i}` });
+        targets.push({ label: `Rij ${i + 1} (Y-Yj)^2`, id: `tbl-dW2-${i}` });
+        if (document.getElementById(`tbl-dB-${i}`)) targets.push({ label: `Rij ${i + 1} (Yj-Y..)`, id: `tbl-dB-${i}` });
+        if (document.getElementById(`tbl-dB2-${i}`)) targets.push({ label: `Rij ${i + 1} (Yj-Y..)^2`, id: `tbl-dB2-${i}` });
+    });
+
+    [
+        ['SSW', 'inp-ssw'], ['SSB', 'inp-ssb'], ['SST', 'inp-sst'],
+        ['dfB', 'inp-df-between'], ['dfW', 'inp-df-within'], ['dfT', 'inp-df-total'],
+        ['MSB', 'inp-msb'], ['MSW', 'inp-msw'], ['F', 'inp-f'], ['eta2', 'inp-eta']
+    ].forEach(([label, id]) => targets.push({ label, id }));
+    return targets;
+}
+
 function parsePasteInput(raw) {
-    const { truth, scenario: sc } = state;
-    if (!truth || !sc) return;
-
-    const parts = raw.trim().split(/[\t,;]+|\s{2,}/).map(s => s.trim().replace(',', '.')).filter(s => s !== '');
-    const k = sc.groups.length;
-    const needed = k + 11;
+    if (!state.truth || !state.scenario) return;
+    const parts = parseExcelPasteValues(raw);
+    const targets = getPasteTargets();
     const statusEl = document.getElementById('paste-status');
-    if (parts.length < needed) {
-        if (statusEl) statusEl.textContent = `\u26a0 Verwacht \u2265 ${needed} waarden (${parts.length} gevonden).`;
-        return;
-    }
+    let filled = 0;
 
-    let idx = 0;
-    sc.groups.forEach((_, i) => { const el = document.getElementById(`inp-grp-${i}`); if (el) el.value = parts[idx++]; });
-    const grandEl = document.getElementById('inp-grand-mean'); if (grandEl) grandEl.value = parts[idx++];
-    ['inp-ssw', 'inp-ssb', 'inp-sst'].forEach(id => { const el = document.getElementById(id); if (el) el.value = parts[idx++]; });
-    ['inp-df-between', 'inp-df-within', 'inp-df-total'].forEach(id => { const el = document.getElementById(id); if (el) el.value = parts[idx++]; });
-    ['inp-msb', 'inp-msw', 'inp-f', 'inp-eta'].forEach(id => { const el = document.getElementById(id); if (el) el.value = parts[idx++]; });
+    targets.forEach((target, i) => {
+        const el = document.getElementById(target.id);
+        if (el && i < parts.length) {
+            el.value = parts[i];
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            filled += 1;
+        }
+    });
 
-    if (statusEl) statusEl.textContent = `\u2705 ${idx} waarden ingevuld.`;
     validateAll();
+    if (statusEl) {
+        statusEl.textContent = parts.length < targets.length
+            ? `${filled}/${targets.length} waarden ingevuld. Er ontbreken nog waarden.`
+            : `${filled}/${targets.length} waarden ingevuld.`;
+    }
 }
 
 // build the paste format hint for the sidebar
 function updatePasteFormatHint() {
-    const sc = state.scenario;
     const el = document.getElementById('paste-format-hint');
-    if (!el || !sc) return;
-    const colHeaders = [
-        ...sc.groups.map((_, i) => `Y&#x0305;<sub>${i + 1}</sub>`),
-        'Y&#x0305;..', 'SSW', 'SSB', 'SST',
-        'df<sub>B</sub>', 'df<sub>W</sub>', 'df<sub>T</sub>',
-        'MSB', 'MSW', 'F', '\u03B7\xB2'
-    ];
+    if (!el || !state.scenario) return;
+    const targets = getPasteTargets();
     el.innerHTML =
         `<div class="paste-hint">Volgorde kolommen (plak tab-gescheiden uit Excel):</div>` +
         `<table class="paste-cols-table">` +
-        `<thead><tr>${colHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead>` +
-        `<tbody><tr>${colHeaders.map(() => `<td>\u2014</td>`).join('')}</tr></tbody>` +
+        `<thead><tr>${targets.map(t => `<th>${t.label}</th>`).join('')}</tr></thead>` +
+        `<tbody><tr>${targets.map(() => `<td>...</td>`).join('')}</tr></tbody>` +
         `</table>`;
+}
+
+function initExcelPastePanel() {
+    const anchor = document.getElementById('btn-random');
+    if (!anchor || document.getElementById('excel-paste-card')) return;
+    const card = document.createElement('div');
+    card.className = 'sidebar-card excel-paste-card';
+    card.id = 'excel-paste-card';
+    card.innerHTML = `
+      <div class="sidebar-card-title">Plakken uit Excel</div>
+      <p class="paste-hint">Plak een rij of bereik met tab-gescheiden waarden. De waarden worden van links naar rechts ingevuld.</p>
+      <div id="paste-format-hint" class="paste-format-wrap"></div>
+      <textarea id="excel-paste-values" class="excel-paste-area" rows="3" placeholder="Plak hier waarden uit Excel"></textarea>
+      <button id="btn-paste-excel" class="btn-secondary" type="button">Vul waarden in</button>
+      <div id="paste-status" class="paste-status"></div>`;
+    anchor.insertAdjacentElement('afterend', card);
+    document.getElementById('btn-paste-excel').addEventListener('click', () => {
+        parsePasteInput(document.getElementById('excel-paste-values').value);
+    });
+    document.getElementById('excel-paste-values').addEventListener('paste', () => {
+        window.setTimeout(() => parsePasteInput(document.getElementById('excel-paste-values').value), 0);
+    });
+    updatePasteFormatHint();
 }
 
 // \u2500\u2500\u2500 NAVIGATION SCROLL \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1404,6 +1453,7 @@ function init() {
     populateScenarioDropdown();
     setupNav();
     attachGlobalListeners();
+    initExcelPastePanel();
     const seedEl = document.getElementById('inp-seed');
     if (seedEl) {
         seedEl.value = String(nextRandomSeed());
