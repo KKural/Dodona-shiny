@@ -1915,7 +1915,7 @@ function printQuestionPaper() {
       border: 1pt solid #000;
       padding: 4pt 5pt;
       font-weight: 700;
-      text-align: left;
+      text-align: center;
       word-break: break-word;
     }
     table.data-table td {
@@ -2070,8 +2070,8 @@ function openDatasetInNewWindow() {
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
     .panel { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; background: #fff; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px; }
-    th { background: #e9f0ff; color: #133e87; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; vertical-align: middle; }
+    th { background: #e9f0ff; color: #133e87; }
     .path-wrap svg { width: 100%; height: auto; }
     .path-wrap .node { fill: #eef4ff; stroke: #1d4ed8; stroke-width: 1.4; }
     .path-wrap .node-y { fill: #dbeafe; }
@@ -2278,3 +2278,27 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// ── Print: inject visible ○/●/□/☑ indicators, remove after ──────────────────
+function injectPrintIndicators() {
+  document.querySelectorAll('.mcq-option').forEach((label) => {
+    const input = label.querySelector('input');
+    if (!input) return;
+    const isCheckbox = input.type === 'checkbox';
+    const isChecked = input.checked;
+    const symbol = isCheckbox
+      ? (isChecked ? '\u2611' : '\u25A1')  // ☑ or □
+      : (isChecked ? '\u25CF' : '\u25CB'); // ● or ○
+    const span = document.createElement('span');
+    span.className = 'print-indicator';
+    span.textContent = symbol;
+    label.insertBefore(span, label.firstChild);
+  });
+}
+
+function removePrintIndicators() {
+  document.querySelectorAll('.print-indicator').forEach((el) => el.remove());
+}
+
+window.addEventListener('beforeprint', injectPrintIndicators);
+window.addEventListener('afterprint', removePrintIndicators);

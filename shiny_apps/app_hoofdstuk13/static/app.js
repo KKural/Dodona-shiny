@@ -2278,3 +2278,27 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// ── Print: inject visible ○/●/□/☑ indicators, remove after ──────────────────
+function injectPrintIndicators() {
+  document.querySelectorAll('.mcq-option').forEach((label) => {
+    const input = label.querySelector('input');
+    if (!input) return;
+    const isCheckbox = input.type === 'checkbox';
+    const isChecked = input.checked;
+    const symbol = isCheckbox
+      ? (isChecked ? '\u2611' : '\u25A1')  // ☑ or □
+      : (isChecked ? '\u25CF' : '\u25CB'); // ● or ○
+    const span = document.createElement('span');
+    span.className = 'print-indicator';
+    span.textContent = symbol;
+    label.insertBefore(span, label.firstChild);
+  });
+}
+
+function removePrintIndicators() {
+  document.querySelectorAll('.print-indicator').forEach((el) => el.remove());
+}
+
+window.addEventListener('beforeprint', injectPrintIndicators);
+window.addEventListener('afterprint', removePrintIndicators);
