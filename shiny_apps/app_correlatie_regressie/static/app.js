@@ -91,8 +91,16 @@ const FIELD_TRUTH_KEY = {
 };
 
 const REQUIRED_FIELDS = Object.keys(FIELD_TRUTH_KEY);
+const CORRELATION_REQUIRED_FIELDS = [
+  'mean_X', 'mean_Y',
+  'tot_X1_2', 'tot_Y2',
+  'var_X', 'sd_X', 'var_Y', 'sd_Y',
+  'cross_product_sum', 'covariance', 'sd_product', 'correlation'
+];
+const CORRELATION_REQUIRED_SET = new Set(CORRELATION_REQUIRED_FIELDS);
 
 const state = {
+  mode: 'Bivariate',
   scenario: null,
   rows: [],
   names: { x: '', y: '' },
@@ -361,6 +369,22 @@ function makeField(container, id, label) {
   container.appendChild(w);
 }
 
+function getRequiredSet() {
+  if (state.mode === 'Correlation') return CORRELATION_REQUIRED_SET;
+  return null;
+}
+
+function isRequiredField(id) {
+  const corrSet = getRequiredSet();
+  if (!corrSet) return true;
+  return corrSet.has(id);
+}
+
+function getRequiredCount() {
+  if (state.mode === 'Correlation') return CORRELATION_REQUIRED_FIELDS.length;
+  return REQUIRED_FIELDS.length;
+}
+
 function buildFields() {
   FIELD_GROUPS.means.forEach(([id, label]) => makeField(document.getElementById('means-grid'), id, label));
   FIELD_GROUPS.totals.forEach(([id, label]) => makeField(document.getElementById('totals-grid'), id, label));
@@ -455,7 +479,30 @@ function clearStatuses() {
   document.getElementById('interpretation').innerHTML = '';
   state.unlocked = false;
   destroyCharts();
+  setVizNavLock(false);
+  updateProgress(0, getRequiredCount());
 }
+
+const FIELD_HINTS = {
+  mean_X: 'gem(X) = ΣX / n',
+  mean_Y: 'gem(Y) = ΣY / n',
+  tot_X1_2: 'Variatie = Σ(Xi − X̄)²',
+  tot_Y2: 'Variatie = Σ(Yi − Y̅)²',
+  var_X: 's²(X) = Variatie(X) / (n−1)',
+  sd_X: 's(X) = √Var(X)',
+  var_Y: 's²(Y) = Variatie(Y) / (n−1)',
+  sd_Y: 's(Y) = √Var(Y)',
+  cross_product_sum: 'KPS = Σ(Xi−X̄)(Yi−Y̅)',
+  covariance: 'Cov = KPS / (n−1)',
+  sd_product: 's(X) × s(Y)',
+  correlation: 'r = Cov(X,Y) / (s(X)·s(Y))',
+  slope: 'b = Cov(X,Y) / Var(X)',
+  intercept: 'a = Y̅ − b·X̄',
+  r_squared: 'R² = r²',
+  alienation: 'Vervreemding = 1 − R²',
+  f_stat: 'F = (R²/k) / ((1−R²)/(n−k−1))',
+  model_p_value: 'p = P(F ≥ f-waarde)',
+};
 
 function markField(id, ok, attempted) {
   const inp = document.getElementById(id);
@@ -475,7 +522,8 @@ function markField(id, ok, attempted) {
   } else {
     inp.classList.add('invalid');
     msg.classList.add('err');
-    msg.textContent = `${id} is onjuist.`;
+    const hint = FIELD_HINTS[id];
+    msg.textContent = hint ? `Fout — formule: ${hint}` : `${id} is onjuist.`;
   }
 }
 
@@ -484,13 +532,16 @@ function evaluatePredictions() {
   if (!state.truth || !state.predInputs.length) {
     msg.textContent = '';
     msg.className = 'status';
-    return { allEntered: false, allCorrect: false };
+    return { allEntered: false, allCorrect: false, correctCount: 0, totalCount: state.predInputs.length };
   }
 
   let allEntered = true;
   let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
 
   state.predInputs.forEach((inp, i) => {
+    totalCount += 1;
     inp.classList.remove('valid', 'invalid');
     const v = parseNum(inp.value);
     if (!Number.isFinite(v)) {
@@ -500,7 +551,10 @@ function evaluatePredictions() {
     }
 
     const ok = check4(v, state.truth.predictions[i]);
-    if (ok) inp.classList.add('valid');
+    if (ok) {
+      inp.classList.add('valid');
+      correctCount += 1;
+    }
     else {
       inp.classList.add('invalid');
       allCorrect = false;
@@ -518,7 +572,7 @@ function evaluatePredictions() {
     msg.className = 'status err';
   }
 
-  return { allEntered, allCorrect };
+  return { allEntered, allCorrect, correctCount, totalCount };
 }
 
 function simpleLine(points) {
@@ -542,10 +596,13 @@ function destroyCharts() {
 }
 
 function renderCharts() {
+  const corrMode = state.mode === 'Correlation';
   const { x, y } = state.names;
   const t = state.truth;
   const X = state.rows.map(r => r2(Number(r[x])));
   const Y = state.rows.map(r => r2(Number(r[y])));
+  const calWrap = document.getElementById('calibration-wrap');
+  const resWrap = document.getElementById('residual-wrap');
 
   const smin = Math.min(...X);
   const smax = Math.max(...X);
@@ -562,6 +619,22 @@ function renderCharts() {
     },
     options: { responsive: true, plugins: { title: { display: true, text: 'Scatterplot met regressielijn' } }, scales: { x: { type: 'linear', title: { display: true, text: x } }, y: { title: { display: true, text: y } } } }
   });
+
+  if (corrMode) {
+    if (calWrap) calWrap.classList.add('hidden');
+    if (resWrap) resWrap.classList.add('hidden');
+    document.getElementById('interpretation').innerHTML = `
+      <b>Interpretatie</b>
+      <ul>
+        <li>r = ${t.correlation.toFixed(4)}</li>
+        <li>Sterkte en richting van de lineaire samenhang tussen X en Y.</li>
+      </ul>
+    `;
+    return;
+  }
+
+  if (calWrap) calWrap.classList.remove('hidden');
+  if (resWrap) resWrap.classList.remove('hidden');
 
   const calibPts = t.predictions.map((p, i) => ({ x: p, y: Y[i] }));
   const cmin = Math.min(...calibPts.map(p => Math.min(p.x, p.y)));
@@ -615,26 +688,33 @@ function evaluateAll() {
 
   let allEntered = true;
   let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
 
   REQUIRED_FIELDS.forEach(id => {
+    const required = isRequiredField(id);
+    if (required) totalCount += 1;
     const inp = document.getElementById(id);
     const attempted = Number.isFinite(parseNum(inp.value));
     const val = parseNum(inp.value);
     const ref = state.truth[FIELD_TRUTH_KEY[id]];
     const ok = attempted && check4(val, ref);
 
-    if (!attempted) allEntered = false;
-    if (!ok) allCorrect = false;
+    if (required) {
+      if (!attempted) allEntered = false;
+      if (!ok) allCorrect = false;
+      if (ok) correctCount += 1;
+    }
     markField(id, ok, attempted);
   });
 
-  const predStatus = evaluatePredictions();
-  if (!predStatus.allEntered || !predStatus.allCorrect) allCorrect = false;
-  if (!predStatus.allEntered) allEntered = false;
+  evaluatePredictions();
+  updateProgress(correctCount, totalCount);
 
   const unlock = allEntered && allCorrect;
   if (unlock !== state.unlocked) {
     state.unlocked = unlock;
+    setVizNavLock(unlock);
     if (unlock) {
       document.getElementById('success-card').classList.remove('hidden');
       document.getElementById('viz-card').classList.remove('locked');
@@ -645,6 +725,154 @@ function evaluateAll() {
       document.getElementById('interpretation').innerHTML = '';
       destroyCharts();
     }
+  }
+}
+
+function applyModeUI() {
+  const corrMode = state.mode === 'Correlation';
+  const howtoList = document.getElementById('howto-list');
+  const stepsList = document.getElementById('steps-list');
+  const successTitle = document.getElementById('success-title');
+  const nav4 = document.getElementById('nav-deel4');
+  const nav5 = document.getElementById('nav-deel5');
+  const nav6 = document.getElementById('nav-deel6');
+  const nav7 = document.getElementById('nav-deel7');
+  const hdr4 = document.getElementById('hdr-deel4');
+  const hdr5 = document.getElementById('hdr-deel5');
+  const hdr6 = document.getElementById('hdr-deel6');
+  const hdr7 = document.getElementById('hdr-deel7');
+  const sec5 = document.getElementById('deel5');
+  const sec6 = document.getElementById('deel6');
+  const sec7 = document.getElementById('deel7');
+
+  if (howtoList) {
+    howtoList.innerHTML = corrMode
+      ? `
+      <li>Oefen correlatieanalyse met criminologische datasets.</li>
+      <li>Voltooi 9 stappen verdeeld over Delen I-V (gebruik 4 decimalen).</li>
+      <li>Wanneer alle stappen kloppen, verschijnt visualisatie in Deel VI.</li>
+      `
+      : `
+      <li>Oefen bivariate regressieanalyse met criminologische datasets.</li>
+      <li>Voltooi 17 stappen verdeeld over Delen I-VIII (gebruik 4 decimalen).</li>
+      <li>F-toets en model p-waarde horen bij de verplichte model-fitstappen.</li>
+      `;
+  }
+
+  if (stepsList) {
+    stepsList.innerHTML = corrMode
+      ? `
+      <li>Deel II: Stap 1 (rekenkundige gemiddelden).</li>
+      <li>Deel III: Stappen 2-4 (afwijkingen en sommen).</li>
+      <li>Deel IV: Stappen 5-9 (varianties, SD, covariantie en r).</li>
+      `
+      : `
+      <li>Deel II: Stap 1 (rekenkundige gemiddelden).</li>
+      <li>Deel III: Stappen 2-4 (afwijkingen en sommen).</li>
+      <li>Deel IV: Stappen 5-9 (varianties, SD, covariantie en r).</li>
+      <li>Deel VI-VIII: Stappen 10-17 (b, a, voorspellingen en model fit).</li>
+      `;
+  }
+
+  if (nav4) nav4.textContent = 'IV. Stappen 5-9';
+  if (hdr4) hdr4.textContent = 'Deel IV - Stappen 5-9: Covariatie en Voorbereiding';
+  if (hdr5) hdr5.textContent = 'Deel VI - Stappen 10-12: Correlatie en Regressiecoëfficiënten';
+  if (hdr6) hdr6.textContent = 'Deel VII - Stap 13: Voorspellingen Yhat';
+  if (hdr7) hdr7.textContent = 'Deel VIII - Stappen 14-17: Model Fit en F-toets';
+
+  [nav5, nav6, nav7, sec5, sec6, sec7].forEach(el => {
+    if (!el) return;
+    el.classList.toggle('hidden', corrMode);
+  });
+
+  if (successTitle) {
+    successTitle.textContent = corrMode
+      ? 'Correlatieanalyse correct uitgewerkt'
+      : 'Volledige bivariate regressie correct uitgewerkt';
+  }
+
+  const active = document.querySelector('#section-nav .nav-item.active');
+  if (active && active.classList.contains('hidden')) {
+    active.classList.remove('active');
+    const fallback = document.querySelector('#section-nav .nav-item[data-target="deel4"]');
+    if (fallback) fallback.classList.add('active');
+  }
+}
+
+function updateProgress(correct, total) {
+  const bar = document.getElementById('progress-bar');
+  const text = document.getElementById('progress-text');
+  if (!bar || !text) return;
+  const pct = total > 0 ? (100 * correct / total) : 0;
+  bar.style.width = `${pct.toFixed(1)}%`;
+  text.textContent = `${correct} / ${total} correct`;
+}
+
+function setVizNavLock(unlocked) {
+  const nav = document.querySelector('.nav-item[data-target="viz-card"]');
+  if (!nav) return;
+  nav.classList.toggle('locked', !unlocked);
+}
+
+function setupNav() {
+  const nav = document.getElementById('section-nav');
+  if (!nav) return;
+  const items = Array.from(nav.querySelectorAll('.nav-item'));
+
+  nav.addEventListener('click', (e) => {
+    const item = e.target.closest('.nav-item');
+    if (!item || item.classList.contains('locked')) return;
+    const target = item.dataset.target;
+    const sec = document.getElementById(target);
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    items.forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+  });
+}
+
+function setupSidebarChrome() {
+  const sidebarEl = document.getElementById('sidebar');
+  const overlayEl = document.getElementById('sidebar-overlay');
+  const btnToggle = document.getElementById('btn-sidebar-toggle');
+  const btnClose = document.getElementById('btn-sidebar-close');
+
+  function closeSidebar() {
+    if (sidebarEl) sidebarEl.classList.remove('open');
+    if (overlayEl) overlayEl.classList.remove('visible');
+  }
+
+  if (btnToggle) {
+    btnToggle.addEventListener('click', () => {
+      if (sidebarEl) sidebarEl.classList.add('open');
+      if (overlayEl) overlayEl.classList.add('visible');
+    });
+  }
+  if (btnClose) btnClose.addEventListener('click', closeSidebar);
+  if (overlayEl) overlayEl.addEventListener('click', closeSidebar);
+
+  const resizeHandle = document.getElementById('sidebar-resize-handle');
+  if (resizeHandle && sidebarEl) {
+    let startX = 0;
+    let startWidth = 0;
+    resizeHandle.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      startWidth = sidebarEl.getBoundingClientRect().width;
+      resizeHandle.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!resizeHandle.classList.contains('dragging')) return;
+      const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
+      sidebarEl.style.width = `${newWidth}px`;
+    });
+    document.addEventListener('mouseup', () => {
+      if (!resizeHandle.classList.contains('dragging')) return;
+      resizeHandle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
   }
 }
 
@@ -675,11 +903,22 @@ function bindEvents() {
   document.getElementById('btn-generate').addEventListener('click', () => generate(false));
   document.getElementById('btn-random').addEventListener('click', () => generate(true));
   document.getElementById('scenario').addEventListener('change', () => generate(false));
+  document.getElementById('mode').addEventListener('change', (e) => {
+    state.mode = e.target.value === 'Correlation' ? 'Correlation' : 'Bivariate';
+    applyModeUI();
+    clearStatuses();
+    evaluateAll();
+  });
 }
 
 function init() {
+  const modeEl = document.getElementById('mode');
+  state.mode = modeEl && modeEl.value === 'Correlation' ? 'Correlation' : 'Bivariate';
   fillScenarioSelect();
   buildFields();
+  applyModeUI();
+  setupNav();
+  setupSidebarChrome();
   bindEvents();
   generate(false);
 }

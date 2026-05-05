@@ -481,6 +481,8 @@ function resetInputs() {
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('viz-card').classList.add('locked');
   state.unlocked = false;
+  setVizNavLock(false);
+  updateProgress(0, REQUIRED_FIELDS.length);
 }
 
 function markField(id, ok, attempted) {
@@ -511,33 +513,39 @@ function evaluatePredictions() {
   if (!truth || !state.predInputs.length) {
     msg.textContent = '';
     msg.className = 'status';
-    return;
+    return { allEntered: false, allCorrect: false, correctCount: 0, totalCount: state.predInputs.length };
   }
 
-  const entered = [];
-  let anyEntered = false;
+  let allEntered = true;
   let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
 
   state.predInputs.forEach((inp, i) => {
+    totalCount += 1;
     const val = parseNum(inp.value);
     inp.classList.remove('valid', 'invalid');
 
     if (Number.isFinite(val)) {
-      anyEntered = true;
       const ok = checkDecimals(val, truth.yhat[i], 4);
-      entered.push({ ok, idx: i });
-      if (ok) inp.classList.add('valid');
+      if (ok) {
+        inp.classList.add('valid');
+        correctCount += 1;
+      }
       else {
         inp.classList.add('invalid');
         allCorrect = false;
       }
+    } else {
+      allEntered = false;
+      allCorrect = false;
     }
   });
 
-  if (!anyEntered) {
+  if (!allEntered) {
     msg.textContent = '';
     msg.className = 'status';
-    return;
+    return { allEntered, allCorrect, correctCount, totalCount };
   }
 
   if (allCorrect) {
@@ -547,6 +555,8 @@ function evaluatePredictions() {
     msg.textContent = 'Sommige voorspellingen zijn fout.';
     msg.className = 'status err';
   }
+
+  return { allEntered, allCorrect, correctCount, totalCount };
 }
 
 function simpleLine(points) {
@@ -769,8 +779,11 @@ function evaluateAll() {
 
   let allAttempted = true;
   let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
 
   REQUIRED_FIELDS.forEach(id => {
+    totalCount += 1;
     const el = document.getElementById(id);
     const attempted = hasAttempted(el);
     const val = parseNum(el.value);
@@ -780,15 +793,18 @@ function evaluateAll() {
 
     if (!attempted) allAttempted = false;
     if (!ok) allCorrect = false;
+    if (ok) correctCount += 1;
 
     markField(id, ok, attempted);
   });
 
   evaluatePredictions();
+  updateProgress(correctCount, totalCount);
 
   const unlock = allAttempted && allCorrect;
   if (unlock !== state.unlocked) {
     state.unlocked = unlock;
+    setVizNavLock(unlock);
 
     const successCard = document.getElementById('success-card');
     const vizCard = document.getElementById('viz-card');
@@ -803,6 +819,83 @@ function evaluateAll() {
       destroyCharts();
       document.getElementById('interpretation').innerHTML = '';
     }
+  }
+}
+
+function updateProgress(correct, total) {
+  const bar = document.getElementById('progress-bar');
+  const text = document.getElementById('progress-text');
+  if (!bar || !text) return;
+  const pct = total > 0 ? (100 * correct / total) : 0;
+  bar.style.width = `${pct.toFixed(1)}%`;
+  text.textContent = `${correct} / ${total} correct`;
+}
+
+function setVizNavLock(unlocked) {
+  const nav = document.querySelector('.nav-item[data-target="viz-card"]');
+  if (!nav) return;
+  nav.classList.toggle('locked', !unlocked);
+}
+
+function setupNav() {
+  const nav = document.getElementById('section-nav');
+  if (!nav) return;
+  const items = Array.from(nav.querySelectorAll('.nav-item'));
+
+  nav.addEventListener('click', (e) => {
+    const item = e.target.closest('.nav-item');
+    if (!item || item.classList.contains('locked')) return;
+    const target = item.dataset.target;
+    const sec = document.getElementById(target);
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    items.forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+  });
+}
+
+function setupSidebarChrome() {
+  const sidebarEl = document.getElementById('sidebar');
+  const overlayEl = document.getElementById('sidebar-overlay');
+  const btnToggle = document.getElementById('btn-sidebar-toggle');
+  const btnClose = document.getElementById('btn-sidebar-close');
+
+  function closeSidebar() {
+    if (sidebarEl) sidebarEl.classList.remove('open');
+    if (overlayEl) overlayEl.classList.remove('visible');
+  }
+
+  if (btnToggle) {
+    btnToggle.addEventListener('click', () => {
+      if (sidebarEl) sidebarEl.classList.add('open');
+      if (overlayEl) overlayEl.classList.add('visible');
+    });
+  }
+  if (btnClose) btnClose.addEventListener('click', closeSidebar);
+  if (overlayEl) overlayEl.addEventListener('click', closeSidebar);
+
+  const resizeHandle = document.getElementById('sidebar-resize-handle');
+  if (resizeHandle && sidebarEl) {
+    let startX = 0;
+    let startWidth = 0;
+    resizeHandle.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      startWidth = sidebarEl.getBoundingClientRect().width;
+      resizeHandle.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!resizeHandle.classList.contains('dragging')) return;
+      const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
+      sidebarEl.style.width = `${newWidth}px`;
+    });
+    document.addEventListener('mouseup', () => {
+      if (!resizeHandle.classList.contains('dragging')) return;
+      resizeHandle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
   }
 }
 
@@ -846,6 +939,8 @@ function bindControls() {
 function init() {
   initScenarioSelect();
   buildInputSections();
+  setupNav();
+  setupSidebarChrome();
   bindControls();
   generate(false);
 }

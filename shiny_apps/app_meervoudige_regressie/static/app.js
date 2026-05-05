@@ -94,8 +94,12 @@ const FIELD_GROUPS = {
   varsd: [
     ['var_X1', 'Var(x1)'], ['sd_X1', 'SD(x1)'],
     ['var_X2', 'Var(x2)'], ['sd_X2', 'SD(x2)'],
-    ['var_Y', 'Var(Y)'], ['sd_Y', 'SD(Y)'],
-    ['cov_x1y', 'Cov(x1,Y)'], ['cov_x2y', 'Cov(x2,Y)'], ['cov_x1x2', 'Cov(x1,x2)'],
+    ['var_Y', 'Var(Y)'], ['sd_Y', 'SD(Y)']
+  ],
+  cov: [
+    ['cov_x1y', 'Cov(x1,Y)'], ['cov_x2y', 'Cov(x2,Y)'], ['cov_x1x2', 'Cov(x1,x2)']
+  ],
+  corr: [
     ['r_x1y', 'r_x1y'], ['r_x2y', 'r_x2y'], ['r_x1x2', 'r_x1x2']
   ],
   coef: [
@@ -123,6 +127,14 @@ const FIELD_TRUTH_KEY = {
 };
 
 const REQUIRED_FIELDS = Object.keys(FIELD_TRUTH_KEY);
+const CORE_REQUIRED_FIELDS = [
+  'mean_X1', 'mean_X2', 'mean_Y',
+  'tot_X1_2', 'tot_X2_2', 'tot_X1X2', 'tot_X1Y', 'tot_X2Y', 'tot_Y2',
+  'var_X1', 'sd_X1', 'var_X2', 'sd_X2', 'var_Y', 'sd_Y',
+  'multi_det', 'multi_b1', 'multi_b2', 'multi_intercept',
+  'multi_r_squared', 'multi_alienation', 'multi_f_stat', 'multi_model_p'
+];
+const CORE_REQUIRED_SET = new Set(CORE_REQUIRED_FIELDS);
 
 const state = {
   scenario: null,
@@ -449,6 +461,8 @@ function buildFields() {
   FIELD_GROUPS.means.forEach(([id, label]) => makeField(document.getElementById('means-grid'), id, label));
   FIELD_GROUPS.totals.forEach(([id, label]) => makeField(document.getElementById('totals-grid'), id, label));
   FIELD_GROUPS.varsd.forEach(([id, label]) => makeField(document.getElementById('varsd-grid'), id, label));
+  FIELD_GROUPS.cov.forEach(([id, label]) => makeField(document.getElementById('cov-grid'), id, label));
+  FIELD_GROUPS.corr.forEach(([id, label]) => makeField(document.getElementById('corr-grid'), id, label));
   FIELD_GROUPS.coef.forEach(([id, label]) => makeField(document.getElementById('coef-grid'), id, label));
   FIELD_GROUPS.fit.forEach(([id, label]) => makeField(document.getElementById('fit-grid'), id, label));
 }
@@ -541,7 +555,41 @@ function clearStatuses() {
   document.getElementById('interpretation').innerHTML = '';
   state.unlocked = false;
   destroyCharts();
+  setVizNavLock(false);
+  updateProgress(0, CORE_REQUIRED_FIELDS.length);
 }
+
+const FIELD_HINTS = {
+  mean_X1: 'gem(X1) = ΣX1 / n',
+  mean_X2: 'gem(X2) = ΣX2 / n',
+  mean_Y: 'gem(Y) = ΣY / n',
+  tot_X1_2: 'S11 = Σ(X1i − X̄₁)²',
+  tot_X2_2: 'S22 = Σ(X2i − X̄₂)²',
+  tot_X1X2: 'S12 = Σ(X1i−X̄₁)(X2i−X̄₂)',
+  tot_X1Y: 'S1y = Σ(X1i−X̄₁)(Yi−Y̅)',
+  tot_X2Y: 'S2y = Σ(X2i−X̄₂)(Yi−Y̅)',
+  tot_Y2: 'SST = Σ(Yi − Y̅)²',
+  var_X1: 's²(X1) = S11 / (n−1)',
+  sd_X1: 's(X1) = √Var(X1)',
+  var_X2: 's²(X2) = S22 / (n−1)',
+  sd_X2: 's(X2) = √Var(X2)',
+  var_Y: 's²(Y) = SST / (n−1)',
+  sd_Y: 's(Y) = √Var(Y)',
+  cov_x1y: 'Cov(X1,Y) = S1y / (n−1)',
+  cov_x2y: 'Cov(X2,Y) = S2y / (n−1)',
+  cov_x1x2: 'Cov(X1,X2) = S12 / (n−1)',
+  r_x1y: 'r(X1,Y) = Cov(X1,Y) / (s(X1)·s(Y))',
+  r_x2y: 'r(X2,Y) = Cov(X2,Y) / (s(X2)·s(Y))',
+  r_x1x2: 'r(X1,X2) = Cov(X1,X2) / (s(X1)·s(X2))',
+  multi_det: 'det = S11·S22 − S12²',
+  multi_b1: 'b1 = (S1y·S22 − S2y·S12) / det',
+  multi_b2: 'b2 = (S2y·S11 − S1y·S12) / det',
+  multi_intercept: 'a = Y̅ − b1·X̄₁ − b2·X̄₂',
+  multi_r_squared: 'R² = (b1·S1y + b2·S2y) / SST',
+  multi_alienation: '1 − R²',
+  multi_f_stat: 'F = (R²/k) / ((1−R²)/(n−k−1))',
+  multi_model_p: 'p = P(F ≥ f-waarde)',
+};
 
 function markField(id, ok, attempted) {
   const inp = document.getElementById(id);
@@ -561,7 +609,8 @@ function markField(id, ok, attempted) {
   } else {
     inp.classList.add('invalid');
     msg.classList.add('err');
-    msg.textContent = `${id} is onjuist.`;
+    const hint = FIELD_HINTS[id];
+    msg.textContent = hint ? `Fout — formule: ${hint}` : `${id} is onjuist.`;
   }
 }
 
@@ -570,13 +619,16 @@ function evaluatePredictions() {
   if (!state.truth || !state.predInputs.length) {
     msg.textContent = '';
     msg.className = 'status';
-    return { allEntered: false, allCorrect: false };
+    return { allEntered: false, allCorrect: false, correctCount: 0, totalCount: state.predInputs.length };
   }
 
   let allEntered = true;
   let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
 
   state.predInputs.forEach((inp, i) => {
+    totalCount += 1;
     inp.classList.remove('valid', 'invalid');
     const v = parseNum(inp.value);
     if (!Number.isFinite(v)) {
@@ -586,7 +638,10 @@ function evaluatePredictions() {
     }
 
     const ok = check4(v, state.truth.predictions[i]);
-    if (ok) inp.classList.add('valid');
+    if (ok) {
+      inp.classList.add('valid');
+      correctCount += 1;
+    }
     else {
       inp.classList.add('invalid');
       allCorrect = false;
@@ -604,7 +659,7 @@ function evaluatePredictions() {
     msg.className = 'status err';
   }
 
-  return { allEntered, allCorrect };
+  return { allEntered, allCorrect, correctCount, totalCount };
 }
 
 function simpleLine(points) {
@@ -704,8 +759,12 @@ function evaluateAll() {
 
   let allEntered = true;
   let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
 
   REQUIRED_FIELDS.forEach(id => {
+    const isCore = CORE_REQUIRED_SET.has(id);
+    if (isCore) totalCount += 1;
     const inp = document.getElementById(id);
     const attempted = Number.isFinite(parseNum(inp.value));
     const val = parseNum(inp.value);
@@ -713,19 +772,22 @@ function evaluateAll() {
     const ref = state.truth[key];
     const ok = attempted && check4(val, ref);
 
-    if (!attempted) allEntered = false;
-    if (!ok) allCorrect = false;
+    if (isCore) {
+      if (!attempted) allEntered = false;
+      if (!ok) allCorrect = false;
+      if (ok) correctCount += 1;
+    }
 
     markField(id, ok, attempted);
   });
 
-  const predStatus = evaluatePredictions();
-  if (!predStatus.allEntered || !predStatus.allCorrect) allCorrect = false;
-  if (!predStatus.allEntered) allEntered = false;
+  evaluatePredictions();
+  updateProgress(correctCount, totalCount);
 
   const unlock = allEntered && allCorrect;
   if (unlock !== state.unlocked) {
     state.unlocked = unlock;
+    setVizNavLock(unlock);
     if (unlock) {
       document.getElementById('success-card').classList.remove('hidden');
       document.getElementById('viz-card').classList.remove('locked');
@@ -736,6 +798,83 @@ function evaluateAll() {
       document.getElementById('interpretation').innerHTML = '';
       destroyCharts();
     }
+  }
+}
+
+function updateProgress(correct, total) {
+  const bar = document.getElementById('progress-bar');
+  const text = document.getElementById('progress-text');
+  if (!bar || !text) return;
+  const pct = total > 0 ? (100 * correct / total) : 0;
+  bar.style.width = `${pct.toFixed(1)}%`;
+  text.textContent = `${correct} / ${total} correct`;
+}
+
+function setVizNavLock(unlocked) {
+  const nav = document.querySelector('.nav-item[data-target="viz-card"]');
+  if (!nav) return;
+  nav.classList.toggle('locked', !unlocked);
+}
+
+function setupNav() {
+  const nav = document.getElementById('section-nav');
+  if (!nav) return;
+  const items = Array.from(nav.querySelectorAll('.nav-item'));
+
+  nav.addEventListener('click', (e) => {
+    const item = e.target.closest('.nav-item');
+    if (!item || item.classList.contains('locked')) return;
+    const target = item.dataset.target;
+    const sec = document.getElementById(target);
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    items.forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+  });
+}
+
+function setupSidebarChrome() {
+  const sidebarEl = document.getElementById('sidebar');
+  const overlayEl = document.getElementById('sidebar-overlay');
+  const btnToggle = document.getElementById('btn-sidebar-toggle');
+  const btnClose = document.getElementById('btn-sidebar-close');
+
+  function closeSidebar() {
+    if (sidebarEl) sidebarEl.classList.remove('open');
+    if (overlayEl) overlayEl.classList.remove('visible');
+  }
+
+  if (btnToggle) {
+    btnToggle.addEventListener('click', () => {
+      if (sidebarEl) sidebarEl.classList.add('open');
+      if (overlayEl) overlayEl.classList.add('visible');
+    });
+  }
+  if (btnClose) btnClose.addEventListener('click', closeSidebar);
+  if (overlayEl) overlayEl.addEventListener('click', closeSidebar);
+
+  const resizeHandle = document.getElementById('sidebar-resize-handle');
+  if (resizeHandle && sidebarEl) {
+    let startX = 0;
+    let startWidth = 0;
+    resizeHandle.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      startWidth = sidebarEl.getBoundingClientRect().width;
+      resizeHandle.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!resizeHandle.classList.contains('dragging')) return;
+      const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
+      sidebarEl.style.width = `${newWidth}px`;
+    });
+    document.addEventListener('mouseup', () => {
+      if (!resizeHandle.classList.contains('dragging')) return;
+      resizeHandle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
   }
 }
 
@@ -771,6 +910,8 @@ function bindEvents() {
 function init() {
   fillScenarioSelect();
   buildFields();
+  setupNav();
+  setupSidebarChrome();
   bindEvents();
   generate(false);
 }

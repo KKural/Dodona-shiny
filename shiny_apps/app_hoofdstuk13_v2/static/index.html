@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synthese-oefening Statistiek - Hoofdstuk 13 v2</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Hoofdstuk 13 v2</h1>
+      <p class="muted">Statische examenoefening met automatische feedback.</p>
+
+      <div class="panel">
+        <h2>Dataset genereren</h2>
+        <label for="scenario">Scenario</label>
+        <select id="scenario"></select>
+
+        <label for="n-input">Aantal respondenten (vast)</label>
+        <input id="n-input" type="number" value="10" readonly />
+
+        <label for="seed">Datasetcode (seed, optioneel)</label>
+        <input id="seed" type="number" min="1" placeholder="bijv. 2026" />
+
+        <div class="btn-row">
+          <button id="btn-generate" class="btn btn-primary">Genereer dataset</button>
+          <button id="btn-random" class="btn btn-secondary">Willekeurig scenario</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Instructies</h2>
+        <ul>
+          <li>Rond tussenstappen af op 4 decimalen.</li>
+          <li>Rond einduitkomsten af op 2 decimalen.</li>
+          <li>MCQ + open antwoorden worden enkel opgeslagen op dit toestel (geen backend).</li>
+        </ul>
+        <button id="btn-reset-answers" class="btn btn-secondary">Reset antwoorden</button>
+        <button id="btn-print" class="btn btn-outline">Vragenblad printen</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="card hero">
+        <h2>OPEN EXAMENVRAAG STATISTIEK AJ 2024-2025 1ste zittijd</h2>
+        <p><strong>(oefenversie)</strong></p>
+      </section>
+
+      <section class="card">
+        <h3>OPGAVE</h3>
+        <p id="scenario-text" class="context-text">Genereer een dataset om te starten.</p>
+        <ul>
+          <li><strong id="opgave-x1-name">X1</strong> (verklarende variabele)</li>
+          <li><strong id="opgave-x2-name">X2</strong> (verklarende variabele)</li>
+          <li><strong id="opgave-y-name">Y</strong> (afhankelijke variabele)</li>
+        </ul>
+        <p class="context-text">
+          In <strong>Tabel 2</strong> vind je de gegevens voor regressie/correlatie. In <strong>Figuur 1</strong> staat het conceptueel model.
+          Gebruik daarnaast <strong>Figuur 2</strong> (padmodel) voor de pathmodel-vragen.
+        </p>
+        <p class="dataset-meta"><strong>Datasetcode:</strong> <span id="seed-used">-</span></p>
+      </section>
+
+      <section class="card" id="deel-a">
+        <h3>Tabel 2 - Dataset voor regressie en correlatie (Dataset 1)</h3>
+        <div class="table-wrap">
+          <table id="dataset-table">
+            <thead>
+              <tr>
+                <th>Respondent</th>
+                <th id="th-x1">X1</th>
+                <th id="th-x2">X2</th>
+                <th id="th-y">Y</th>
+                <th id="th-bin">Groep</th>
+              </tr>
+            </thead>
+            <tbody id="dataset-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="deel-model">
+        <h3>Figuur 1 - Conceptueel model</h3>
+        <div class="model-box">
+          <svg viewBox="0 0 800 260" role="img" aria-label="Conceptueel model">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                <polygon points="0,0 10,4 0,8"></polygon>
+              </marker>
+            </defs>
+
+            <rect x="60" y="70" width="220" height="70" class="node"></rect>
+            <text x="170" y="98" text-anchor="middle" class="node-main">X1</text>
+            <text x="170" y="120" text-anchor="middle" class="node-sub" id="model-x1-name">Aantal eerdere veroordelingen</text>
+
+            <rect x="60" y="170" width="220" height="70" class="node"></rect>
+            <text x="170" y="198" text-anchor="middle" class="node-main">X2</text>
+            <text x="170" y="220" text-anchor="middle" class="node-sub" id="model-x2-name">Leeftijd</text>
+
+            <rect x="510" y="118" width="220" height="70" class="node node-y"></rect>
+            <text x="620" y="146" text-anchor="middle" class="node-main">Y</text>
+            <text x="620" y="168" text-anchor="middle" class="node-sub" id="model-y-name">Strafduur</text>
+
+            <line x1="280" y1="105" x2="510" y2="135" class="edge" marker-end="url(#arrow)"></line>
+            <line x1="280" y1="205" x2="510" y2="171" class="edge" marker-end="url(#arrow)"></line>
+            <line x1="170" y1="140" x2="170" y2="170" class="edge edge-dashed" marker-end="url(#arrow)"></line>
+
+            <text x="390" y="100" class="edge-label" id="model-b1-label">b1 = ?</text>
+            <text x="390" y="206" class="edge-label" id="model-b2-label">b2 = ?</text>
+            <text x="182" y="160" class="edge-label" id="model-r-label">r = ?</text>
+            <text x="580" y="105" class="edge-label" id="model-r2-label">R^2 = ?</text>
+          </svg>
+        </div>
+      </section>
+
+      <section class="card" id="deel-path">
+        <h3>Figuur 2 - Padmodel (Dataset 2)</h3>
+        <p class="context-text" id="path-scenario-text">
+          Gebruik deze tweede bijlage voor padmodelvragen (rechtstreekse, onrechtstreekse en totale effecten).
+        </p>
+        <div class="table-wrap">
+          <table id="path-table">
+            <thead>
+              <tr>
+                <th>Pad</th>
+                <th>Interpretatie</th>
+                <th>Waarde</th>
+              </tr>
+            </thead>
+            <tbody id="path-table-body"></tbody>
+          </table>
+        </div>
+        <div class="model-box" style="margin-top:10px">
+          <svg viewBox="0 0 900 310" role="img" aria-label="Padmodel">
+            <defs>
+              <marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                <polygon points="0,0 10,4 0,8"></polygon>
+              </marker>
+            </defs>
+
+            <rect x="40" y="40" width="220" height="80" class="node"></rect>
+            <text x="150" y="72" text-anchor="middle" class="node-main" id="pm-node-xa-1">Hechting</text>
+            <text x="150" y="95" text-anchor="middle" class="node-sub" id="pm-node-xa-2">ouders-kind</text>
+
+            <rect x="40" y="190" width="220" height="80" class="node"></rect>
+            <text x="150" y="222" text-anchor="middle" class="node-main" id="pm-node-xb-1">Sociale controle</text>
+            <text x="150" y="245" text-anchor="middle" class="node-sub" id="pm-node-xb-2">door ouders</text>
+
+            <rect x="370" y="40" width="220" height="80" class="node"></rect>
+            <text x="480" y="72" text-anchor="middle" class="node-main" id="pm-node-m1-1">Conventionele</text>
+            <text x="480" y="95" text-anchor="middle" class="node-sub" id="pm-node-m1-2">morele normen</text>
+
+            <rect x="370" y="190" width="220" height="80" class="node"></rect>
+            <text x="480" y="232" text-anchor="middle" class="node-main" id="pm-node-m2-1">Zelfcontrole</text>
+            <text x="480" y="252" text-anchor="middle" class="node-sub" id="pm-node-m2-2"></text>
+
+            <rect x="700" y="115" width="180" height="90" class="node node-y"></rect>
+            <text x="790" y="150" text-anchor="middle" class="node-main" id="pm-node-y-1">Altruisme</text>
+            <text x="790" y="172" text-anchor="middle" class="node-sub" id="pm-node-y-2"></text>
+
+            <line x1="260" y1="80" x2="370" y2="80" class="edge" marker-end="url(#arrow2)"></line>
+            <line x1="150" y1="120" x2="150" y2="190" class="edge" marker-end="url(#arrow2)"></line>
+            <line x1="260" y1="230" x2="370" y2="230" class="edge" marker-end="url(#arrow2)"></line>
+            <line x1="480" y1="120" x2="480" y2="190" class="edge" marker-end="url(#arrow2)"></line>
+            <line x1="590" y1="80" x2="700" y2="140" class="edge" marker-end="url(#arrow2)"></line>
+            <line x1="590" y1="230" x2="700" y2="175" class="edge" marker-end="url(#arrow2)"></line>
+
+            <text x="305" y="62" class="edge-label" id="pm-a">a=?</text>
+            <text x="160" y="160" class="edge-label" id="pm-b">b=?</text>
+            <text x="305" y="212" class="edge-label" id="pm-c">c=?</text>
+            <text x="492" y="160" class="edge-label" id="pm-d">d=?</text>
+            <text x="645" y="102" class="edge-label" id="pm-e">e=?</text>
+            <text x="645" y="215" class="edge-label" id="pm-f">f=?</text>
+            <text x="760" y="108" class="edge-label" id="pm-r2">R^2=?</text>
+          </svg>
+        </div>
+      </section>
+
+      <section class="card" id="deel-mcq-dataset">
+        <h3>MEERKEUZEVRAGEN - Datasetgebonden (Vraag 1-11)</h3>
+        <p class="context-text">Kies telkens exact 1 antwoord. Feedback verschijnt meteen na je keuze.</p>
+        <div id="mcq-dataset-list" class="mcq-list"></div>
+        <div id="fb-mcq-dataset-summary" class="section-feedback"></div>
+      </section>
+
+      <section class="card" id="deel-mcq-general">
+        <h3>MEERKEUZEVRAGEN - Algemeen (Vraag 12-16)</h3>
+        <p class="context-text">Conceptuele examenvragen met onmiddellijke feedback per keuze.</p>
+        <div id="mcq-general-list" class="mcq-list"></div>
+        <div id="fb-mcq-general-summary" class="section-feedback"></div>
+      </section>
+
+      <section class="card" id="deel-open-vraag">
+        <h3>OPEN EXAMENVRAAG</h3>
+        <p>
+          Voer een meervoudige lineaire regressie-analyse uit met <span class="var-y-name">Y</span> als afhankelijke variabele
+          en <span class="var-x1-name">X1</span> en <span class="var-x2-name">X2</span> als onafhankelijke variabelen.
+        </p>
+        <p id="open-question-context" class="context-text"></p>
+      </section>
+
+      <section class="card" id="deel-antwoordformulier">
+        <h3>Antwoordformulier (open vragen)</h3>
+        <div class="table-wrap">
+          <table class="answer-table">
+            <tbody>
+              <tr>
+                <td style="width:35%"><strong>Naam student</strong></td>
+                <td><input id="student-name" class="no-eval" type="text" placeholder="Naam" /></td>
+              </tr>
+              <tr>
+                <td><strong>Studentennummer</strong></td>
+                <td><input id="student-number" class="no-eval" type="text" placeholder="Studentennummer" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <br />
+        <div class="table-wrap">
+          <table class="answer-table">
+            <thead>
+              <tr>
+                <th>Onderdeel</th>
+                <th>Jouw antwoord</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Bivariate regressie</strong>: r(<span class="var-x1-name">X1</span>, <span class="var-y-name">Y</span>)</td>
+                <td><input id="ans-bivar-r" type="text" placeholder="bijv. 0.4321" /></td>
+              </tr>
+              <tr>
+                <td>R^2 (bivariate regressie van <span class="var-y-name">Y</span> op <span class="var-x1-name">X1</span>)</td>
+                <td><input id="ans-bivar-r2" type="text" placeholder="bijv. 0.1870" /></td>
+              </tr>
+              <tr>
+                <td>Helling b (bivariate regressie)</td>
+                <td><input id="ans-bivar-b" type="text" placeholder="bijv. 1.2300" /></td>
+              </tr>
+              <tr>
+                <td>Intercept a (bivariate regressie)</td>
+                <td><input id="ans-bivar-a" type="text" placeholder="bijv. 3.4500" /></td>
+              </tr>
+              <tr>
+                <td>Interpretatie b (bivariate regressie)</td>
+                <td><textarea id="ans-bivar-b-int" rows="3" placeholder="Schrijf je interpretatie in woorden."></textarea></td>
+              </tr>
+              <tr>
+                <td>Interpretatie R^2 (bivariate regressie)</td>
+                <td><textarea id="ans-bivar-r2-int" rows="3" placeholder="Schrijf je interpretatie in woorden."></textarea></td>
+              </tr>
+
+              <tr class="divider-row">
+                <td><strong>Meervoudige regressie</strong>: b1 (voor <span class="var-x1-name">X1</span>)</td>
+                <td><input id="ans-multi-b1" type="text" placeholder="bijv. 0.8765" /></td>
+              </tr>
+              <tr>
+                <td>Interpretatie b1 (ceteris paribus)</td>
+                <td><textarea id="ans-multi-b1-int" rows="3" placeholder="Schrijf je interpretatie in woorden."></textarea></td>
+              </tr>
+              <tr>
+                <td>b2 (voor <span class="var-x2-name">X2</span>)</td>
+                <td><input id="ans-multi-b2" type="text" placeholder="bijv. -0.1200" /></td>
+              </tr>
+              <tr>
+                <td>Interpretatie b2 (ceteris paribus)</td>
+                <td><textarea id="ans-multi-b2-int" rows="3" placeholder="Schrijf je interpretatie in woorden."></textarea></td>
+              </tr>
+              <tr>
+                <td>Intercept a (meervoudige regressie)</td>
+                <td><input id="ans-multi-a" type="text" placeholder="bijv. 5.6700" /></td>
+              </tr>
+              <tr>
+                <td>R^2 (meervoudige regressie)</td>
+                <td><input id="ans-multi-r2" type="text" placeholder="bijv. 0.3050" /></td>
+              </tr>
+              <tr>
+                <td>Interpretatie R^2 (meervoudige regressie)</td>
+                <td><textarea id="ans-multi-r2-int" rows="3" placeholder="Schrijf je interpretatie in woorden."></textarea></td>
+              </tr>
+
+              <tr class="divider-row">
+                <td><strong>Correlatie tussen voorspellers</strong>: r(<span class="var-x1-name">X1</span>, <span class="var-x2-name">X2</span>)</td>
+                <td><input id="ans-rx1x2" type="text" placeholder="bijv. 0.2510" /></td>
+              </tr>
+              <tr>
+                <td>Interpretatie van r(<span class="var-x1-name">X1</span>, <span class="var-x2-name">X2</span>)</td>
+                <td><textarea id="ans-rx1x2-int" rows="3" placeholder="Schrijf je interpretatie in woorden."></textarea></td>
+              </tr>
+
+              <tr class="divider-row">
+                <td><strong>Partiele correlaties</strong>: r(<span class="var-x1-name">X1</span>,<span class="var-y-name">Y</span> | <span class="var-x2-name">X2</span>)</td>
+                <td><input id="ans-partial-1" type="text" placeholder="bijv. 0.4100" /></td>
+              </tr>
+              <tr>
+                <td>r(<span class="var-x2-name">X2</span>,<span class="var-y-name">Y</span> | <span class="var-x1-name">X1</span>)</td>
+                <td><input id="ans-partial-2" type="text" placeholder="bijv. -0.2200" /></td>
+              </tr>
+
+              <tr class="divider-row">
+                <td><strong>Verwachte waarde</strong>: <span id="pred-question">Bereken Yhat voor X1 = ... en X2 = ...</span></td>
+                <td><input id="ans-pred" type="text" placeholder="bijv. 24.35" /></td>
+              </tr>
+
+              <tr class="divider-row">
+                <td><strong>Assumptie</strong>: vul in<br />"zonder systematische spreiding ... aanwijzing voor ________"</td>
+                <td><input id="ans-assumption" type="text" placeholder="bijv. homoscedasticiteit" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="fb-open-summary" class="section-feedback"></div>
+      </section>
+
+      <section class="card">
+        <h3>Formule-overzicht</h3>
+        <details>
+          <summary>Toon kernformules</summary>
+          <ul class="formula-list">
+            <li>r = cov(X,Y) / (SD(X) * SD(Y))</li>
+            <li>Bivariate regressie: Yhat = a + bX</li>
+            <li>Meervoudige regressie: Yhat = a + b1X1 + b2X2</li>
+            <li>R^2 = 1 - SSE / SST</li>
+            <li>Partiele correlatie: r12.3 = (r12 - r13*r23) / sqrt((1-r13^2)(1-r23^2))</li>
+          </ul>
+        </details>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,826 @@
+﻿<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 13 &ndash; Synthese Oefening</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-title">Synthese Oefening
+                <button class="btn-sidebar-close" id="btn-sidebar-close">&#10005;</button>
+            </div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-card-title">Hoe deze oefening werkt</div>
+                <ul class="sidebar-howto-list">
+                    <li>Kies een <b>scenario</b>, stel <b>N</b> in en voer een <b>seed</b> in. Klik <em>Genereer.</em>
+                    </li>
+                    <li>Beantwoord alle vragen. Gebruik <b>4 decimalen</b>.</li>
+                    <li>Velden worden <span style="color:#22c55e;font-weight:700">groen</span> bij correct en <span
+                            style="color:#ef4444;font-weight:700">rood</span> bij fout.</li>
+                    <li>Tolerantie: &plusmn;0.005.</li>
+                    <li><b>Vragenblad printen</b> geeft een lege PDF/Word-versie.</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <label for="scenario">Scenario</label>
+                <select id="scenario"></select>
+            </div>
+            <div class="sidebar-section">
+                <label for="n-input">N (10&ndash;40, even)</label>
+                <input id="n-input" type="number" min="10" max="40" step="2" value="20" />
+            </div>
+            <div class="sidebar-section">
+                <label for="seed">Seed (optioneel)</label>
+                <input id="seed" type="number" min="1" placeholder="bijv. 42" />
+            </div>
+
+            <button class="btn-primary" id="btn-generate">&#9654; Genereer dataset</button>
+            <button class="btn-secondary" id="btn-random">&#8635; Willekeurig</button>
+
+            <div class="sidebar-divider"></div>
+
+            <button class="btn-primary" id="btn-reset">&#8635; Opnieuw beginnen</button>
+            <button class="btn-secondary" id="btn-answers">&#10003; Toon antwoorden</button>
+            <button class="btn-outline" id="btn-print">&#128438; Vragenblad printen</button>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="progress-block" id="progress-block">
+                <div class="progress-label">Voortgang</div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="progress-text" id="progress-text">0 / 0 correct</div>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="section-nav" id="section-nav">
+                <div class="nav-item active" data-target="deel-dataset">Dataset</div>
+                <div class="nav-item" data-target="deel-a">A. Gemiddelden</div>
+                <div class="nav-item" data-target="deel-b">B. Groepsgemiddelden</div>
+                <div class="nav-item" data-target="deel-c">C. Significantietests</div>
+                <div class="nav-item" data-target="deel-d">D. Spreiding totaal</div>
+                <div class="nav-item" data-target="deel-e">E. Spreiding per groep</div>
+                <div class="nav-item" data-target="deel-f">F. Bivariate maten</div>
+                <div class="nav-item" data-target="deel-g">G. Bivariate per groep</div>
+                <div class="nav-item" data-target="deel-h">H. Regressie Y op X1/X2</div>
+                <div class="nav-item" data-target="deel-i">I. Regressie X1 op Y</div>
+                <div class="nav-item" data-target="deel-j">J. Betrouwbaarheidsintervallen</div>
+                <div class="nav-item" data-target="deel-k">K. Partiele correlatie</div>
+                <div class="nav-item" data-target="deel-l">L. Meervoudige regressie</div>
+            </div>
+        </aside>
+
+        <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- MAIN -->
+        <main class="main-content">
+
+            <div class="mobile-header">
+                <button class="btn-sidebar-toggle" id="btn-sidebar-toggle">&#9776;</button>
+                <span>Synthese Oefening &ndash; Hfst. 13</span>
+            </div>
+
+            <!-- VIGNETTE -->
+            <div class="vignette-card" id="scenario-text">Genereer een dataset om te starten.</div>
+            <div class="dataset-info-bar" id="dataset-info"></div>
+
+            <div id="no-data-msg" style="padding:40px;text-align:center;color:#64748b;font-size:15px">
+                Kies een scenario links en klik op <strong>Genereer dataset</strong> om te beginnen.
+            </div>
+
+            <div id="main-sections" style="display:none">
+
+                <!-- DATASET -->
+                <section class="card" id="deel-dataset">
+                    <div class="card-header" id="dataset-title">Dataset</div>
+                    <div class="card-body">
+                        <div class="table-scroll">
+                            <table class="data-table">
+                                <thead id="dataset-header">
+                                    <tr>
+                                        <th>Nr</th>
+                                        <th>Groep</th>
+                                        <th>X1</th>
+                                        <th>X2</th>
+                                        <th>Y</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataset-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- A. OVERALL MEANS -->
+                <section class="card" id="deel-a">
+                    <div class="card-header">A &mdash; Gemiddelde waarden voor X1, X2 en Y</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken de gemiddelde waarde voor de variabelen X1, X2 en Y. Rond af op 4
+                            decimalen.</p>
+                        <div class="fields-grid">
+                            <div class="field-row">
+                                <label>Gemiddelde X1 (<span class="var-x1-label">X1</span>)</label>
+                                <input type="number" step="any" id="inp-mean-x1" class="num-input"
+                                    placeholder="0.0000" />
+                                <span class="light" id="light-mean-x1"></span>
+                            </div>
+                            <div class="field-diag" id="msg-mean-x1"></div>
+                            <div class="field-row">
+                                <label>Gemiddelde X2 (<span class="var-x2-label">X2</span>)</label>
+                                <input type="number" step="any" id="inp-mean-x2" class="num-input"
+                                    placeholder="0.0000" />
+                                <span class="light" id="light-mean-x2"></span>
+                            </div>
+                            <div class="field-diag" id="msg-mean-x2"></div>
+                            <div class="field-row">
+                                <label>Gemiddelde Y (<span class="var-y-label">Y</span>)</label>
+                                <input type="number" step="any" id="inp-mean-y" class="num-input"
+                                    placeholder="0.0000" />
+                                <span class="light" id="light-mean-y"></span>
+                            </div>
+                            <div class="field-diag" id="msg-mean-y"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- B. GROUP MEANS -->
+                <section class="card" id="deel-b">
+                    <div class="card-header">B &mdash; Groepsgemiddelden (<span class="grp1-label">Groep 1</span> vs
+                        <span class="grp2-label">Groep 2</span>)</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken de gemiddelden voor <span class="grp1-label">Groep 1</span> en
+                            <span class="grp2-label">Groep 2</span> afzonderlijk.</p>
+                        <div class="group-tables-row">
+                            <div class="group-block">
+                                <div class="group-block-title"><span class="grp1-label">Groep 1</span></div>
+                                <div class="field-row">
+                                    <label>Gem. X1</label>
+                                    <input type="number" step="any" id="inp-b-mean-x1" class="num-input"
+                                        placeholder="0.0000" />
+                                    <span class="light" id="light-b-mean-x1"></span>
+                                </div>
+                                <div class="field-diag" id="msg-b-mean-x1"></div>
+                                <div class="field-row">
+                                    <label>Gem. X2</label>
+                                    <input type="number" step="any" id="inp-b-mean-x2" class="num-input"
+                                        placeholder="0.0000" />
+                                    <span class="light" id="light-b-mean-x2"></span>
+                                </div>
+                                <div class="field-diag" id="msg-b-mean-x2"></div>
+                                <div class="field-row">
+                                    <label>Gem. Y</label>
+                                    <input type="number" step="any" id="inp-b-mean-y" class="num-input"
+                                        placeholder="0.0000" />
+                                    <span class="light" id="light-b-mean-y"></span>
+                                </div>
+                                <div class="field-diag" id="msg-b-mean-y"></div>
+                            </div>
+                            <div class="group-block">
+                                <div class="group-block-title"><span class="grp2-label">Groep 2</span></div>
+                                <div class="field-row">
+                                    <label>Gem. X1</label>
+                                    <input type="number" step="any" id="inp-g-mean-x1" class="num-input"
+                                        placeholder="0.0000" />
+                                    <span class="light" id="light-g-mean-x1"></span>
+                                </div>
+                                <div class="field-diag" id="msg-g-mean-x1"></div>
+                                <div class="field-row">
+                                    <label>Gem. X2</label>
+                                    <input type="number" step="any" id="inp-g-mean-x2" class="num-input"
+                                        placeholder="0.0000" />
+                                    <span class="light" id="light-g-mean-x2"></span>
+                                </div>
+                                <div class="field-diag" id="msg-g-mean-x2"></div>
+                                <div class="field-row">
+                                    <label>Gem. Y</label>
+                                    <input type="number" step="any" id="inp-g-mean-y" class="num-input"
+                                        placeholder="0.0000" />
+                                    <span class="light" id="light-g-mean-y"></span>
+                                </div>
+                                <div class="field-diag" id="msg-g-mean-y"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- C. T-TESTS -->
+                <section class="card" id="deel-c">
+                    <div class="card-header">C &mdash; Verschillen <span class="grp1-label">Groep 1</span> en <span
+                            class="grp2-label">Groep 2</span> statistisch significant?</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken de t-waarde (Welch t-test) voor de vergelijking van <span
+                                class="grp1-label">Groep 1</span> versus <span class="grp2-label">Groep 2</span> op X1,
+                            X2 en Y. Geef de t-waarde (positief of negatief) op 4 decimalen.</p>
+                        <div class="fields-grid">
+                            <div class="field-row">
+                                <label>t-waarde voor X1</label>
+                                <input type="number" step="any" id="inp-t-x1" class="num-input" placeholder="0.0000" />
+                                <span class="light" id="light-t-x1"></span>
+                            </div>
+                            <div class="field-diag" id="msg-t-x1"></div>
+                            <div class="field-row">
+                                <label>t-waarde voor X2</label>
+                                <input type="number" step="any" id="inp-t-x2" class="num-input" placeholder="0.0000" />
+                                <span class="light" id="light-t-x2"></span>
+                            </div>
+                            <div class="field-diag" id="msg-t-x2"></div>
+                            <div class="field-row">
+                                <label>t-waarde voor Y</label>
+                                <input type="number" step="any" id="inp-t-y" class="num-input" placeholder="0.0000" />
+                                <span class="light" id="light-t-y"></span>
+                            </div>
+                            <div class="field-diag" id="msg-t-y"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- D. SPREAD OVERALL -->
+                <section class="card" id="deel-d">
+                    <div class="card-header">D &mdash; Variatie, variantie en standaardafwijking (totale steekproef)
+                    </div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken voor de totale steekproef: de <strong>variatie</strong>
+                            (&sum;(Y&minus;<span style="text-decoration:overline">Y</span>)&sup2;), de
+                            <strong>variantie</strong> (s&sup2;) en de <strong>standaardafwijking</strong> (s). Gebruik
+                            n&minus;1 in de noemer.</p>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Variabele</th>
+                                    <th>Variatie</th>
+                                    <th>Variantie (s&sup2;)</th>
+                                    <th>SD (s)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>X1</strong></td>
+                                    <td><input type="number" step="any" id="inp-var-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-var-x1"></span>
+                                        <div class="field-diag" id="msg-var-x1"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-varnc-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-varnc-x1"></span>
+                                        <div class="field-diag" id="msg-varnc-x1"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-sd-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-sd-x1"></span>
+                                        <div class="field-diag" id="msg-sd-x1"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X2</strong></td>
+                                    <td><input type="number" step="any" id="inp-var-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-var-x2"></span>
+                                        <div class="field-diag" id="msg-var-x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-varnc-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-varnc-x2"></span>
+                                        <div class="field-diag" id="msg-varnc-x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-sd-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-sd-x2"></span>
+                                        <div class="field-diag" id="msg-sd-x2"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-var-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-var-y"></span>
+                                        <div class="field-diag" id="msg-var-y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-varnc-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-varnc-y"></span>
+                                        <div class="field-diag" id="msg-varnc-y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-sd-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-sd-y"></span>
+                                        <div class="field-diag" id="msg-sd-y"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- E. SPREAD BY GROUP -->
+                <section class="card" id="deel-e">
+                    <div class="card-header">E &mdash; Variatie, variantie en standaardafwijking per groep</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken dezelfde maten afzonderlijk voor <span class="grp1-label">Groep
+                                1</span> en <span class="grp2-label">Groep 2</span>.</p>
+                        <h4 class="subheading"><span class="grp1-label">Groep 1</span></h4>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Variabele</th>
+                                    <th>Variatie</th>
+                                    <th>Variantie (s&sup2;)</th>
+                                    <th>SD (s)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>X1</strong></td>
+                                    <td><input type="number" step="any" id="inp-b-var-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-var-x1"></span>
+                                        <div class="field-diag" id="msg-b-var-x1"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-varnc-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-varnc-x1"></span>
+                                        <div class="field-diag" id="msg-b-varnc-x1"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-sd-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-sd-x1"></span>
+                                        <div class="field-diag" id="msg-b-sd-x1"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X2</strong></td>
+                                    <td><input type="number" step="any" id="inp-b-var-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-var-x2"></span>
+                                        <div class="field-diag" id="msg-b-var-x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-varnc-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-varnc-x2"></span>
+                                        <div class="field-diag" id="msg-b-varnc-x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-sd-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-sd-x2"></span>
+                                        <div class="field-diag" id="msg-b-sd-x2"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-b-var-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-var-y"></span>
+                                        <div class="field-diag" id="msg-b-var-y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-varnc-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-varnc-y"></span>
+                                        <div class="field-diag" id="msg-b-varnc-y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-sd-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-sd-y"></span>
+                                        <div class="field-diag" id="msg-b-sd-y"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h4 class="subheading" style="margin-top:18px"><span class="grp2-label">Groep 2</span></h4>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Variabele</th>
+                                    <th>Variatie</th>
+                                    <th>Variantie (s&sup2;)</th>
+                                    <th>SD (s)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>X1</strong></td>
+                                    <td><input type="number" step="any" id="inp-g-var-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-var-x1"></span>
+                                        <div class="field-diag" id="msg-g-var-x1"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-varnc-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-varnc-x1"></span>
+                                        <div class="field-diag" id="msg-g-varnc-x1"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-sd-x1" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-sd-x1"></span>
+                                        <div class="field-diag" id="msg-g-sd-x1"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X2</strong></td>
+                                    <td><input type="number" step="any" id="inp-g-var-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-var-x2"></span>
+                                        <div class="field-diag" id="msg-g-var-x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-varnc-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-varnc-x2"></span>
+                                        <div class="field-diag" id="msg-g-varnc-x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-sd-x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-sd-x2"></span>
+                                        <div class="field-diag" id="msg-g-sd-x2"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-g-var-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-var-y"></span>
+                                        <div class="field-diag" id="msg-g-var-y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-varnc-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-varnc-y"></span>
+                                        <div class="field-diag" id="msg-g-varnc-y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-sd-y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-sd-y"></span>
+                                        <div class="field-diag" id="msg-g-sd-y"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- F. BIVARIATE OVERALL -->
+                <section class="card" id="deel-f">
+                    <div class="card-header">F &mdash; Covariatie, covariantie en correlatie (totale steekproef)</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken voor de totale steekproef: de <strong>covariatie</strong>
+                            (&sum;dx&middot;dy), de <strong>covariantie</strong> (gedeeld door n&minus;1) en de
+                            <strong>Pearson correlatie</strong> r. Drie combinaties: X1&amp;Y, X2&amp;Y, X1&amp;X2.</p>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Paar</th>
+                                    <th>Covariatie</th>
+                                    <th>Covariantie</th>
+                                    <th>Correlatie r</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>X1 &amp; Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-covtn-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-covtn-x1y"></span>
+                                        <div class="field-diag" id="msg-covtn-x1y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-covnc-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-covnc-x1y"></span>
+                                        <div class="field-diag" id="msg-covnc-x1y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-corr-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-corr-x1y"></span>
+                                        <div class="field-diag" id="msg-corr-x1y"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X2 &amp; Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-covtn-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-covtn-x2y"></span>
+                                        <div class="field-diag" id="msg-covtn-x2y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-covnc-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-covnc-x2y"></span>
+                                        <div class="field-diag" id="msg-covnc-x2y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-corr-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-corr-x2y"></span>
+                                        <div class="field-diag" id="msg-corr-x2y"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X1 &amp; X2</strong></td>
+                                    <td><input type="number" step="any" id="inp-covtn-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-covtn-x1x2"></span>
+                                        <div class="field-diag" id="msg-covtn-x1x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-covnc-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-covnc-x1x2"></span>
+                                        <div class="field-diag" id="msg-covnc-x1x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-corr-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-corr-x1x2"></span>
+                                        <div class="field-diag" id="msg-corr-x1x2"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- G. BIVARIATE BY GROUP -->
+                <section class="card" id="deel-g">
+                    <div class="card-header">G &mdash; Bivariate associatiematen per groep</div>
+                    <div class="card-body">
+                        <p class="instruction">Zijn de covariatie, covariantie en correlatie gelijk voor <span
+                                class="grp1-label">Groep 1</span> en <span class="grp2-label">Groep 2</span>? Bereken ze
+                            afzonderlijk per groep.</p>
+                        <h4 class="subheading"><span class="grp1-label">Groep 1</span></h4>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Paar</th>
+                                    <th>Covariatie</th>
+                                    <th>Covariantie</th>
+                                    <th>Correlatie r</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>X1 &amp; Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-b-covtn-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-covtn-x1y"></span>
+                                        <div class="field-diag" id="msg-b-covtn-x1y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-covnc-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-covnc-x1y"></span>
+                                        <div class="field-diag" id="msg-b-covnc-x1y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-corr-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-corr-x1y"></span>
+                                        <div class="field-diag" id="msg-b-corr-x1y"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X2 &amp; Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-b-covtn-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-covtn-x2y"></span>
+                                        <div class="field-diag" id="msg-b-covtn-x2y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-covnc-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-covnc-x2y"></span>
+                                        <div class="field-diag" id="msg-b-covnc-x2y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-corr-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-corr-x2y"></span>
+                                        <div class="field-diag" id="msg-b-corr-x2y"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X1 &amp; X2</strong></td>
+                                    <td><input type="number" step="any" id="inp-b-covtn-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-covtn-x1x2"></span>
+                                        <div class="field-diag" id="msg-b-covtn-x1x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-covnc-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-covnc-x1x2"></span>
+                                        <div class="field-diag" id="msg-b-covnc-x1x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-b-corr-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-b-corr-x1x2"></span>
+                                        <div class="field-diag" id="msg-b-corr-x1x2"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h4 class="subheading" style="margin-top:18px"><span class="grp2-label">Groep 2</span></h4>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Paar</th>
+                                    <th>Covariatie</th>
+                                    <th>Covariantie</th>
+                                    <th>Correlatie r</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>X1 &amp; Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-g-covtn-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-covtn-x1y"></span>
+                                        <div class="field-diag" id="msg-g-covtn-x1y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-covnc-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-covnc-x1y"></span>
+                                        <div class="field-diag" id="msg-g-covnc-x1y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-corr-x1y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-corr-x1y"></span>
+                                        <div class="field-diag" id="msg-g-corr-x1y"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X2 &amp; Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-g-covtn-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-covtn-x2y"></span>
+                                        <div class="field-diag" id="msg-g-covtn-x2y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-covnc-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-covnc-x2y"></span>
+                                        <div class="field-diag" id="msg-g-covnc-x2y"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-corr-x2y" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-corr-x2y"></span>
+                                        <div class="field-diag" id="msg-g-corr-x2y"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X1 &amp; X2</strong></td>
+                                    <td><input type="number" step="any" id="inp-g-covtn-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-covtn-x1x2"></span>
+                                        <div class="field-diag" id="msg-g-covtn-x1x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-covnc-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-covnc-x1x2"></span>
+                                        <div class="field-diag" id="msg-g-covnc-x1x2"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-g-corr-x1x2" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-g-corr-x1x2"></span>
+                                        <div class="field-diag" id="msg-g-corr-x1x2"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- H. REGRESSION Y on X1 and X2 -->
+                <section class="card" id="deel-h">
+                    <div class="card-header">H &mdash; Regressie van Y op X1 en Y op X2</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken de regressieparameters (intercept a, helling b) en de
+                            determinatiecoefficient R&sup2; voor de regressie van Y op X1 en van Y op X2.</p>
+                        <h4 class="subheading">Regressie Y = a + b &middot; X1</h4>
+                        <div class="fields-grid">
+                            <div class="field-row"><label>Intercept (a)</label><input type="number" step="any"
+                                    id="inp-a-yx1" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-a-yx1"></span></div>
+                            <div class="field-diag" id="msg-a-yx1"></div>
+                            <div class="field-row"><label>Helling (b)</label><input type="number" step="any"
+                                    id="inp-b-yx1" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-b-yx1"></span></div>
+                            <div class="field-diag" id="msg-b-yx1"></div>
+                            <div class="field-row"><label>R&sup2;</label><input type="number" step="any" id="inp-r2-yx1"
+                                    class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-r2-yx1"></span></div>
+                            <div class="field-diag" id="msg-r2-yx1"></div>
+                        </div>
+                        <h4 class="subheading" style="margin-top:18px">Regressie Y = a + b &middot; X2</h4>
+                        <div class="fields-grid">
+                            <div class="field-row"><label>Intercept (a)</label><input type="number" step="any"
+                                    id="inp-a-yx2" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-a-yx2"></span></div>
+                            <div class="field-diag" id="msg-a-yx2"></div>
+                            <div class="field-row"><label>Helling (b)</label><input type="number" step="any"
+                                    id="inp-b-yx2" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-b-yx2"></span></div>
+                            <div class="field-diag" id="msg-b-yx2"></div>
+                            <div class="field-row"><label>R&sup2;</label><input type="number" step="any" id="inp-r2-yx2"
+                                    class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-r2-yx2"></span></div>
+                            <div class="field-diag" id="msg-r2-yx2"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- I. REVERSE REGRESSION X1 on Y + r(Yhat, Y) -->
+                <section class="card" id="deel-i">
+                    <div class="card-header">I &mdash; Regressie X1 op Y en correlatie verwachte Y</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken de regressieparameters voor X1 = a + b &middot; Y (omgekeerde
+                            richting). Bereken daarna de verwachte waarden Y-dak = a + b&middot;X1 (op basis van
+                            regressie Y op X1) en correleer die met de geobserveerde Y.</p>
+                        <h4 class="subheading">Regressie X1 = a + b &middot; Y</h4>
+                        <div class="fields-grid">
+                            <div class="field-row"><label>Intercept (a)</label><input type="number" step="any"
+                                    id="inp-a-x1y" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-a-x1y"></span></div>
+                            <div class="field-diag" id="msg-a-x1y"></div>
+                            <div class="field-row"><label>Helling (b)</label><input type="number" step="any"
+                                    id="inp-b-x1y" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-b-x1y"></span></div>
+                            <div class="field-diag" id="msg-b-x1y"></div>
+                        </div>
+                        <h4 class="subheading" style="margin-top:18px">Correlatie tussen Y-dak en Y</h4>
+                        <p class="instruction" style="margin-bottom:8px">Is r(Y-dak, Y) gelijk aan r(X1, Y)?</p>
+                        <div class="fields-grid">
+                            <div class="field-row"><label>r(Y-dak, Y)</label><input type="number" step="any"
+                                    id="inp-corr-yhat-y" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-corr-yhat-y"></span></div>
+                            <div class="field-diag" id="msg-corr-yhat-y"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- J. CI -->
+                <section class="card" id="deel-j">
+                    <div class="card-header">J &mdash; 95% Betrouwbaarheidsintervallen voor de gemiddelden</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken de 95% betrouwbaarheidsintervallen voor de gemiddelde scores van
+                            X1, X2 en Y (df = n &minus; 1).</p>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Variabele</th>
+                                    <th>BI onder</th>
+                                    <th>BI boven</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>X1</strong></td>
+                                    <td><input type="number" step="any" id="inp-ci-x1-lower" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-ci-x1-lower"></span>
+                                        <div class="field-diag" id="msg-ci-x1-lower"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-ci-x1-upper" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-ci-x1-upper"></span>
+                                        <div class="field-diag" id="msg-ci-x1-upper"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>X2</strong></td>
+                                    <td><input type="number" step="any" id="inp-ci-x2-lower" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-ci-x2-lower"></span>
+                                        <div class="field-diag" id="msg-ci-x2-lower"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-ci-x2-upper" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-ci-x2-upper"></span>
+                                        <div class="field-diag" id="msg-ci-x2-upper"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Y</strong></td>
+                                    <td><input type="number" step="any" id="inp-ci-y-lower" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-ci-y-lower"></span>
+                                        <div class="field-diag" id="msg-ci-y-lower"></div>
+                                    </td>
+                                    <td><input type="number" step="any" id="inp-ci-y-upper" class="num-input"
+                                            placeholder="0.0000" /><span class="light" id="light-ci-y-upper"></span>
+                                        <div class="field-diag" id="msg-ci-y-upper"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- K. PARTIAL CORRELATION -->
+                <section class="card" id="deel-k">
+                    <div class="card-header">K &mdash; Partiele correlatie X1 &amp; Y onder controle van X2</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken de partiele correlatiecoefficient r<sub>X1Y&middot;X2</sub>. Wat
+                            is jouw besluit?</p>
+                        <div class="fields-grid">
+                            <div class="field-row">
+                                <label>r<sub>X1Y&middot;X2</sub></label>
+                                <input type="number" step="any" id="inp-partial-x1y-x2" class="num-input"
+                                    placeholder="0.0000" />
+                                <span class="light" id="light-partial-x1y-x2"></span>
+                            </div>
+                            <div class="field-diag" id="msg-partial-x1y-x2"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- L. MULTIPLE REGRESSION -->
+                <section class="card" id="deel-l">
+                    <div class="card-header">L &mdash; Meervoudige regressie Y = a + b1&middot;X1 + b2&middot;X2</div>
+                    <div class="card-body">
+                        <p class="instruction">Bereken de parameters van de meervoudige regressie van Y op X1 en X2.
+                            Geef ook R&sup2;, de gestandaardiseerde regressiecoefficienten (&beta;*) en de verwachte Y
+                            voor de opgegeven waarden.</p>
+                        <div class="fields-grid">
+                            <div class="field-row"><label>Intercept (a)</label><input type="number" step="any"
+                                    id="inp-mr-a" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-mr-a"></span></div>
+                            <div class="field-diag" id="msg-mr-a"></div>
+                            <div class="field-row"><label>b1 (<span class="var-x1-label">X1</span>)</label><input
+                                    type="number" step="any" id="inp-mr-b1" class="num-input"
+                                    placeholder="0.0000" /><span class="light" id="light-mr-b1"></span></div>
+                            <div class="field-diag" id="msg-mr-b1"></div>
+                            <div class="field-row"><label>b2 (<span class="var-x2-label">X2</span>)</label><input
+                                    type="number" step="any" id="inp-mr-b2" class="num-input"
+                                    placeholder="0.0000" /><span class="light" id="light-mr-b2"></span></div>
+                            <div class="field-diag" id="msg-mr-b2"></div>
+                            <div class="field-row"><label>R&sup2; (meervoudig)</label><input type="number" step="any"
+                                    id="inp-mr-r2" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-mr-r2"></span></div>
+                            <div class="field-diag" id="msg-mr-r2"></div>
+                            <div class="field-row"><label>&beta;* voor X1</label><input type="number" step="any"
+                                    id="inp-mr-beta1" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-mr-beta1"></span></div>
+                            <div class="field-diag" id="msg-mr-beta1"></div>
+                            <div class="field-row"><label>&beta;* voor X2</label><input type="number" step="any"
+                                    id="inp-mr-beta2" class="num-input" placeholder="0.0000" /><span class="light"
+                                    id="light-mr-beta2"></span></div>
+                            <div class="field-diag" id="msg-mr-beta2"></div>
+                            <div class="field-row"><label id="pred-values-label">Verwachte Y</label><input type="number"
+                                    step="any" id="inp-mr-pred" class="num-input" placeholder="0.0000" /><span
+                                    class="light" id="light-mr-pred"></span></div>
+                            <div class="field-diag" id="msg-mr-pred"></div>
+                        </div>
+                    </div>
+                </section>
+
+            </div><!-- /main-sections -->
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

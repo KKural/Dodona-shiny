@@ -17,9 +17,9 @@
       <div class="sidebar-card">
         <div class="sidebar-card-title">Hoe deze webpagina werkt</div>
         <ul class="sidebar-howto-list">
-          <li>Oefen multiple regressieanalyse met twee voorspellers.</li>
+          <li>Oefen multiple regressieanalyse met 2 voorspellers (x1, x2) met criminologiedatasets.</li>
           <li>Gebruik 4 decimalen voor alle handmatige berekeningen.</li>
-          <li>Vul eerst alle deelstappen in; visualisaties ontgrendelen pas na volledige juistheid.</li>
+          <li>Voltooi de delen I-VIII stap voor stap; visualisaties ontgrendelen pas na volledige juistheid.</li>
         </ul>
       </div>
 
@@ -45,11 +45,11 @@
       <div class="sidebar-card">
         <div class="sidebar-card-title">Stappen</div>
         <ol class="sidebar-steps-list">
-          <li>Gemiddelden voor X1, X2 en Y.</li>
-          <li>Sommen van kwadraten en kruisproducten.</li>
-          <li>Varianties, SD, covarianties en correlaties.</li>
-          <li>det, b1, b2 en intercept a.</li>
-          <li>Voorspellingen, R2, F en model p.</li>
+          <li>Deel II: Stap 1 (gemiddelden voor x1, x2 en Y).</li>
+          <li>Deel III: Stappen 2-6 (afwijkingen, kwadraten en kruisproducten).</li>
+          <li>Deel IV: Stappen 7-8 (varianties en standaardafwijkingen).</li>
+          <li>Deel IV-A/B: Stappen 9-14 (covarianties en correlaties).</li>
+          <li>Deel V-VIII: Stappen 15-23 (coëfficiënten, voorspellingen, R2 en F/p).</li>
         </ol>
       </div>
 
@@ -65,7 +65,9 @@
         <div class="nav-item active" data-target="deel1">I. Dataset</div>
         <div class="nav-item" data-target="deel2">II. Gemiddelden</div>
         <div class="nav-item" data-target="deel3">III. Totalen</div>
-        <div class="nav-item" data-target="deel4">IV. Var/SD/Cov/r</div>
+        <div class="nav-item" data-target="deel4">IV. Var/SD</div>
+        <div class="nav-item" data-target="deel4a">IV-A. Cov</div>
+        <div class="nav-item" data-target="deel4b">IV-B. r</div>
         <div class="nav-item" data-target="deel5">V. Coefficiënten</div>
         <div class="nav-item" data-target="deel6">VI. Voorspellingen</div>
         <div class="nav-item" data-target="deel7">VII. Model fit</div>
@@ -92,27 +94,37 @@
       </section>
 
       <section class="card" id="deel2">
-        <div class="card-header">Deel II - Gemiddelden</div>
+        <div class="card-header">Deel II - Stap 1: Rekenkundige Gemiddelden</div>
         <div class="card-body"><div class="grid three" id="means-grid"></div></div>
       </section>
 
       <section class="card" id="deel3">
-        <div class="card-header">Deel III - Totalen</div>
+        <div class="card-header">Deel III - Stappen 2-6: Afwijkingen, Kwadraten en Kruisproducten</div>
         <div class="card-body"><div class="grid two" id="totals-grid"></div></div>
       </section>
 
       <section class="card" id="deel4">
-        <div class="card-header">Deel IV - Variantie, SD, Cov, Correlatie</div>
+        <div class="card-header">Deel IV - Stappen 7-8: Varianties en Standaardafwijkingen</div>
         <div class="card-body"><div class="grid three" id="varsd-grid"></div></div>
       </section>
 
+      <section class="card" id="deel4a">
+        <div class="card-header">Deel IV-A - Stappen 9-11: Covarianties</div>
+        <div class="card-body"><div class="grid three" id="cov-grid"></div></div>
+      </section>
+
+      <section class="card" id="deel4b">
+        <div class="card-header">Deel IV-B - Stappen 12-14: Correlatiecoëfficiënten</div>
+        <div class="card-body"><div class="grid three" id="corr-grid"></div></div>
+      </section>
+
       <section class="card" id="deel5">
-        <div class="card-header">Deel V - Regressiecoëfficiënten</div>
+        <div class="card-header">Deel V - Stappen 15-18: Regressiecoëfficiënten</div>
         <div class="card-body"><div class="grid two" id="coef-grid"></div></div>
       </section>
 
       <section class="card" id="deel6">
-        <div class="card-header">Deel VI - Voorspellingen Yhat</div>
+        <div class="card-header">Deel VI - Stap 19: Voorspellingen Yhat</div>
         <div class="card-body">
           <div class="table-wrap"><table id="pred-table"></table></div>
           <div id="pred-msg" class="status"></div>
@@ -120,7 +132,7 @@
       </section>
 
       <section class="card" id="deel7">
-        <div class="card-header">Deel VII-VIII - Model fit en F-toets</div>
+        <div class="card-header">Deel VII-VIII - Stappen 20-23: Model Fit en F-toets</div>
         <div class="card-body"><div class="grid three" id="fit-grid"></div></div>
       </section>
 

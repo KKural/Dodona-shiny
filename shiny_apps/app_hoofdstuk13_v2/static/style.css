@@ -1,0 +1,423 @@
+:root {
+  --bg: #f3f6fb;
+  --panel: #ffffff;
+  --ink: #0f172a;
+  --muted: #475569;
+  --blue: #133e87;
+  --blue-soft: #e9f0ff;
+  --line: #cbd5e1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+}
+
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--blue);
+}
+
+.muted {
+  margin: 6px 0 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fdfdff;
+}
+
+.panel h2 {
+  margin: 0 0 10px;
+  color: var(--blue);
+  font-size: 1rem;
+}
+
+label {
+  display: block;
+  margin: 8px 0 6px;
+  font-size: 0.9rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px;
+  font: inherit;
+  background: #fff;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.btn-row {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #0e3270;
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #1f2937;
+  border-color: #cbd5e1;
+}
+
+.btn-secondary:hover {
+  background: #cfd9e8;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #4b6584;
+  border-color: #94a3b8;
+}
+
+.btn-outline:hover {
+  background: #e8edf4;
+  color: #1a4799;
+}
+
+.panel ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.panel li {
+  margin: 6px 0;
+  font-size: 0.9rem;
+}
+
+.main {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.hero h2 {
+  margin: 0 0 8px;
+  color: var(--blue);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.hero p {
+  margin: 0;
+  text-align: center;
+}
+
+h3 {
+  margin: 0 0 10px;
+  color: var(--blue);
+}
+
+.context-text {
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+
+.dataset-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+th,
+td {
+  border: 1px solid var(--line);
+  padding: 8px;
+  vertical-align: top;
+}
+
+th {
+  background: var(--blue-soft);
+  color: var(--blue);
+  text-align: left;
+}
+
+.divider-row td {
+  border-top: 2px solid #9fb8e8;
+}
+
+.answer-table td:first-child {
+  width: 44%;
+}
+
+.mcq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.mcq-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fcfdff;
+}
+
+.mcq-item.ok {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.mcq-item.err {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.mcq-title {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.mcq-options {
+  display: grid;
+  gap: 6px;
+}
+
+.mcq-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.94rem;
+}
+
+.mcq-option input[type="radio"] {
+  width: 16px;
+  margin-top: 2px;
+}
+
+.mcq-feedback {
+  margin-top: 8px;
+  border-radius: 6px;
+  padding: 7px 9px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 0.9rem;
+}
+
+.mcq-feedback.ok {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.mcq-feedback.err {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.section-feedback {
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  padding: 8px 10px;
+  font-size: 0.92rem;
+}
+
+.section-feedback:empty {
+  display: none;
+}
+
+.section-feedback.ok {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.section-feedback.err {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.ans-feedback {
+  margin-top: 6px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 0.86rem;
+}
+
+.ans-feedback.ok {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.ans-feedback.err {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.ans-feedback.partial {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.answer-table input.correct,
+.answer-table textarea.correct {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.answer-table input.incorrect,
+.answer-table textarea.incorrect {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.model-box {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+}
+
+.node {
+  fill: #eef4ff;
+  stroke: #1d4ed8;
+  stroke-width: 1.4;
+}
+
+.node-y {
+  fill: #dbeafe;
+}
+
+.node-main {
+  font-size: 15px;
+  fill: #0f172a;
+  font-weight: 700;
+}
+
+.node-sub {
+  font-size: 12px;
+  fill: #0f172a;
+}
+
+.edge {
+  stroke: #1d4ed8;
+  stroke-width: 2;
+  fill: none;
+}
+
+.edge-dashed {
+  stroke-dasharray: 6 5;
+}
+
+.edge-label {
+  fill: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+marker polygon {
+  fill: #1d4ed8;
+}
+
+details summary {
+  cursor: pointer;
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.formula-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.formula-list li {
+  margin: 6px 0;
+}
+
+@media (max-width: 1120px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+}

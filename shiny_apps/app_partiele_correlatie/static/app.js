@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const MAX_SAMPLE_SIZE = 50;
 
@@ -79,29 +79,41 @@ const SCENARIOS = [
 
 const FIELD_GROUPS = {
   means: [['x_bar', 'Gemiddelde X'], ['y_bar', 'Gemiddelde Y'], ['z_bar', 'Gemiddelde Z']],
-  stats: [
-    ['SS_x', 'SS_x'], ['SS_y', 'SS_y'], ['SS_z', 'SS_z'],
-    ['SCP_xy', 'SCP_xy'], ['SCP_xz', 'SCP_xz'], ['SCP_yz', 'SCP_yz'],
-    ['Var_x', 'Var_x'], ['Var_y', 'Var_y'], ['Var_z', 'Var_z'],
-    ['SD_x', 'SD_x'], ['SD_y', 'SD_y'], ['SD_z', 'SD_z'],
-    ['Cov_xy', 'Cov_xy'], ['Cov_xz', 'Cov_xz'], ['Cov_yz', 'Cov_yz'],
-    ['r_xy', 'r_xy'], ['r_xz', 'r_xz'], ['r_yz', 'r_yz']
-  ],
   partial: [['partial_num', 'Teller'], ['partial_denom', 'Noemer'], ['r_xy_z', 'r_xy.z']]
 };
 
 const FIELD_TRUTH_KEY = {
-  x_bar: 'x_bar', y_bar: 'y_bar', z_bar: 'z_bar',
-  SS_x: 'SS_x', SS_y: 'SS_y', SS_z: 'SS_z',
-  SCP_xy: 'SCP_xy', SCP_xz: 'SCP_xz', SCP_yz: 'SCP_yz',
-  Var_x: 'Var_x', Var_y: 'Var_y', Var_z: 'Var_z',
-  SD_x: 'SD_x', SD_y: 'SD_y', SD_z: 'SD_z',
-  Cov_xy: 'Cov_xy', Cov_xz: 'Cov_xz', Cov_yz: 'Cov_yz',
-  r_xy: 'r_xy', r_xz: 'r_xz', r_yz: 'r_yz',
-  partial_num: 'num_partial', partial_denom: 'denom_partial', r_xy_z: 'r_xy_z'
+  x_bar: 'x_bar',
+  y_bar: 'y_bar',
+  z_bar: 'z_bar',
+  partial_num: 'num_partial',
+  partial_denom: 'denom_partial',
+  r_xy_z: 'r_xy_z'
 };
 
-const REQUIRED_FIELDS = Object.keys(FIELD_TRUTH_KEY);
+const DEV_COLUMNS = [
+  { key: 'dx', label: '(X-X̄)' },
+  { key: 'dy', label: '(Y-Ȳ)' },
+  { key: 'dz', label: '(Z-Z̄)' },
+  { key: 'dx2', label: '(X-X̄)^2' },
+  { key: 'dy2', label: '(Y-Ȳ)^2' },
+  { key: 'dz2', label: '(Z-Z̄)^2' },
+  { key: 'dxdy', label: '(X-X̄)(Y-Ȳ)' },
+  { key: 'dxdz', label: '(X-X̄)(Z-Z̄)' },
+  { key: 'dydz', label: '(Y-Ȳ)(Z-Z̄)' }
+];
+
+const VARSD_FIELDS = [
+  { id: 'vs_SS_X', truth: 'SS_x' }, { id: 'vs_SS_Y', truth: 'SS_y' }, { id: 'vs_SS_Z', truth: 'SS_z' },
+  { id: 'vs_Var_X', truth: 'Var_x' }, { id: 'vs_Var_Y', truth: 'Var_y' }, { id: 'vs_Var_Z', truth: 'Var_z' },
+  { id: 'vs_SD_X', truth: 'SD_x' }, { id: 'vs_SD_Y', truth: 'SD_y' }, { id: 'vs_SD_Z', truth: 'SD_z' }
+];
+
+const COVR_FIELDS = [
+  { id: 'cv_SCP_XY', truth: 'SCP_xy' }, { id: 'cv_SCP_XZ', truth: 'SCP_xz' }, { id: 'cv_SCP_YZ', truth: 'SCP_yz' },
+  { id: 'cv_Cov_XY', truth: 'Cov_xy' }, { id: 'cv_Cov_XZ', truth: 'Cov_xz' }, { id: 'cv_Cov_YZ', truth: 'Cov_yz' },
+  { id: 'cv_r_XY', truth: 'r_xy' }, { id: 'cv_r_XZ', truth: 'r_xz' }, { id: 'cv_r_YZ', truth: 'r_yz' }
+];
 
 const CONCLUSION_LABELS = {
   1: 'Schijnverband',
@@ -117,7 +129,10 @@ const state = {
   names: { x: '', y: '', z: '' },
   truth: null,
   unlocked: false,
-  chart: null
+  chart: null,
+  devInputs: [],
+  varsdInputs: [],
+  covrInputs: []
 };
 
 function r2(v) { return Math.round(v * 100) / 100; }
@@ -125,15 +140,15 @@ function r4(v) { return Math.round(v * 10000) / 10000; }
 
 function parseNum(s) {
   if (s == null) return NaN;
-  const t = String(s).trim().replace(',', '.');
-  if (!t) return NaN;
-  const n = Number(t);
+  const txt = String(s).trim().replace(',', '.');
+  if (!txt) return NaN;
+  const n = Number(txt);
   return Number.isFinite(n) ? n : NaN;
 }
 
-function check4(u, t) {
-  if (!Number.isFinite(u) || !Number.isFinite(t)) return false;
-  return r4(u) === r4(t);
+function check4(userVal, trueVal) {
+  if (!Number.isFinite(userVal) || !Number.isFinite(trueVal)) return false;
+  return r4(userVal) === r4(trueVal);
 }
 
 function safeSeed(seedRaw) {
@@ -160,12 +175,7 @@ function randN(rng) {
 }
 
 function cholesky3(S) {
-  const L = [
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0]
-  ];
-
+  const L = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j <= i; j++) {
       let sum = 0;
@@ -180,7 +190,6 @@ function cholesky3(S) {
       }
     }
   }
-
   return L;
 }
 
@@ -202,7 +211,6 @@ function generateCorrelatedXYZ(sc, n, rng) {
     L = cholesky3(S);
     jitter += 0.05;
   }
-
   if (!L) L = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 
   const U = [
@@ -251,11 +259,12 @@ function makePartialData(sc, nRaw, seedRaw) {
       [names.z]: zVals[i]
     });
   }
-
   return { rows, names };
 }
 
-function mean(arr) { return arr.reduce((a, b) => a + b, 0) / arr.length; }
+function mean(arr) {
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
 
 function calcTruth(rows, names) {
   if (!rows.length) return null;
@@ -318,6 +327,7 @@ function calcTruth(rows, names) {
   return {
     n,
     x_bar, y_bar, z_bar,
+    dx, dy, dz, dx2, dy2, dz2, dxdy, dxdz, dydz,
     SS_x, SS_y, SS_z,
     SCP_xy, SCP_xz, SCP_yz,
     Var_x, Var_y, Var_z,
@@ -330,47 +340,47 @@ function calcTruth(rows, names) {
 }
 
 function makeField(container, id, label) {
-  const w = document.createElement('div');
-  w.className = 'field';
+  const wrap = document.createElement('div');
+  wrap.className = 'field';
   const lab = document.createElement('label');
   lab.setAttribute('for', id);
   lab.textContent = label;
-  const inp = document.createElement('input');
-  inp.id = id;
-  inp.type = 'number';
-  inp.step = 'any';
-  inp.placeholder = '0.0000';
-  inp.addEventListener('input', evaluateAll);
+  const input = document.createElement('input');
+  input.id = id;
+  input.type = 'number';
+  input.step = 'any';
+  input.placeholder = '0.0000';
+  input.addEventListener('input', evaluateAll);
   const msg = document.createElement('div');
   msg.id = `${id}_msg`;
   msg.className = 'msg';
-  w.appendChild(lab);
-  w.appendChild(inp);
-  w.appendChild(msg);
-  container.appendChild(w);
+
+  wrap.appendChild(lab);
+  wrap.appendChild(input);
+  wrap.appendChild(msg);
+  container.appendChild(wrap);
 }
 
-function buildFields() {
+function buildFixedFields() {
   FIELD_GROUPS.means.forEach(([id, label]) => makeField(document.getElementById('means-grid'), id, label));
-  FIELD_GROUPS.stats.forEach(([id, label]) => makeField(document.getElementById('stats-grid'), id, label));
   FIELD_GROUPS.partial.forEach(([id, label]) => makeField(document.getElementById('partial-grid'), id, label));
-
   document.getElementById('conclusie_type').addEventListener('change', evaluateAll);
 }
 
 function fillScenarioSelect() {
-  const sel = document.getElementById('scenario');
-  sel.innerHTML = '';
+  const select = document.getElementById('scenario');
+  select.innerHTML = '';
   SCENARIOS.forEach(sc => {
-    const o = document.createElement('option');
-    o.value = sc.id;
-    o.textContent = sc.title;
-    sel.appendChild(o);
+    const opt = document.createElement('option');
+    opt.value = sc.id;
+    opt.textContent = sc.title;
+    select.appendChild(opt);
   });
 }
 
 function setScenarioText(sc, names) {
-  document.getElementById('scenario-text').innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br>X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
+  const el = document.getElementById('scenario-text');
+  el.innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br>X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
 }
 
 function renderDatasetTable() {
@@ -383,21 +393,144 @@ function renderDatasetTable() {
   tbl.appendChild(thead);
 
   const tbody = document.createElement('tbody');
-  state.rows.forEach(r => {
+  state.rows.forEach(row => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.entity}</td><td>${r2(Number(r[x])).toFixed(2)}</td><td>${r2(Number(r[y])).toFixed(2)}</td><td>${r2(Number(r[z])).toFixed(2)}</td>`;
+    tr.innerHTML = `<td>${row.entity}</td><td>${r2(Number(row[x])).toFixed(2)}</td><td>${r2(Number(row[y])).toFixed(2)}</td><td>${r2(Number(row[z])).toFixed(2)}</td>`;
     tbody.appendChild(tr);
   });
   tbl.appendChild(tbody);
 }
 
-function clearStatuses() {
-  REQUIRED_FIELDS.forEach(id => {
-    const inp = document.getElementById(id);
+function renderDeviationTable() {
+  const wrap = document.getElementById('dev-table-wrap');
+  wrap.innerHTML = '';
+  state.devInputs = [];
+
+  const { x, y, z } = state.names;
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  thead.innerHTML = `<tr>
+    <th>Eenheid</th>
+    <th>${x}</th>
+    <th>${y}</th>
+    <th>${z}</th>
+    ${DEV_COLUMNS.map(c => `<th>${c.label}</th>`).join('')}
+  </tr>`;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  state.rows.forEach((row, rowIndex) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${row.entity}</td><td>${Number(row[x]).toFixed(2)}</td><td>${Number(row[y]).toFixed(2)}</td><td>${Number(row[z]).toFixed(2)}</td>`;
+    DEV_COLUMNS.forEach(col => {
+      const td = document.createElement('td');
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = 'any';
+      input.placeholder = '0.0000';
+      input.className = 'pred-input';
+      input.style.width = '110px';
+      input.addEventListener('input', evaluateAll);
+      td.appendChild(input);
+      tr.appendChild(td);
+      state.devInputs.push({ input, key: col.key, row: rowIndex });
+    });
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
+function renderVarSdTable() {
+  const wrap = document.getElementById('varsd-table-wrap');
+  wrap.innerHTML = '';
+  state.varsdInputs = [];
+
+  const rows = [
+    { label: 'SS', cells: ['vs_SS_X', 'vs_SS_Y', 'vs_SS_Z'] },
+    { label: 'Var', cells: ['vs_Var_X', 'vs_Var_Y', 'vs_Var_Z'] },
+    { label: 'SD', cells: ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z'] }
+  ];
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  thead.innerHTML = '<tr><th></th><th>X</th><th>Y</th><th>Z</th></tr>';
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+    const first = document.createElement('td');
+    first.textContent = row.label;
+    tr.appendChild(first);
+    row.cells.forEach(id => {
+      const td = document.createElement('td');
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = 'any';
+      input.placeholder = '0.0000';
+      input.className = 'pred-input';
+      input.style.width = '110px';
+      input.dataset.id = id;
+      input.addEventListener('input', evaluateAll);
+      td.appendChild(input);
+      tr.appendChild(td);
+      state.varsdInputs.push({ input, id });
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
+function renderCovRTable() {
+  const wrap = document.getElementById('covr-table-wrap');
+  wrap.innerHTML = '';
+  state.covrInputs = [];
+
+  const rows = [
+    { label: 'SCP', cells: ['cv_SCP_XY', 'cv_SCP_XZ', 'cv_SCP_YZ'] },
+    { label: 'Cov', cells: ['cv_Cov_XY', 'cv_Cov_XZ', 'cv_Cov_YZ'] },
+    { label: 'r', cells: ['cv_r_XY', 'cv_r_XZ', 'cv_r_YZ'] }
+  ];
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  thead.innerHTML = '<tr><th></th><th>XY</th><th>XZ</th><th>YZ</th></tr>';
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+    const first = document.createElement('td');
+    first.textContent = row.label;
+    tr.appendChild(first);
+    row.cells.forEach(id => {
+      const td = document.createElement('td');
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = 'any';
+      input.placeholder = '0.0000';
+      input.className = 'pred-input';
+      input.style.width = '110px';
+      input.dataset.id = id;
+      input.addEventListener('input', evaluateAll);
+      td.appendChild(input);
+      tr.appendChild(td);
+      state.covrInputs.push({ input, id });
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
+function clearFixedStatuses() {
+  Object.keys(FIELD_TRUTH_KEY).forEach(id => {
+    const input = document.getElementById(id);
     const msg = document.getElementById(`${id}_msg`);
-    if (inp) {
-      inp.value = '';
-      inp.classList.remove('valid', 'invalid');
+    if (input) {
+      input.value = '';
+      input.classList.remove('valid', 'invalid');
     }
     if (msg) {
       msg.textContent = '';
@@ -406,37 +539,76 @@ function clearStatuses() {
   });
 
   const sel = document.getElementById('conclusie_type');
+  const selMsg = document.getElementById('conclusie_type_msg');
   sel.value = '';
   sel.classList.remove('valid', 'invalid');
-  const sm = document.getElementById('conclusie_type_msg');
-  sm.textContent = '';
-  sm.className = 'msg';
+  selMsg.textContent = '';
+  selMsg.className = 'msg';
+
+  document.getElementById('dev-msg').textContent = '';
+  document.getElementById('dev-msg').className = 'status';
+  document.getElementById('varsd-msg').textContent = '';
+  document.getElementById('varsd-msg').className = 'status';
+  document.getElementById('covr-msg').textContent = '';
+  document.getElementById('covr-msg').className = 'status';
 
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('viz-card').classList.add('locked');
   document.getElementById('interpretation').innerHTML = '';
   state.unlocked = false;
   destroyChart();
+  setVizNavLock(false);
+
+  const total = (state.rows.length * DEV_COLUMNS.length) + VARSD_FIELDS.length + COVR_FIELDS.length + Object.keys(FIELD_TRUTH_KEY).length + 1;
+  updateProgress(0, total);
 }
 
-function markField(id, ok, attempted) {
-  const inp = document.getElementById(id);
-  const msg = document.getElementById(`${id}_msg`);
-  if (!inp || !msg) return;
+const FIELD_HINTS = {
+  x_bar: 'gem(X) = ΣX / n',
+  y_bar: 'gem(Y) = ΣY / n',
+  z_bar: 'gem(Z) = ΣZ / n',
+  vs_SS_X: 'SS(X) = Σ(Xi − X̄)²',
+  vs_SS_Y: 'SS(Y) = Σ(Yi − Y̅)²',
+  vs_SS_Z: 'SS(Z) = Σ(Zi − Z̅)²',
+  vs_Var_X: 's²(X) = SS(X) / (n−1)',
+  vs_Var_Y: 's²(Y) = SS(Y) / (n−1)',
+  vs_Var_Z: 's²(Z) = SS(Z) / (n−1)',
+  vs_SD_X: 's(X) = √Var(X)',
+  vs_SD_Y: 's(Y) = √Var(Y)',
+  vs_SD_Z: 's(Z) = √Var(Z)',
+  cv_SCP_XY: 'SCP(X,Y) = Σ(Xi−X̄)(Yi−Y̅)',
+  cv_SCP_XZ: 'SCP(X,Z) = Σ(Xi−X̄)(Zi−Z̅)',
+  cv_SCP_YZ: 'SCP(Y,Z) = Σ(Yi−Y̅)(Zi−Z̅)',
+  cv_Cov_XY: 'Cov(X,Y) = SCP(X,Y) / (n−1)',
+  cv_Cov_XZ: 'Cov(X,Z) = SCP(X,Z) / (n−1)',
+  cv_Cov_YZ: 'Cov(Y,Z) = SCP(Y,Z) / (n−1)',
+  cv_r_XY: 'r(X,Y) = Cov(X,Y) / (s(X)·s(Y))',
+  cv_r_XZ: 'r(X,Z) = Cov(X,Z) / (s(X)·s(Z))',
+  cv_r_YZ: 'r(Y,Z) = Cov(Y,Z) / (s(Y)·s(Z))',
+  partial_num: 'teller = r_xy − r_xz·r_yz',
+  partial_denom: 'noemer = √((1−r_xz²)·(1−r_yz²))',
+  r_xy_z: 'r_xy.z = teller / noemer',
+};
 
-  inp.classList.remove('valid', 'invalid');
+function markField(id, ok, attempted) {
+  const input = document.getElementById(id);
+  const msg = document.getElementById(`${id}_msg`);
+  if (!input || !msg) return;
+
+  input.classList.remove('valid', 'invalid');
   msg.textContent = '';
   msg.className = 'msg';
-
   if (!attempted) return;
+
   if (ok) {
-    inp.classList.add('valid');
+    input.classList.add('valid');
     msg.classList.add('ok');
     msg.textContent = 'OK';
   } else {
-    inp.classList.add('invalid');
+    input.classList.add('invalid');
     msg.classList.add('err');
-    msg.textContent = `${id} is onjuist.`;
+    const hint = FIELD_HINTS[id];
+    msg.textContent = hint ? `Fout — formule: ${hint}` : `${id} is onjuist.`;
   }
 }
 
@@ -446,7 +618,6 @@ function markConclusion(ok, attempted) {
   sel.classList.remove('valid', 'invalid');
   msg.textContent = '';
   msg.className = 'msg';
-
   if (!attempted) return;
 
   if (ok) {
@@ -456,8 +627,49 @@ function markConclusion(ok, attempted) {
   } else {
     sel.classList.add('invalid');
     msg.classList.add('err');
-    msg.textContent = 'Type conclusie is onjuist.';
+    msg.textContent = 'Type conclusie is onjuist — vergelijk r_xy en r_xy.z (richting en grootte).';
   }
+}
+
+function markTableInput(input, ok, attempted) {
+  input.classList.remove('valid', 'invalid');
+  if (!attempted) return;
+  input.classList.add(ok ? 'valid' : 'invalid');
+}
+
+function evaluateTableGroup(inputs, refGetter, statusId, okTextPrefix) {
+  let allEntered = true;
+  let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
+
+  inputs.forEach(entry => {
+    totalCount += 1;
+    const attempted = Number.isFinite(parseNum(entry.input.value));
+    const val = parseNum(entry.input.value);
+    const ref = refGetter(entry);
+    const ok = attempted && check4(val, ref);
+
+    if (!attempted) allEntered = false;
+    if (!ok) allCorrect = false;
+    if (ok) correctCount += 1;
+
+    markTableInput(entry.input, ok, attempted);
+  });
+
+  const msg = document.getElementById(statusId);
+  if (!allEntered) {
+    msg.textContent = `${correctCount}/${totalCount} correct`;
+    msg.className = 'status';
+  } else if (allCorrect) {
+    msg.textContent = `${okTextPrefix} (${correctCount}/${totalCount})`;
+    msg.className = 'status ok';
+  } else {
+    msg.textContent = `${correctCount}/${totalCount} correct`;
+    msg.className = 'status err';
+  }
+
+  return { allEntered, allCorrect, correctCount, totalCount };
 }
 
 function destroyChart() {
@@ -470,15 +682,15 @@ function renderChart() {
   const zVals = state.rows.map(r => Number(r[z]));
   const zMin = Math.min(...zVals);
   const zMax = Math.max(...zVals);
+
   const color = (v) => {
     const t = (v - zMin) / ((zMax - zMin) + 1e-9);
-    const r = Math.round(30 + 200 * t);
-    const b = Math.round(220 - 170 * t);
-    return `rgba(${r},80,${b},0.8)`;
+    const red = Math.round(30 + 200 * t);
+    const blue = Math.round(220 - 170 * t);
+    return `rgba(${red},80,${blue},0.8)`;
   };
 
   const points = state.rows.map(r => ({ x: Number(r[x]), y: Number(r[y]), z: Number(r[z]) }));
-
   state.chart = new Chart(document.getElementById('scatter-chart').getContext('2d'), {
     type: 'scatter',
     data: {
@@ -513,36 +725,81 @@ function renderChart() {
 
 function evaluateAll() {
   if (!state.truth) return;
-
   let allEntered = true;
   let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
 
-  REQUIRED_FIELDS.forEach(id => {
-    const inp = document.getElementById(id);
-    const attempted = Number.isFinite(parseNum(inp.value));
-    const val = parseNum(inp.value);
+  Object.keys(FIELD_TRUTH_KEY).forEach(id => {
+    totalCount += 1;
+    const input = document.getElementById(id);
+    const attempted = Number.isFinite(parseNum(input.value));
+    const val = parseNum(input.value);
     const ref = state.truth[FIELD_TRUTH_KEY[id]];
     const ok = attempted && check4(val, ref);
 
     if (!attempted) allEntered = false;
     if (!ok) allCorrect = false;
-
+    if (ok) correctCount += 1;
     markField(id, ok, attempted);
   });
 
-  const conclusionSel = document.getElementById('conclusie_type');
-  const cAttempted = conclusionSel.value !== '';
-  const cVal = Number(conclusionSel.value);
+  const devRes = evaluateTableGroup(
+    state.devInputs,
+    entry => state.truth[entry.key][entry.row],
+    'dev-msg',
+    'Afwijkingtabel correct'
+  );
+  totalCount += devRes.totalCount;
+  correctCount += devRes.correctCount;
+  if (!devRes.allEntered) allEntered = false;
+  if (!devRes.allCorrect) allCorrect = false;
+
+  const varRes = evaluateTableGroup(
+    state.varsdInputs,
+    entry => {
+      const cfg = VARSD_FIELDS.find(f => f.id === entry.id);
+      return state.truth[cfg.truth];
+    },
+    'varsd-msg',
+    'Var/SD tabel correct'
+  );
+  totalCount += varRes.totalCount;
+  correctCount += varRes.correctCount;
+  if (!varRes.allEntered) allEntered = false;
+  if (!varRes.allCorrect) allCorrect = false;
+
+  const covRes = evaluateTableGroup(
+    state.covrInputs,
+    entry => {
+      const cfg = COVR_FIELDS.find(f => f.id === entry.id);
+      return state.truth[cfg.truth];
+    },
+    'covr-msg',
+    'Cov/r tabel correct'
+  );
+  totalCount += covRes.totalCount;
+  correctCount += covRes.correctCount;
+  if (!covRes.allEntered) allEntered = false;
+  if (!covRes.allCorrect) allCorrect = false;
+
+  totalCount += 1;
+  const sel = document.getElementById('conclusie_type');
+  const cAttempted = sel.value !== '';
+  const cVal = Number(sel.value);
   const cRef = Number(state.truth.conclusie_type);
   const cOk = cAttempted && Number.isFinite(cRef) && cVal === cRef;
   markConclusion(cOk, cAttempted);
-
   if (!cAttempted) allEntered = false;
   if (!cOk) allCorrect = false;
+  if (cOk) correctCount += 1;
+
+  updateProgress(correctCount, totalCount);
 
   const unlock = allEntered && allCorrect;
   if (unlock !== state.unlocked) {
     state.unlocked = unlock;
+    setVizNavLock(unlock);
     if (unlock) {
       document.getElementById('success-card').classList.remove('hidden');
       document.getElementById('viz-card').classList.remove('locked');
@@ -556,15 +813,91 @@ function evaluateAll() {
   }
 }
 
+function updateProgress(correct, total) {
+  const bar = document.getElementById('progress-bar');
+  const text = document.getElementById('progress-text');
+  if (!bar || !text) return;
+  const pct = total > 0 ? (100 * correct / total) : 0;
+  bar.style.width = `${pct.toFixed(1)}%`;
+  text.textContent = `${correct} / ${total} correct`;
+}
+
+function setVizNavLock(unlocked) {
+  const nav = document.querySelector('.nav-item[data-target="viz-card"]');
+  if (!nav) return;
+  nav.classList.toggle('locked', !unlocked);
+}
+
+function setupNav() {
+  const nav = document.getElementById('section-nav');
+  if (!nav) return;
+  const items = Array.from(nav.querySelectorAll('.nav-item'));
+
+  nav.addEventListener('click', (e) => {
+    const item = e.target.closest('.nav-item');
+    if (!item || item.classList.contains('locked')) return;
+    const target = item.dataset.target;
+    const sec = document.getElementById(target);
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    items.forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+  });
+}
+
+function setupSidebarChrome() {
+  const sidebarEl = document.getElementById('sidebar');
+  const overlayEl = document.getElementById('sidebar-overlay');
+  const btnToggle = document.getElementById('btn-sidebar-toggle');
+  const btnClose = document.getElementById('btn-sidebar-close');
+
+  function closeSidebar() {
+    if (sidebarEl) sidebarEl.classList.remove('open');
+    if (overlayEl) overlayEl.classList.remove('visible');
+  }
+
+  if (btnToggle) {
+    btnToggle.addEventListener('click', () => {
+      if (sidebarEl) sidebarEl.classList.add('open');
+      if (overlayEl) overlayEl.classList.add('visible');
+    });
+  }
+  if (btnClose) btnClose.addEventListener('click', closeSidebar);
+  if (overlayEl) overlayEl.addEventListener('click', closeSidebar);
+
+  const resizeHandle = document.getElementById('sidebar-resize-handle');
+  if (resizeHandle && sidebarEl) {
+    let startX = 0;
+    let startWidth = 0;
+    resizeHandle.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      startWidth = sidebarEl.getBoundingClientRect().width;
+      resizeHandle.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!resizeHandle.classList.contains('dragging')) return;
+      const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
+      sidebarEl.style.width = `${newWidth}px`;
+    });
+    document.addEventListener('mouseup', () => {
+      if (!resizeHandle.classList.contains('dragging')) return;
+      resizeHandle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  }
+}
+
 function generate(random = false) {
   const sel = document.getElementById('scenario');
   const nEl = document.getElementById('n');
   const seedEl = document.getElementById('seed');
 
-  let sc;
+  let sc = null;
   if (random) sc = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
   else sc = SCENARIOS.find(s => s.id === sel.value) || SCENARIOS[0];
-
   sel.value = sc.id;
 
   const made = makePartialData(sc, nEl.value, seedEl.value);
@@ -575,7 +908,10 @@ function generate(random = false) {
 
   setScenarioText(sc, state.names);
   renderDatasetTable();
-  clearStatuses();
+  renderDeviationTable();
+  renderVarSdTable();
+  renderCovRTable();
+  clearFixedStatuses();
 }
 
 function bindEvents() {
@@ -586,7 +922,9 @@ function bindEvents() {
 
 function init() {
   fillScenarioSelect();
-  buildFields();
+  buildFixedFields();
+  setupNav();
+  setupSidebarChrome();
   bindEvents();
   generate(false);
 }
