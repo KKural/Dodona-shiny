@@ -305,14 +305,16 @@ body {
 
 .field input.valid,
 .field select.valid,
-.pred-input.valid {
+.pred-input.valid,
+.table-input.valid {
   border: 2px solid var(--ok);
   background: #ecfdf3;
 }
 
 .field input.invalid,
 .field select.invalid,
-.pred-input.invalid {
+.pred-input.invalid,
+.table-input.invalid {
   border: 2px solid var(--bad);
   background: #fef2f2;
 }
@@ -358,6 +360,43 @@ td .pred-input {
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
+}
+
+.table-input {
+  max-width: 100%;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  text-align: center;
+}
+
+.calc-input-table {
+  margin-bottom: 10px;
+}
+
+.calc-input-table th {
+  background: #eef4ff;
+}
+
+.calc-input-table .sum-row td {
+  background: #f8fafc;
+  border-top: 2px solid #94a3b8;
+}
+
+.wide-calc-table {
+  min-width: 1060px;
+}
+
+.table-msg {
+  min-width: 140px;
+}
+
+.section-paste {
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 10px;
+  margin-top: 10px;
 }
 
 .status {
@@ -414,10 +453,6 @@ td .pred-input {
 
 .sidebar-overlay.visible {
   display: block;
-}
-
-.excel-paste-card {
-  margin-top: 12px;
 }
 
 .excel-paste-area {

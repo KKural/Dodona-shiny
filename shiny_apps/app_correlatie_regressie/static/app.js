@@ -335,10 +335,13 @@ function calcTruth(rows, names) {
 
   const dX = X.map(v => v - mean_X);
   const dY = Y.map(v => v - mean_Y);
+  const dX2 = dX.map(v => v * v);
+  const dY2 = dY.map(v => v * v);
+  const dXdY = dX.map((v, i) => v * dY[i]);
 
-  const sum_dX2 = r4(dX.reduce((s, v) => s + v * v, 0));
-  const sum_dY2 = r4(dY.reduce((s, v) => s + v * v, 0));
-  const cross_product_sum = r4(dX.reduce((s, v, i) => s + v * dY[i], 0));
+  const sum_dX2 = r4(dX2.reduce((s, v) => s + v, 0));
+  const sum_dY2 = r4(dY2.reduce((s, v) => s + v, 0));
+  const cross_product_sum = r4(dXdY.reduce((s, v) => s + v, 0));
 
   const var_X = r4(sum_dX2 / (n - 1));
   const var_Y = r4(sum_dY2 / (n - 1));
@@ -362,7 +365,7 @@ function calcTruth(rows, names) {
   return {
     n,
     mean_X, mean_Y,
-    dX, dY,
+    dX, dY, dX2, dY2, dXdY,
     sum_dX2, sum_dY2,
     var_X, var_Y, sd_X, sd_Y,
     cross_product_sum, covariance, sd_product,
@@ -370,27 +373,6 @@ function calcTruth(rows, names) {
     predictions,
     r_squared, alienation, f_stat, model_p
   };
-}
-
-function makeField(container, id, label) {
-  const w = document.createElement('div');
-  w.className = 'field';
-  const lab = document.createElement('label');
-  lab.setAttribute('for', id);
-  lab.textContent = label;
-  const inp = document.createElement('input');
-  inp.id = id;
-  inp.type = 'number';
-  inp.step = 'any';
-  inp.placeholder = '0.0000';
-  inp.addEventListener('input', evaluateAll);
-  const msg = document.createElement('div');
-  msg.id = `${id}_msg`;
-  msg.className = 'msg';
-  w.appendChild(lab);
-  w.appendChild(inp);
-  w.appendChild(msg);
-  container.appendChild(w);
 }
 
 function getRequiredSet() {
@@ -405,16 +387,219 @@ function isRequiredField(id) {
 }
 
 function getRequiredCount() {
-  if (state.mode === 'Correlation') return CORRELATION_REQUIRED_FIELDS.length;
-  return REQUIRED_FIELDS.length;
+  const devCount = state.rows.length * 5;
+  if (state.mode === 'Correlation') return devCount + CORRELATION_REQUIRED_FIELDS.length;
+  return devCount + REQUIRED_FIELDS.length;
+}
+
+function tableInput(id, width = 120) {
+  return `<input id="${id}" class="table-input" type="number" step="any" placeholder="0.0000" style="width:${width}px" />`;
+}
+
+function tableMsg(id) {
+  return `<div id="${id}_msg" class="msg table-msg"></div>`;
+}
+
+function wireTableInputs(container) {
+  container.querySelectorAll('input.table-input').forEach((input) => {
+    input.addEventListener('input', evaluateAll);
+  });
+}
+
+function makePasteBlock(id, fields) {
+  return `
+    <div class="section-paste" id="${id}">
+      <div class="paste-hint">Plakken uit Excel voor deze tabel:</div>
+      <div class="paste-format-wrap">
+        <table class="paste-cols-table">
+          <thead><tr>${fields.map(f => `<th>${f.label}</th>`).join('')}</tr></thead>
+          <tbody><tr>${fields.map(() => '<td>...</td>').join('')}</tr></tbody>
+        </table>
+      </div>
+      <textarea class="excel-paste-area" rows="2" placeholder="Plak hier de Excel-waarden voor deze tabel"></textarea>
+      <button type="button" class="btn-secondary btn-section-paste">Vul tabel in</button>
+      <div class="paste-status"></div>
+    </div>`;
+}
+
+function attachPasteBlock(block, fields) {
+  if (!block) return;
+  const area = block.querySelector('.excel-paste-area');
+  const button = block.querySelector('.btn-section-paste');
+  const status = block.querySelector('.paste-status');
+  const fill = () => {
+    const values = parseExcelPasteValues(area.value);
+    let filled = 0;
+    fields.forEach((field, i) => {
+      if (i < values.length && setExcelPasteTarget(field.target, values[i])) filled += 1;
+    });
+    evaluateAll();
+    status.textContent = values.length < fields.length
+      ? `${filled}/${fields.length} waarden ingevuld. Er ontbreken nog waarden.`
+      : `${filled}/${fields.length} waarden ingevuld.`;
+  };
+  button.addEventListener('click', fill);
+  area.addEventListener('paste', () => window.setTimeout(fill, 0));
+}
+
+function renderMeansTable() {
+  const container = document.getElementById('means-grid');
+  if (!container) return;
+  container.className = 'table-wrap';
+  const fields = [
+    { label: 'Gemiddelde X', target: 'mean_X' },
+    { label: 'Gemiddelde Y', target: 'mean_Y' }
+  ];
+  container.innerHTML = `
+    <table class="calc-input-table">
+      <thead><tr><th>Grootheid</th><th>Jouw antwoord</th><th>Feedback</th></tr></thead>
+      <tbody>
+        <tr><td>Gemiddelde X</td><td>${tableInput('mean_X')}</td><td>${tableMsg('mean_X')}</td></tr>
+        <tr><td>Gemiddelde Y</td><td>${tableInput('mean_Y')}</td><td>${tableMsg('mean_Y')}</td></tr>
+      </tbody>
+    </table>
+    ${makePasteBlock('paste-means', fields)}`;
+  wireTableInputs(container);
+  attachPasteBlock(document.getElementById('paste-means'), fields);
+}
+
+function renderDeviationCalcTable() {
+  const container = document.getElementById('totals-grid');
+  if (!container) return;
+  container.className = 'table-wrap';
+  const { x, y } = state.names;
+  const fields = [];
+  const rows = state.rows.map((row, i) => {
+    const ids = [`dev-dx-${i}`, `dev-dy-${i}`, `dev-dx2-${i}`, `dev-dy2-${i}`, `dev-dxdy-${i}`];
+    fields.push(
+      { label: `Rij ${i + 1} x-xbar`, target: ids[0] },
+      { label: `Rij ${i + 1} y-ybar`, target: ids[1] },
+      { label: `Rij ${i + 1} (x-xbar)^2`, target: ids[2] },
+      { label: `Rij ${i + 1} (y-ybar)^2`, target: ids[3] },
+      { label: `Rij ${i + 1} product`, target: ids[4] }
+    );
+    return `
+      <tr>
+        <td>${row.entity}</td>
+        <td>${r2(Number(row[x])).toFixed(2)}</td>
+        <td>${r2(Number(row[y])).toFixed(2)}</td>
+        <td>${tableInput(ids[0], 110)}</td>
+        <td>${tableInput(ids[1], 110)}</td>
+        <td>${tableInput(ids[2], 110)}</td>
+        <td>${tableInput(ids[3], 110)}</td>
+        <td>${tableInput(ids[4], 120)}</td>
+      </tr>`;
+  }).join('');
+  fields.push(
+    { label: 'Som (x-xbar)^2', target: 'tot_X1_2' },
+    { label: 'Som (y-ybar)^2', target: 'tot_Y2' },
+    { label: 'Kruisproductsom', target: 'cross_product_sum' }
+  );
+  container.innerHTML = `
+    <p class="instruction">Bereken afwijkingen, kwadraten en kruisproducten. De onderste rij bevat de kolomsommen.</p>
+    <table class="calc-input-table wide-calc-table">
+      <thead>
+        <tr>
+          <th>Eenheid</th><th>${x || 'X'}</th><th>${y || 'Y'}</th>
+          <th>x - xbar</th><th>y - ybar</th><th>(x - xbar)^2</th><th>(y - ybar)^2</th><th>(x - xbar)(y - ybar)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+        <tr class="sum-row">
+          <td colspan="5"><strong>Kolomsommen</strong></td>
+          <td>${tableInput('tot_X1_2', 120)}${tableMsg('tot_X1_2')}</td>
+          <td>${tableInput('tot_Y2', 120)}${tableMsg('tot_Y2')}</td>
+          <td>${tableInput('cross_product_sum', 130)}${tableMsg('cross_product_sum')}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="dev-table-msg" class="status"></div>
+    ${makePasteBlock('paste-deviations', fields)}`;
+  wireTableInputs(container);
+  attachPasteBlock(document.getElementById('paste-deviations'), fields);
+}
+
+function renderStatsTable() {
+  const container = document.getElementById('stats-grid');
+  if (!container) return;
+  container.className = 'table-wrap';
+  const fields = [
+    { label: 'Var(X)', target: 'var_X' }, { label: 'SD(X)', target: 'sd_X' },
+    { label: 'Var(Y)', target: 'var_Y' }, { label: 'SD(Y)', target: 'sd_Y' },
+    { label: 'Cov(X,Y)', target: 'covariance' }, { label: 'SD(X)*SD(Y)', target: 'sd_product' },
+    { label: 'r', target: 'correlation' }
+  ];
+  container.innerHTML = `
+    <table class="calc-input-table">
+      <thead><tr><th>Grootheid</th><th>Jouw antwoord</th><th>Feedback</th></tr></thead>
+      <tbody>
+        <tr><td>Var(X)</td><td>${tableInput('var_X')}</td><td>${tableMsg('var_X')}</td></tr>
+        <tr><td>SD(X)</td><td>${tableInput('sd_X')}</td><td>${tableMsg('sd_X')}</td></tr>
+        <tr><td>Var(Y)</td><td>${tableInput('var_Y')}</td><td>${tableMsg('var_Y')}</td></tr>
+        <tr><td>SD(Y)</td><td>${tableInput('sd_Y')}</td><td>${tableMsg('sd_Y')}</td></tr>
+        <tr><td>Cov(X,Y)</td><td>${tableInput('covariance')}</td><td>${tableMsg('covariance')}</td></tr>
+        <tr><td>SD(X) * SD(Y)</td><td>${tableInput('sd_product')}</td><td>${tableMsg('sd_product')}</td></tr>
+        <tr><td>Correlatie r</td><td>${tableInput('correlation')}</td><td>${tableMsg('correlation')}</td></tr>
+      </tbody>
+    </table>
+    ${makePasteBlock('paste-stats', fields)}`;
+  wireTableInputs(container);
+  attachPasteBlock(document.getElementById('paste-stats'), fields);
+}
+
+function renderRegressionTable() {
+  const container = document.getElementById('reg-grid');
+  if (!container) return;
+  container.className = 'table-wrap';
+  const fields = [
+    { label: 'Helling b', target: 'slope' },
+    { label: 'Intercept a', target: 'intercept' }
+  ];
+  container.innerHTML = `
+    <table class="calc-input-table">
+      <thead><tr><th>Grootheid</th><th>Jouw antwoord</th><th>Feedback</th></tr></thead>
+      <tbody>
+        <tr><td>Helling b</td><td>${tableInput('slope')}</td><td>${tableMsg('slope')}</td></tr>
+        <tr><td>Intercept a</td><td>${tableInput('intercept')}</td><td>${tableMsg('intercept')}</td></tr>
+      </tbody>
+    </table>
+    ${makePasteBlock('paste-reg', fields)}`;
+  wireTableInputs(container);
+  attachPasteBlock(document.getElementById('paste-reg'), fields);
+}
+
+function renderFitTable() {
+  const container = document.getElementById('fit-grid');
+  if (!container) return;
+  container.className = 'table-wrap';
+  const fields = [
+    { label: 'R2', target: 'r_squared' },
+    { label: 'Vervreemding', target: 'alienation' },
+    { label: 'F-statistiek', target: 'f_stat' },
+    { label: 'Model p-waarde', target: 'model_p_value' }
+  ];
+  container.innerHTML = `
+    <table class="calc-input-table">
+      <thead><tr><th>Grootheid</th><th>Jouw antwoord</th><th>Feedback</th></tr></thead>
+      <tbody>
+        <tr><td>R2</td><td>${tableInput('r_squared')}</td><td>${tableMsg('r_squared')}</td></tr>
+        <tr><td>Vervreemdingscoefficient</td><td>${tableInput('alienation')}</td><td>${tableMsg('alienation')}</td></tr>
+        <tr><td>F-statistiek</td><td>${tableInput('f_stat')}</td><td>${tableMsg('f_stat')}</td></tr>
+        <tr><td>Model p-waarde</td><td>${tableInput('model_p_value')}</td><td>${tableMsg('model_p_value')}</td></tr>
+      </tbody>
+    </table>
+    ${makePasteBlock('paste-fit', fields)}`;
+  wireTableInputs(container);
+  attachPasteBlock(document.getElementById('paste-fit'), fields);
 }
 
 function buildFields() {
-  FIELD_GROUPS.means.forEach(([id, label]) => makeField(document.getElementById('means-grid'), id, label));
-  FIELD_GROUPS.totals.forEach(([id, label]) => makeField(document.getElementById('totals-grid'), id, label));
-  FIELD_GROUPS.stats.forEach(([id, label]) => makeField(document.getElementById('stats-grid'), id, label));
-  FIELD_GROUPS.reg.forEach(([id, label]) => makeField(document.getElementById('reg-grid'), id, label));
-  FIELD_GROUPS.fit.forEach(([id, label]) => makeField(document.getElementById('fit-grid'), id, label));
+  renderMeansTable();
+  renderDeviationCalcTable();
+  renderStatsTable();
+  renderRegressionTable();
+  renderFitTable();
 }
 
 function fillScenarioSelect() {
@@ -490,73 +675,12 @@ function parseExcelPasteValues(raw) {
     .filter(v => v !== '');
 }
 
-function getExcelPasteFieldOrder() {
-  const labelMap = new Map(Object.values(FIELD_GROUPS).flat());
-  const ids = state.mode === 'Correlation' ? CORRELATION_REQUIRED_FIELDS : REQUIRED_FIELDS;
-  const fields = ids.map(id => ({ label: labelMap.get(id) || id, target: id }));
-  if (state.mode !== 'Correlation') {
-    state.predInputs.forEach((input, i) => fields.push({ label: `Yhat rij ${i + 1}`, target: input }));
-  }
-  return fields;
-}
-
-function updateExcelPasteHint() {
-  const hint = document.getElementById('excel-paste-format-hint');
-  if (!hint) return;
-  const fields = getExcelPasteFieldOrder();
-  hint.innerHTML = `
-    <div class="paste-hint">Volgorde kolommen (kopieer/plak uit Excel):</div>
-    <table class="paste-cols-table">
-      <thead><tr>${fields.map(f => `<th>${f.label}</th>`).join('')}</tr></thead>
-      <tbody><tr>${fields.map(() => '<td>...</td>').join('')}</tr></tbody>
-    </table>`;
-}
-
 function setExcelPasteTarget(target, value) {
   const el = typeof target === 'string' ? document.getElementById(target) : target;
   if (!el) return false;
   el.value = value;
   el.dispatchEvent(new Event('input', { bubbles: true }));
   return true;
-}
-
-function fillFromExcelPaste() {
-  const area = document.getElementById('excel-paste-values');
-  const status = document.getElementById('excel-paste-status');
-  if (!area) return;
-  const values = parseExcelPasteValues(area.value);
-  const fields = getExcelPasteFieldOrder();
-  let filled = 0;
-  fields.forEach((field, i) => {
-    if (i < values.length && setExcelPasteTarget(field.target, values[i])) filled += 1;
-  });
-  evaluateAll();
-  if (status) {
-    status.textContent = values.length < fields.length
-      ? `${filled}/${fields.length} waarden ingevuld. Er ontbreken nog waarden.`
-      : `${filled}/${fields.length} waarden ingevuld.`;
-  }
-}
-
-function initExcelPastePanel() {
-  const anchor = document.getElementById('btn-random');
-  if (!anchor || document.getElementById('excel-paste-card')) return;
-  const card = document.createElement('div');
-  card.className = 'sidebar-card excel-paste-card';
-  card.id = 'excel-paste-card';
-  card.innerHTML = `
-    <div class="sidebar-card-title">Plakken uit Excel</div>
-    <p class="paste-hint">Plak een rij of bereik met tab-gescheiden waarden. De waarden worden van links naar rechts ingevuld.</p>
-    <div id="excel-paste-format-hint" class="paste-format-wrap"></div>
-    <textarea id="excel-paste-values" class="excel-paste-area" rows="3" placeholder="Plak hier waarden uit Excel"></textarea>
-    <button id="btn-paste-excel" class="btn-secondary" type="button">Vul waarden in</button>
-    <div id="excel-paste-status" class="paste-status"></div>`;
-  anchor.insertAdjacentElement('afterend', card);
-  document.getElementById('btn-paste-excel').addEventListener('click', fillFromExcelPaste);
-  document.getElementById('excel-paste-values').addEventListener('paste', () => {
-    window.setTimeout(fillFromExcelPaste, 0);
-  });
-  updateExcelPasteHint();
 }
 
 function clearStatuses() {
@@ -572,6 +696,16 @@ function clearStatuses() {
       msg.className = 'msg';
     }
   });
+  document.querySelectorAll('#totals-grid input.table-input').forEach((inp) => {
+    if (FIELD_TRUTH_KEY[inp.id]) return;
+    inp.value = '';
+    inp.classList.remove('valid', 'invalid');
+  });
+  const devMsg = document.getElementById('dev-table-msg');
+  if (devMsg) {
+    devMsg.textContent = '';
+    devMsg.className = 'status';
+  }
 
   document.getElementById('pred-msg').textContent = '';
   document.getElementById('pred-msg').className = 'status';
@@ -626,6 +760,58 @@ function markField(id, ok, attempted) {
     const hint = FIELD_HINTS[id];
     msg.textContent = hint ? `Fout — formule: ${hint}` : `${id} is onjuist.`;
   }
+}
+
+function markTableInput(input, ok, attempted) {
+  if (!input) return;
+  input.classList.remove('valid', 'invalid');
+  if (!attempted) return;
+  input.classList.add(ok ? 'valid' : 'invalid');
+}
+
+function evaluateDeviationInputs() {
+  if (!state.truth || !state.rows.length) return { allEntered: false, allCorrect: false, correctCount: 0, totalCount: 0 };
+  const msg = document.getElementById('dev-table-msg');
+  const specs = [
+    { prefix: 'dev-dx', values: state.truth.dX },
+    { prefix: 'dev-dy', values: state.truth.dY },
+    { prefix: 'dev-dx2', values: state.truth.dX2 },
+    { prefix: 'dev-dy2', values: state.truth.dY2 },
+    { prefix: 'dev-dxdy', values: state.truth.dXdY }
+  ];
+  let allEntered = true;
+  let allCorrect = true;
+  let correctCount = 0;
+  let totalCount = 0;
+
+  specs.forEach((spec) => {
+    state.rows.forEach((_, i) => {
+      const input = document.getElementById(`${spec.prefix}-${i}`);
+      if (!input) return;
+      totalCount += 1;
+      const value = parseNum(input.value);
+      const attempted = Number.isFinite(value);
+      const ok = attempted && check4(value, spec.values[i]);
+      if (!attempted) allEntered = false;
+      if (!ok) allCorrect = false;
+      if (ok) correctCount += 1;
+      markTableInput(input, ok, attempted);
+    });
+  });
+
+  if (msg) {
+    if (!allEntered) {
+      msg.textContent = '';
+      msg.className = 'status';
+    } else if (allCorrect) {
+      msg.textContent = 'Afwijkingtabel OK';
+      msg.className = 'status ok';
+    } else {
+      msg.textContent = 'Sommige cellen in de afwijkingtabel zijn fout.';
+      msg.className = 'status err';
+    }
+  }
+  return { allEntered, allCorrect, correctCount, totalCount };
 }
 
 function evaluatePredictions() {
@@ -791,6 +977,12 @@ function evaluateAll() {
   let allCorrect = true;
   let correctCount = 0;
   let totalCount = 0;
+
+  const dev = evaluateDeviationInputs();
+  totalCount += dev.totalCount;
+  correctCount += dev.correctCount;
+  if (!dev.allEntered) allEntered = false;
+  if (!dev.allCorrect) allCorrect = false;
 
   REQUIRED_FIELDS.forEach(id => {
     const required = isRequiredField(id);
@@ -1011,8 +1203,8 @@ function generate(random = false) {
   setScenarioText(sc, state.names);
   renderDatasetTable();
   renderPredictionTable();
+  buildFields();
   clearStatuses();
-  updateExcelPasteHint();
 }
 
 function bindEvents() {
@@ -1033,7 +1225,6 @@ function bindEvents() {
     applyModeUI();
     clearStatuses();
     evaluateAll();
-    updateExcelPasteHint();
   });
 }
 
@@ -1046,7 +1237,6 @@ function init() {
   setupNav();
   setupSidebarChrome();
   bindEvents();
-  initExcelPastePanel();
   const seedEl = document.getElementById('seed');
   if (seedEl) {
     seedEl.value = String(nextRandomSeed());
