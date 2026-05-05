@@ -1429,7 +1429,7 @@ function resetAnswers() {
     fb.className = 'ans-feedback';
     fb.textContent = 'Nog niet nagekeken.';
   });
-  document.querySelectorAll('.mcq-list input[type="radio"]').forEach((el) => { el.checked = false; });
+  document.querySelectorAll('.mcq-list input[type="radio"], .mcq-list input[type="checkbox"]').forEach((el) => { el.checked = false; });
   document.querySelectorAll('.mcq-item').forEach((el) => el.classList.remove('ok', 'err'));
   document.querySelectorAll('.mcq-feedback').forEach((fb) => {
     fb.className = 'mcq-feedback';
