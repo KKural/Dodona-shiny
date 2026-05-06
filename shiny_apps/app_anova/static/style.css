@@ -1035,7 +1035,8 @@ details.test-panel[open]>summary::before {
 #hot4-container,
 #hot5-container {
     margin-top: 10px;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .card-body>#hot-container:first-child,
