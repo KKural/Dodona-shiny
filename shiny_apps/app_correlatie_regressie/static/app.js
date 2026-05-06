@@ -1379,6 +1379,7 @@ function generate(random = false) {
   renderDatasetTable();
   buildFields();
   clearStatuses();
+  evaluateAll();
 }
 
 function bindEvents() {

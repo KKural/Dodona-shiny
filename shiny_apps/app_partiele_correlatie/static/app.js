@@ -1237,6 +1237,7 @@ function generate(random = false) {
   renderCovRTable();
   renderPartialHot();
   clearFixedStatuses();
+  evaluateAll();
 }
 
 function bindEvents() {
