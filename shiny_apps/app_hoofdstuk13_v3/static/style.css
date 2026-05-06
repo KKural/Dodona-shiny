@@ -279,7 +279,6 @@ h3 {
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 760px;
 }
 
 th,
@@ -295,6 +294,11 @@ th {
     text-align: left;
 }
 
+.data-table {
+    width: auto;
+    min-width: 0;
+}
+
 .data-table th,
 .data-table td {
     text-align: center;
@@ -302,7 +306,8 @@ th {
 }
 
 .compact-table {
-    min-width: 520px;
+    min-width: 0;
+    width: auto;
 }
 
 .divider-row td {

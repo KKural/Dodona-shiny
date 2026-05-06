@@ -157,6 +157,7 @@ body {
 .btn-primary {
   background: #2563eb;
   border-color: #2563eb;
+  color: #fff;
 }
 
 .btn-primary:hover {
@@ -165,6 +166,7 @@ body {
 
 .btn-secondary {
   background: #1f2937;
+  color: #d1d5db;
 }
 
 .btn-secondary:hover {
@@ -513,6 +515,7 @@ td .pred-input {
 
 .hot-table-container {
   margin-top: 10px;
+  overflow-x: auto;
 }
 
 #means-grid .handsontable td,

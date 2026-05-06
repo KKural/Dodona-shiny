@@ -482,7 +482,7 @@ function renderFixedHotTable(cfg) {
     ],
     colWidths,
     rowHeaders: false,
-    width: colWidths.reduce((sum, w) => sum + w, 0),
+    width: colWidths.reduce((sum, w) => sum + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
     cells(row, col) {
@@ -578,7 +578,7 @@ function renderDeviationTable() {
     ],
     colWidths,
     rowHeaders: false,
-    width: colWidths.reduce((sum, w) => sum + w, 0),
+    width: colWidths.reduce((sum, w) => sum + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
     cells(row, col) {
