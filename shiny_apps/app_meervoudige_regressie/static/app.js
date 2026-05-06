@@ -820,8 +820,12 @@ function fillScenarioSelect() {
 }
 
 function setScenarioText(sc, names) {
+  const titleEl = document.getElementById('scenario-title');
+  if (titleEl) titleEl.textContent = sc.title;
   const el = document.getElementById('scenario-text');
-  el.innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br>x1 = <b>${names.x1}</b> | x2 = <b>${names.x2}</b> | Y = <b>${names.y}</b>`;
+  el.textContent = sc.vignette;
+  const metaEl = document.getElementById('scenario-meta');
+  if (metaEl) metaEl.innerHTML = `x1 = <b>${names.x1}</b> | x2 = <b>${names.x2}</b> | Y = <b>${names.y}</b>`;
 }
 
 function renderDatasetTable() {

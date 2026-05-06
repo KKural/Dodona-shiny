@@ -1416,7 +1416,11 @@ function doGenerate() {
     const scenarioTextEl = document.getElementById('scenario-text');
     if (scenarioTextEl) {
         const groupsStr = sc.groups.join(' \u2022 ');
-        scenarioTextEl.innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br><strong>Y:</strong> ${humanizeLabel(sc.yName)} (${sc.yUnit}) &nbsp;|&nbsp; <strong>Groepen:</strong> ${groupsStr}`;
+        const titleEl = document.getElementById('scenario-title');
+        if (titleEl) titleEl.textContent = sc.title;
+        scenarioTextEl.textContent = sc.vignette;
+        const metaEl = document.getElementById('scenario-meta');
+        if (metaEl) metaEl.innerHTML = `<strong>Y:</strong> ${humanizeLabel(sc.yName)} (${sc.yUnit}) &nbsp;|&nbsp; <strong>Groepen:</strong> ${groupsStr}`;
     }
 
     // update seed display

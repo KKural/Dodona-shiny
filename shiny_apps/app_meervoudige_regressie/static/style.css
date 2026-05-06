@@ -246,6 +246,13 @@ body {
   color: #1e3a5f;
 }
 
+.scenario-meta {
+  margin: 4px 0 0 0;
+  font-size: 0.85rem;
+  color: #1e40af;
+  opacity: 0.85;
+}
+
 .card {
   background: var(--card);
   border: 1px solid var(--border);

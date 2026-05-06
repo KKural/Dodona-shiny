@@ -511,10 +511,12 @@ function fillScenarioSelect() {
 }
 
 function setScenarioText(sc, names) {
+  const titleEl = document.getElementById('scenario-title');
+  if (titleEl) titleEl.textContent = sc.title;
   const el = document.getElementById('scenario-text');
-  if (el) {
-    el.innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br>X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
-  }
+  if (el) el.textContent = sc.vignette;
+  const metaEl = document.getElementById('scenario-meta');
+  if (metaEl) metaEl.innerHTML = `X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
 }
 
 function renderDatasetTable() {
