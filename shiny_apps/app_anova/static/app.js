@@ -4,7 +4,7 @@
    Dutch language, criminological scenarios
    ============================================================= */
 
-import { mulberry32, randNormal, pValueFromF, incompleteBeta, logBeta, logGamma, betaCF } from '../../shared/js/stats-utils.js';
+// mulberry32, randNormal, pValueFromF etc. loaded globally from ../../shared/js/stats-utils.js
 
 // \u2500\u2500\u2500 SCENARIOS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const SCENARIOS = [
@@ -126,9 +126,7 @@ function normalizeScenarioLabels() {
 
 normalizeScenarioLabels();
 
-// mulberry32, randNormal — imported from ../../shared/js/stats-utils.js
-
-* ====================================================// mulberry32, randNormal — imported from ../../shared/js/stats-utils.js
+// mulberry32, randNormal — loaded globally from ../../shared/js/stats-utils.js
 
 
 // \u2500\u2500\u2500 CLAMP \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500

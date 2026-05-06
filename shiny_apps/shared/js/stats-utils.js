@@ -9,7 +9,7 @@
  */
 
 // ─── Seeded PRNG (Mulberry32) ──────────────────────────────────────────────
-export function mulberry32(seed) {
+function mulberry32(seed) {
     return function () {
         let t = (seed += 0x6D2B79F5);
         t = Math.imul(t ^ (t >>> 15), t | 1);
@@ -19,7 +19,7 @@ export function mulberry32(seed) {
 }
 
 // ─── Normal random variate (Box-Muller) ───────────────────────────────────
-export function randNormal(rng) {
+function randNormal(rng) {
     let u = 0, v = 0;
     while (u === 0) u = rng();
     while (v === 0) v = rng();
@@ -27,14 +27,14 @@ export function randNormal(rng) {
 }
 
 // ─── p-value from F statistic (regularised incomplete beta) ───────────────
-export function pValueFromF(F, d1, d2) {
+function pValueFromF(F, d1, d2) {
     if (!Number.isFinite(F) || F < 0 || d1 <= 0 || d2 <= 0) return NaN;
     const x = d2 / (d2 + d1 * F);
     return incompleteBeta(x, d2 / 2, d1 / 2);
 }
 
 // ─── Regularised incomplete beta I_x(a,b) ─────────────────────────────────
-export function incompleteBeta(x, a, b) {
+function incompleteBeta(x, a, b) {
     if (x < 0 || x > 1) return NaN;
     if (x === 0) return 0;
     if (x === 1) return 1;
@@ -48,12 +48,12 @@ export function incompleteBeta(x, a, b) {
 }
 
 // ─── Log beta function ─────────────────────────────────────────────────────
-export function logBeta(a, b) {
+function logBeta(a, b) {
     return logGamma(a) + logGamma(b) - logGamma(a + b);
 }
 
 // ─── Log gamma (Lanczos approximation, g=7) ────────────────────────────────
-export function logGamma(z) {
+function logGamma(z) {
     const g = 7;
     const c = [
         0.99999999999980993, 676.5203681218851, -1259.1392167224028,
@@ -69,7 +69,7 @@ export function logGamma(z) {
 }
 
 // ─── Continued fraction for incomplete beta (Lentz's method) ──────────────
-export function betaCF(x, a, b) {
+function betaCF(x, a, b) {
     const MAXIT = 200, EPS = 3e-7, FPMIN = 1e-30;
     const qab = a + b, qap = a + 1, qam = a - 1;
     let c = 1, d = 1 - qab * x / qap;

@@ -1,4 +1,6 @@
-import { mulberry32, randNormal as randN, pValueFromF, incompleteBeta, logBeta, logGamma, betaCF } from '../../shared/js/stats-utils.js';
+// mulberry32, randNormal as randN, pValueFromF, incompleteBeta, logBeta, logGamma, betaCF
+// are loaded globally from ../../shared/js/stats-utils.js
+const randN = randNormal;
 
 const MAX_SAMPLE_SIZE = 50;
 
