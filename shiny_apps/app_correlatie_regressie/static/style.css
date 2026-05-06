@@ -186,27 +186,28 @@ body {
 }
 
 .section-nav {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .nav-item {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #31425d;
-  background: #111827;
-  color: #dbeafe;
-  font-size: 0.84rem;
+  padding: 6px 10px;
+  border-radius: 5px;
   cursor: pointer;
+  font-size: 0.82rem;
+  color: #9bb5cc;
+  transition: background 0.15s, color 0.15s;
 }
 
+.nav-item:hover,
 .nav-item.active {
-  border-color: #60a5fa;
-  background: #1e293b;
+  background: #1e3a5f;
+  color: #fff;
 }
 
 .nav-item.locked {
-  opacity: 0.55;
+  color: #4b5e70;
   cursor: not-allowed;
 }
 
@@ -718,5 +719,13 @@ td.hot-sum-value-cell {
 .feedback-detail-label {
   font-weight: 600;
 }
-.text-ok { color: #16a34a; font-weight: 600; }
-.text-err { color: #dc2626; font-weight: 600; }
+
+.text-ok {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.text-err {
+  color: #dc2626;
+  font-weight: 600;
+}

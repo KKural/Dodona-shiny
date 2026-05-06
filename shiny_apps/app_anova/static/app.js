@@ -1416,18 +1416,10 @@ function doGenerate() {
     document.getElementById('vignette-text').textContent = sc.vignette;
 
     // update taak & vignette section
-    const scenarioPlaceholder = document.getElementById('scenario-placeholder');
-    const scenarioDetailBox = document.getElementById('scenario-detail-box');
-    const scenarioTitle = document.getElementById('scenario-title');
-    const scenarioText = document.getElementById('scenario-text');
-    const scenarioMeta = document.getElementById('scenario-meta');
-    if (scenarioPlaceholder) scenarioPlaceholder.style.display = 'none';
-    if (scenarioDetailBox) scenarioDetailBox.classList.remove('hidden');
-    if (scenarioTitle) scenarioTitle.textContent = sc.title;
-    if (scenarioText) scenarioText.textContent = sc.vignette;
-    if (scenarioMeta) {
+    const scenarioTextEl = document.getElementById('scenario-text');
+    if (scenarioTextEl) {
         const groupsStr = sc.groups.join(' \u2022 ');
-        scenarioMeta.innerHTML = `<strong>Y:</strong> ${humanizeLabel(sc.yName)} (${sc.yUnit}) &nbsp;&nbsp; <strong>Groepen:</strong> ${groupsStr}`;
+        scenarioTextEl.innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br><strong>Y:</strong> ${humanizeLabel(sc.yName)} (${sc.yUnit}) &nbsp;|&nbsp; <strong>Groepen:</strong> ${groupsStr}`;
     }
 
     // update seed display

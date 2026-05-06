@@ -110,7 +110,8 @@
 
       <div class="panel" id="sidebar-score-panel">
         <h2>Score <span id="sidebar-score-display" class="sidebar-score-inline">0 / 40</span></h2>
-        <p class="score-note">Eerste poging telt. <a href="#final-score-section" class="sidebar-score-link">Details</a></p>
+        <p class="score-note">Eerste poging telt. <a href="#final-score-section" class="sidebar-score-link">Details</a>
+        </p>
       </div>
 
       <div class="panel">
@@ -134,7 +135,8 @@
 
     <main class="main">
       <section class="card hero">
-        <p class="hero-hint">Selecteer een scenario en genereer een dataset. Gebruik de bijlage en beantwoord daarna de MCQ en open vragen.</p>
+        <p class="hero-hint">Selecteer een scenario en genereer een dataset. Gebruik de bijlage en beantwoord daarna de
+          MCQ en open vragen.</p>
       </section>
 
       <section class="card" id="deel-scenario">
@@ -145,7 +147,8 @@
           <li><strong id="opgave-x2-name">X2</strong> (verklarende variabele)</li>
           <li><strong id="opgave-y-name">Y</strong> (afhankelijke variabele)</li>
         </ul>
-        <p class="context-text">Gebruik <strong>Tabel 1</strong>, <strong>Tabel 2</strong> en <strong>Figuur 1</strong> zoals in een examenvragenblad.</p>
+        <p class="context-text">Gebruik <strong>Tabel 1</strong>, <strong>Tabel 2</strong> en <strong>Figuur 1</strong>
+          zoals in een examenvragenblad.</p>
         <p class="dataset-meta"><strong>Datasetcode:</strong> <span id="seed-used">-</span></p>
       </section>
 
@@ -182,8 +185,10 @@
 
       <section class="card" id="deel-a">
         <h3>Tabel 2 - Dataset voor regressie en correlatie</h3>
-        <button id="btn-open-dataset-window" class="btn btn-outline move-to-section-head">Open bijlage in nieuw venster</button>
-        <p class="context-text muted"><strong>Opmerking:</strong> de binaire kolom wordt gebruikt in MCQ-vragen over ANOVA.</p>
+        <button id="btn-open-dataset-window" class="btn btn-outline move-to-section-head">Open bijlage in nieuw
+          venster</button>
+        <p class="context-text muted"><strong>Opmerking:</strong> de binaire kolom wordt gebruikt in MCQ-vragen over
+          ANOVA.</p>
         <div class="table-wrap">
           <table id="dataset-table" class="data-table">
             <thead>
@@ -251,7 +256,8 @@
 
       <section class="card" id="deel-mcq-dataset">
         <h3>MEERKEUZEVRAGEN - Datasetgebonden (Vraag 1-10)</h3>
-        <p class="context-text">Kies telkens het gevraagde aantal antwoorden (1 of 2). Feedback verschijnt meteen na je keuze.</p>
+        <p class="context-text">Kies telkens het gevraagde aantal antwoorden (1 of 2). Feedback verschijnt meteen na je
+          keuze.</p>
         <div id="mcq-dataset-list" class="mcq-list"></div>
         <div id="fb-mcq-dataset-summary" class="section-feedback"></div>
       </section>
@@ -265,7 +271,9 @@
 
       <section class="card" id="deel-open-vraag">
         <h3>OPEN EXAMENVRAAG</h3>
-        <p>Voer een meervoudige lineaire regressie-analyse uit met <span class="var-y-name">Y</span> als afhankelijke variabele en <span class="var-x1-name">X1</span> en <span class="var-x2-name">X2</span> als onafhankelijke variabelen.</p>
+        <p>Voer een meervoudige lineaire regressie-analyse uit met <span class="var-y-name">Y</span> als afhankelijke
+          variabele en <span class="var-x1-name">X1</span> en <span class="var-x2-name">X2</span> als onafhankelijke
+          variabelen.</p>
         <p id="open-question-context" class="context-text"></p>
       </section>
 
@@ -281,11 +289,13 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Bivariate regressie</strong>: r(<span class="var-x1-name">X1</span>, <span class="var-y-name">Y</span>)</td>
+                <td><strong>Bivariate regressie</strong>: r(<span class="var-x1-name">X1</span>, <span
+                    class="var-y-name">Y</span>)</td>
                 <td><input id="ans-bivar-r" type="text" placeholder="bijv. 0.4321" autocomplete="off" /></td>
               </tr>
               <tr>
-                <td>R² (bivariate regressie van <span class="var-y-name">Y</span> op <span class="var-x1-name">X1</span>)</td>
+                <td>R² (bivariate regressie van <span class="var-y-name">Y</span> op <span
+                    class="var-x1-name">X1</span>)</td>
                 <td><input id="ans-bivar-r2" type="text" placeholder="bijv. 0.1870" autocomplete="off" /></td>
               </tr>
               <tr>
@@ -306,7 +316,8 @@
                       <option value="stijgt">stijgt</option>
                       <option value="daalt">daalt</option>
                     </select>
-                    de verwachte <span class="var-y-name">Y</span> met <strong><span id="lbl-bivar-b-abs">___</span></strong> eenheden.
+                    de verwachte <span class="var-y-name">Y</span> met <strong><span
+                        id="lbl-bivar-b-abs">___</span></strong> eenheden.
                   </div>
                   <span id="fb-ans-bivar-b-int" class="ans-feedback"></span>
                 </td>
@@ -321,7 +332,8 @@
                       <option value="verklaarde">verklaarde</option>
                       <option value="onverklaarde">onverklaarde</option>
                     </select>
-                    proportie van de variatie in <span class="var-y-name">Y</span> door <span class="var-x1-name">X1</span>.
+                    proportie van de variatie in <span class="var-y-name">Y</span> door <span
+                      class="var-x1-name">X1</span>.
                   </div>
                   <span id="fb-ans-bivar-r2-int" class="ans-feedback"></span>
                 </td>
@@ -340,7 +352,8 @@
                       <option value="stijgt">stijgt</option>
                       <option value="daalt">daalt</option>
                     </select>
-                    de verwachte <span class="var-y-name">Y</span> met <strong><span id="lbl-multi-b1-abs">___</span></strong> eenheden, onder controle van
+                    de verwachte <span class="var-y-name">Y</span> met <strong><span
+                        id="lbl-multi-b1-abs">___</span></strong> eenheden, onder controle van
                     <select id="ans-multi-b1-ctrl" class="blank-select">
                       <option value="">- kies -</option>
                       <option value="x2" class="var-x2-name">X2</option>
@@ -365,7 +378,8 @@
                       <option value="stijgt">stijgt</option>
                       <option value="daalt">daalt</option>
                     </select>
-                    de verwachte <span class="var-y-name">Y</span> met <strong><span id="lbl-multi-b2-abs">___</span></strong> eenheden, onder controle van
+                    de verwachte <span class="var-y-name">Y</span> met <strong><span
+                        id="lbl-multi-b2-abs">___</span></strong> eenheden, onder controle van
                     <select id="ans-multi-b2-ctrl" class="blank-select">
                       <option value="">- kies -</option>
                       <option value="x1" class="var-x1-name-opt">X1</option>
@@ -394,7 +408,8 @@
                       <option value="verklaarde">verklaarde</option>
                       <option value="onverklaarde">onverklaarde</option>
                     </select>
-                    proportie van de variatie in <span class="var-y-name">Y</span> door <span class="var-x1-name">X1</span> en <span class="var-x2-name">X2</span>
+                    proportie van de variatie in <span class="var-y-name">Y</span> door <span
+                      class="var-x1-name">X1</span> en <span class="var-x2-name">X2</span>
                     <select id="ans-multi-r2-comb" class="blank-select">
                       <option value="">- kies -</option>
                       <option value="samen">samen</option>
@@ -405,7 +420,8 @@
                 </td>
               </tr>
               <tr class="divider-row">
-                <td><strong>Correlatie tussen voorspellers</strong>: r(<span class="var-x1-name">X1</span>, <span class="var-x2-name">X2</span>)</td>
+                <td><strong>Correlatie tussen voorspellers</strong>: r(<span class="var-x1-name">X1</span>, <span
+                    class="var-x2-name">X2</span>)</td>
                 <td><input id="ans-rx1x2" type="text" placeholder="bijv. 0.2510" autocomplete="off" /></td>
               </tr>
               <tr>
@@ -418,26 +434,32 @@
                       <option value="positieve">positieve</option>
                       <option value="negatieve">negatieve</option>
                     </select>
-                    lineaire samenhang tussen <span class="var-x1-name">X1</span> en <span class="var-x2-name">X2</span>.
+                    lineaire samenhang tussen <span class="var-x1-name">X1</span> en <span
+                      class="var-x2-name">X2</span>.
                   </div>
                   <span id="fb-ans-rx1x2-int" class="ans-feedback"></span>
                 </td>
               </tr>
               <tr class="divider-row">
-                <td><strong>Partiele correlaties</strong>: r(<span class="var-x1-name">X1</span>, <span class="var-y-name">Y</span> | <span class="var-x2-name">X2</span>)</td>
+                <td><strong>Partiele correlaties</strong>: r(<span class="var-x1-name">X1</span>, <span
+                    class="var-y-name">Y</span> | <span class="var-x2-name">X2</span>)</td>
                 <td><input id="ans-partial-1" type="text" placeholder="bijv. 0.4100" autocomplete="off" /></td>
               </tr>
               <tr>
-                <td>r(<span class="var-x2-name">X2</span>, <span class="var-y-name">Y</span> | <span class="var-x1-name">X1</span>)</td>
+                <td>r(<span class="var-x2-name">X2</span>, <span class="var-y-name">Y</span> | <span
+                    class="var-x1-name">X1</span>)</td>
                 <td><input id="ans-partial-2" type="text" placeholder="bijv. -0.2200" autocomplete="off" /></td>
               </tr>
               <tr class="divider-row">
-                <td><strong>Verwachte waarde</strong>: <span id="pred-question">Bereken Yhat voor X1 = ... en X2 = ...</span></td>
+                <td><strong>Verwachte waarde</strong>: <span id="pred-question">Bereken Yhat voor X1 = ... en X2 =
+                    ...</span></td>
                 <td><input id="ans-pred" type="text" placeholder="bijv. 24.35" autocomplete="off" /></td>
               </tr>
               <tr class="divider-row">
-                <td><strong>Assumptie</strong>: vul in<br />"zonder systematische spreiding ... aanwijzing voor ________"</td>
-                <td><input id="ans-assumption" type="text" placeholder="vul het statistische begrip in" autocomplete="off" /></td>
+                <td><strong>Assumptie</strong>: vul in<br />"zonder systematische spreiding ... aanwijzing voor
+                  ________"</td>
+                <td><input id="ans-assumption" type="text" placeholder="vul het statistische begrip in"
+                    autocomplete="off" /></td>
               </tr>
             </tbody>
           </table>
@@ -456,7 +478,9 @@
             <li>Juist op 3e poging: <strong>0</strong></li>
             <li>Juist na meer dan 3 pogingen: <strong>0</strong></li>
           </ul>
-          <span class="score-note">Voor een mogelijke examenscore is vooral <strong>'Juist op 1e poging'</strong> relevant. De andere aantallen tonen je leerprogressie. Genereer een nieuwe dataset om opnieuw te oefenen.</span>
+          <span class="score-note">Voor een mogelijke examenscore is vooral <strong>'Juist op 1e poging'</strong>
+            relevant. De andere aantallen tonen je leerprogressie. Genereer een nieuwe dataset om opnieuw te
+            oefenen.</span>
         </div>
       </section>
     </main>

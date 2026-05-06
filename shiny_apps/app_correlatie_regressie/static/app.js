@@ -1267,6 +1267,7 @@ function setupSidebarChrome() {
   if (resizeHandle && sidebarEl) {
     let startX = 0;
     let startWidth = 0;
+    const layoutEl = sidebarEl.closest('.layout');
     resizeHandle.addEventListener('mousedown', (e) => {
       startX = e.clientX;
       startWidth = sidebarEl.getBoundingClientRect().width;
@@ -1279,6 +1280,7 @@ function setupSidebarChrome() {
       if (!resizeHandle.classList.contains('dragging')) return;
       const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
       sidebarEl.style.width = `${newWidth}px`;
+      if (layoutEl) layoutEl.style.gridTemplateColumns = `${newWidth}px 8px 1fr`;
     });
     document.addEventListener('mouseup', () => {
       if (!resizeHandle.classList.contains('dragging')) return;
