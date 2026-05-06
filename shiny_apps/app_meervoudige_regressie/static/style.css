@@ -260,7 +260,7 @@ body {
 }
 
 .card-header {
-  padding: 10px 12px;
+  padding: 10px 18px;
   border-bottom: 1px solid var(--border);
   font-size: 1rem;
   font-weight: 700;
@@ -268,7 +268,7 @@ body {
 }
 
 .card-body {
-  padding: 12px;
+  padding: 16px 18px;
 }
 
 .instruction {

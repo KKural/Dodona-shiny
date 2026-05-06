@@ -300,29 +300,27 @@ body {
 
 /* VIGNETTE */
 .vignette-card {
-    background: #dbeafe;
-    border-left: 4px solid #3b82f6;
-    border-radius: 6px;
-    padding: 10px 16px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 10px 14px;
     font-size: 13px;
-    color: #1e3a5f;
+    color: #1e3a8a;
 }
 
 /* CARD */
 .card {
     background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
-    overflow: hidden;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
 }
 
 .card-header {
-    background: #f8fafd;
-    border-bottom: 1px solid #e5eaf0;
     padding: 10px 18px;
+    border-bottom: 1px solid #dbe3ef;
     font-weight: 600;
-    font-size: 14px;
-    color: #1e2a3a;
+    font-size: 1rem;
+    color: #1d4ed8;
 }
 
 .card-body {

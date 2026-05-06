@@ -763,41 +763,6 @@ function fillScenarioSelect() {
   });
 }
 
-function renderTaskDetail() {
-  const detail = document.getElementById('task-detail');
-  if (!detail || !state.scenario) return;
-
-  const { x, y } = state.names;
-  const sc = state.scenario;
-  const corrMode = state.mode === 'Correlation';
-  const xUnit = sc.vars?.x?.unit ? ` (${sc.vars.x.unit})` : '';
-  const yUnit = sc.vars?.y?.unit ? ` (${sc.vars.y.unit})` : '';
-
-  detail.innerHTML = corrMode
-    ? `
-      <p><strong>Context:</strong> in deze oefening onderzoek je of er in de gegenereerde criminologische dataset een lineaire samenhang bestaat tussen twee gemeten kenmerken.</p>
-      <p><strong>Opdracht:</strong> bereken de Pearson-correlatie tussen <strong>${x}</strong> en <strong>${y}</strong>.</p>
-      <ul>
-        <li>Gebruik <strong>${x}</strong>${xUnit} als X-variabele.</li>
-        <li>Gebruik <strong>${y}</strong>${yUnit} als Y-variabele.</li>
-        <li>Bereken eerst de gemiddelden, afwijkingen, kwadraten en kruisproducten.</li>
-        <li>Bereken daarna variantie, standaarddeviatie, covariantie en Pearson r.</li>
-      </ul>
-      <p><strong>Rond af:</strong> gebruik <strong>4 decimalen</strong> voor alle handmatige berekeningen. Wanneer alles correct is, verschijnt de visualisatie automatisch.</p>
-    `
-    : `
-      <p><strong>Context:</strong> in deze oefening onderzoek je of verschillen in <strong>${x}</strong> kunnen helpen om verschillen in <strong>${y}</strong> te voorspellen.</p>
-      <p><strong>Opdracht:</strong> voer een bivariate lineaire regressie uit met <strong>${y}</strong> als afhankelijke variabele en <strong>${x}</strong> als onafhankelijke variabele.</p>
-      <ul>
-        <li>Gebruik <strong>${x}</strong>${xUnit} als X-variabele.</li>
-        <li>Gebruik <strong>${y}</strong>${yUnit} als Y-variabele.</li>
-        <li>Bereken de voorbereidende correlatiematen: gemiddelden, afwijkingen, varianties, standaarddeviaties, covariantie en r.</li>
-        <li>Bereken daarna de regressiecoefficienten, voorspelde waarden, R2, vervreemding, F en model-p-waarde.</li>
-      </ul>
-      <p><strong>Rond af:</strong> gebruik <strong>4 decimalen</strong> voor alle handmatige berekeningen. Wanneer alles correct is, verschijnen de visualisaties automatisch.</p>
-    `;
-}
-
 function setScenarioText(sc, names) {
   const title = document.getElementById('scenario-title');
   const text = document.getElementById('scenario-text');
@@ -810,7 +775,6 @@ function setScenarioText(sc, names) {
     const yUnit = sc.vars?.y?.unit ? ` (${sc.vars.y.unit})` : '';
     meta.innerHTML = `X = <b>${names.x}</b>${xUnit} | Y = <b>${names.y}</b>${yUnit}`;
   }
-  renderTaskDetail();
 }
 
 function renderDatasetTable() {
@@ -1254,8 +1218,6 @@ function applyModeUI() {
       ? 'Correlatieanalyse correct uitgewerkt'
       : 'Volledige bivariate regressie correct uitgewerkt';
   }
-
-  renderTaskDetail();
 
   const active = document.querySelector('#section-nav .nav-item.active');
   if (active && active.classList.contains('hidden')) {

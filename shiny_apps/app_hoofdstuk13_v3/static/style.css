@@ -212,6 +212,16 @@ textarea {
     color: #374151;
 }
 
+.title-card h1 {
+    margin: 0 0 4px 0;
+    color: var(--blue);
+    font-size: 1.55rem;
+}
+
+.title-card .muted {
+    margin: 0;
+}
+
 h3 {
     margin: 0 0 10px;
     color: var(--blue);
