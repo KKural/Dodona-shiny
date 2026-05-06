@@ -504,7 +504,7 @@ function renderHotMeans() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [280, 140],
-    rowHeaders: false, width: 420, height: 'auto', stretchH: 'none',
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false, width: 420, height: 'auto', stretchH: 'none',
     cells: makeHotCells('hotMeansCellClasses'),
     afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
   });
@@ -535,7 +535,7 @@ function renderHotTotals() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [420, 140],
-    rowHeaders: false, width: 560, height: 'auto', stretchH: 'none',
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false, width: 560, height: 'auto', stretchH: 'none',
     cells: makeHotCells('hotTotalsCellClasses'),
     afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
   });
@@ -565,7 +565,7 @@ function renderHotVarSd() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [200, 130, 130, 130],
-    rowHeaders: false, width: 590, height: 'auto', stretchH: 'none',
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false, width: 590, height: 'auto', stretchH: 'none',
     cells: makeHotCells('hotVarSdCellClasses'),
     afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
   });
@@ -594,7 +594,7 @@ function renderHotCov() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [360, 140],
-    rowHeaders: false, width: 500, height: 'auto', stretchH: 'none',
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false, width: 500, height: 'auto', stretchH: 'none',
     cells: makeHotCells('hotCovCellClasses'),
     afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
   });
@@ -623,7 +623,7 @@ function renderHotCorr() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [360, 140],
-    rowHeaders: false, width: 500, height: 'auto', stretchH: 'none',
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false, width: 500, height: 'auto', stretchH: 'none',
     cells: makeHotCells('hotCorrCellClasses'),
     afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
   });
@@ -652,7 +652,7 @@ function renderHotCoef() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [380, 140],
-    rowHeaders: false, width: 520, height: 'auto', stretchH: 'none',
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false, width: 520, height: 'auto', stretchH: 'none',
     cells: makeHotCells('hotCoefCellClasses'),
     afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
   });
@@ -681,7 +681,7 @@ function renderHotFit() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [300, 140],
-    rowHeaders: false, width: 440, height: 'auto', stretchH: 'none',
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false, width: 440, height: 'auto', stretchH: 'none',
     cells: makeHotCells('hotFitCellClasses'),
     afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
   });
@@ -717,7 +717,7 @@ function renderHotPred() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, wN, wN, wN, 160],
-    rowHeaders: false, width: w0 + wN * 3 + 160, height: 'auto', stretchH: 'none',
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false, width: w0 + wN * 3 + 160, height: 'auto', stretchH: 'none',
     cells(row, col) {
       const key = `${row}-${col}`;
       const cls = state.hotPredCellClasses[key];
@@ -834,15 +834,21 @@ function renderCharts() {
   // Interpretation
   const pText = Number.isFinite(t.model_p) ? (t.model_p < 0.0001 ? '< 0,0001' : t.model_p.toFixed(4)) : 'n.v.t.';
   const sig = Number.isFinite(t.model_p) && t.model_p < 0.05;
+  const x1N = state.names.x1, x2N = state.names.x2, yN = state.names.y;
+  const r2pct = (t.R_squared * 100).toFixed(1);
+  const alPct = (t.alienation * 100).toFixed(1);
   document.getElementById('interpretation').innerHTML = `
     <b>Interpretatie</b>
     <ul>
-      <li>b\u2081\u00a0=\u00a0${t.b1.toFixed(4)}, b\u2082\u00a0=\u00a0${t.b2.toFixed(4)}, a\u00a0=\u00a0${t.intercept.toFixed(4)}</li>
-      <li>R\u00b2\u00a0=\u00a0${t.R_squared.toFixed(4)}; onverklaard\u00a0=\u00a0${t.alienation.toFixed(4)}</li>
+      <li><b>Partiële regressiecoëfficiënt b₁</b> = ${t.b1.toFixed(4)} — als <em>${x1N}</em> met 1 eenheid stijgt (met ${x2N} constant), ${t.b1 >= 0 ? 'stijgt' : 'daalt'} <em>${yN}</em> met ${Math.abs(t.b1).toFixed(4)} eenheden.</li>
+      <li><b>Partiële regressiecoëfficiënt b₂</b> = ${t.b2.toFixed(4)} — als <em>${x2N}</em> met 1 eenheid stijgt (met ${x1N} constant), ${t.b2 >= 0 ? 'stijgt' : 'daalt'} <em>${yN}</em> met ${Math.abs(t.b2).toFixed(4)} eenheden.</li>
+      <li><b>Intercept a</b> = ${t.intercept.toFixed(4)} — voorspelde waarde van <em>${yN}</em> wanneer beide voorspellers = 0.</li>
+      <li><b>Determinatiecoëfficiënt R²</b> = ${t.R_squared.toFixed(4)} — ${r2pct}% van de variantie in <em>${yN}</em> wordt verklaard door <em>${x1N}</em> en <em>${x2N}</em> samen.</li>
+      <li><b>Vervreemdingscoëfficiënt (1 − R²)</b> = ${t.alienation.toFixed(4)} — ${alPct}% blijft onverklaard.</li>
       <li>F(2,\u00a0${n - 3})\u00a0=\u00a0${t.F_stat.toFixed(4)}, p\u00a0=\u00a0${pText}</li>
       <li>${sig
-      ? 'Model is <b>statistisch significant</b> (p\u00a0&lt;\u00a0.05): de combinatie van voorspellers verklaart een statistisch aantoonbaar deel van de variantie in Y\u00a0\u2014 de kans dat dit resultaat puur op toeval berust is kleiner dan 5%.'
-      : 'Model is <b>niet statistisch significant</b> (p\u00a0\u2265\u00a0.05): de combinatie van voorspellers verklaart geen statistisch aantoonbaar deel van de variantie in Y\u00a0\u2014 het resultaat kan op toeval berusten.'}</li>
+      ? `Model is <b>statistisch significant</b> (p&nbsp;&lt;&nbsp;.05): de combinatie van <em>${x1N}</em> en <em>${x2N}</em> verklaart statistisch aantoonbaar variantie in <em>${yN}</em>. R² en de b-coëfficiënten zijn betrouwbare schattingen voor de populatie.`
+      : `Model is <b>niet statistisch significant</b> (p&nbsp;≥&nbsp;.05): de combinatie van <em>${x1N}</em> en <em>${x2N}</em> verklaart geen statistisch aantoonbaar deel van de variantie in <em>${yN}</em>. R² en de b-coëfficiënten zijn <em>niet</em> betrouwbaar interpreteerbaar — het resultaat kan op toeval berusten.`}</li>
     </ul>`;
 }
 

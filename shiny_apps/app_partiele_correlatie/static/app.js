@@ -439,7 +439,7 @@ function renderMeansHot() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, 140],
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: w0 + 140,
     height: 'auto',
     stretchH: 'none',
@@ -491,7 +491,7 @@ function renderFixedHotTable(cfg) {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths,
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: colWidths.reduce((sum, w) => sum + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
@@ -587,7 +587,7 @@ function renderDeviationTable() {
       ...DEV_COLUMNS.map(() => ({ type: 'numeric', numericFormat: { pattern: '0.0000' } }))
     ],
     colWidths,
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: colWidths.reduce((sum, w) => sum + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
@@ -639,7 +639,7 @@ function renderVarSdTable() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths,
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: colWidths.reduce((sum, w) => sum + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
@@ -694,7 +694,7 @@ function renderCovRTable() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths,
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: colWidths.reduce((sum, w) => sum + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
@@ -1054,13 +1054,14 @@ function renderChart() {
   });
 
   const t = state.truth;
+  const xN = state.names.x, yN = state.names.y, zN = state.names.z;
   const typeLabel = Number.isFinite(t.conclusie_type) ? CONCLUSION_LABELS[t.conclusie_type] : 'onbekend';
   document.getElementById('interpretation').innerHTML = `
     <b>Interpretatie</b>
     <ul>
-      <li>r_xy = ${t.r_xy.toFixed(4)}, r_xz = ${t.r_xz.toFixed(4)}, r_yz = ${t.r_yz.toFixed(4)}</li>
-      <li>r_xy.z = ${Number.isFinite(t.r_xy_z) ? t.r_xy_z.toFixed(4) : 'n.v.t.'}</li>
-      <li>Classificatie: ${Number.isFinite(t.conclusie_type) ? t.conclusie_type : '-'} \u2014 <b>${typeLabel}</b></li>
+      <li><b>Bivariate correlaties:</b> r(<em>${xN}</em>, <em>${yN}</em>) = ${t.r_xy.toFixed(4)}, r(<em>${xN}</em>, <em>${zN}</em>) = ${t.r_xz.toFixed(4)}, r(<em>${yN}</em>, <em>${zN}</em>) = ${t.r_yz.toFixed(4)}</li>
+      <li><b>Partiële correlatie r(<em>${xN}</em>, <em>${yN}</em> · <em>${zN}</em>)</b> = ${Number.isFinite(t.r_xy_z) ? t.r_xy_z.toFixed(4) : 'n.v.t.'} — samenhang tussen <em>${xN}</em> en <em>${yN}</em> na uitpartialisering van <em>${zN}</em>.</li>
+      <li><b>Classificatie: ${typeLabel}</b></li>
       <li>${Number.isFinite(t.conclusie_type) ? CONCLUSION_EXPLANATIONS[t.conclusie_type] : ''}</li>
     </ul>
   `;

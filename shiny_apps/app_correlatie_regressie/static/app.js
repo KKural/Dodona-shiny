@@ -484,7 +484,7 @@ function renderHotMeans() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, 140],
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: w0 + 140,
     height: 'auto',
     stretchH: 'none',
@@ -544,7 +544,7 @@ function renderHotDev() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, w1, w2, wF, wF, wF, wF, wF],
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: w0 + w1 + w2 + wF * 5,
     height: 'auto',
     stretchH: 'none',
@@ -592,7 +592,7 @@ function renderHotStats() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, 140],
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: w0 + 140,
     height: 'auto',
     stretchH: 'none',
@@ -632,7 +632,7 @@ function renderHotReg() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, 140],
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: w0 + 140,
     height: 'auto',
     stretchH: 'none',
@@ -674,7 +674,7 @@ function renderHotFit() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, 140],
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: w0 + 140,
     height: 'auto',
     stretchH: 'none',
@@ -723,7 +723,7 @@ function renderHotPred() {
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, w1, w2, 130],
-    rowHeaders: false,
+    rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
     width: w0 + w1 + w2 + 130,
     height: 'auto',
     stretchH: 'none',
@@ -914,11 +914,12 @@ function renderCharts() {
     const rDir = t.correlation > 0 ? 'positief' : (t.correlation < 0 ? 'negatief' : 'nagenoeg nul');
     const rAbs = Math.abs(t.correlation);
     const rStr = rAbs < 0.10 ? 'verwaarloosbaar' : rAbs < 0.30 ? 'zwak' : rAbs < 0.50 ? 'matig' : rAbs < 0.70 ? 'sterk' : 'zeer sterk';
+    const xN = state.names.x, yN = state.names.y;
     document.getElementById('interpretation').innerHTML = `
       <b>Interpretatie</b>
       <ul>
-        <li>r = ${t.correlation.toFixed(4)} — <b>${rStr} ${rDir}</b> lineair verband.</li>
-        <li>Naarmate X toeneemt, ${t.correlation > 0 ? 'neemt Y toe' : (t.correlation < 0 ? 'neemt Y af' : 'verandert Y nauwelijks')}.</li>
+        <li><b>Correlatieco\u00ebffici\u00ebnt r</b> = ${t.correlation.toFixed(4)} \u2014 <b>${rStr} ${rDir}</b> lineair verband tussen ${xN} en ${yN}.</li>
+        <li>Naarmate <em>${xN}</em> toeneemt, ${t.correlation > 0 ? `neemt <em>${yN}</em> toe` : (t.correlation < 0 ? `neemt <em>${yN}</em> af` : `verandert <em>${yN}</em> nauwelijks`)}.</li>
       </ul>
     `;
     return;
@@ -963,15 +964,21 @@ function renderCharts() {
 
   const pText = Number.isFinite(t.model_p) ? (t.model_p < 0.0001 ? '< 0.0001' : t.model_p.toFixed(4)) : 'n.v.t.';
   const sig = Number.isFinite(t.model_p) && t.model_p < 0.05;
+  const xN = state.names.x, yN = state.names.y;
+  const r2pct = (t.r_squared * 100).toFixed(1);
+  const alPct = (t.alienation * 100).toFixed(1);
   document.getElementById('interpretation').innerHTML = `
     <b>Interpretatie</b>
     <ul>
-      <li>r = ${t.correlation.toFixed(4)}, b = ${t.slope.toFixed(4)}, a = ${t.intercept.toFixed(4)}</li>
-      <li>R² = ${t.r_squared.toFixed(4)}; onverklaard = ${t.alienation.toFixed(4)}</li>
-      <li>F(1, ${t.n - 2}) = ${t.f_stat.toFixed(4)}, p = ${pText}</li>
+      <li><b>Correlatiecoëfficiënt r</b> = ${t.correlation.toFixed(4)} — lineaire samenhang tussen <em>${xN}</em> en <em>${yN}</em>.</li>
+      <li><b>Helling (regressiecoëfficiënt b)</b> = ${t.slope.toFixed(4)} — als <em>${xN}</em> met 1 eenheid stijgt, ${t.slope >= 0 ? 'stijgt' : 'daalt'} <em>${yN}</em> met ${Math.abs(t.slope).toFixed(4)} eenheden.</li>
+      <li><b>Intercept a</b> = ${t.intercept.toFixed(4)} — voorspelde waarde van <em>${yN}</em> wanneer <em>${xN}</em> = 0.</li>
+      <li><b>Determinatiecoëfficiënt R²</b> = ${t.r_squared.toFixed(4)} — ${r2pct}% van de variantie in <em>${yN}</em> wordt verklaard door <em>${xN}</em>.</li>
+      <li><b>Vervreemdingscoëfficiënt (1 − R²)</b> = ${t.alienation.toFixed(4)} — ${alPct}% blijft onverklaard.</li>
+      <li>F(1,\u00a0${t.n - 2})\u00a0=\u00a0${t.f_stat.toFixed(4)}, p\u00a0=\u00a0${pText}</li>
       <li>${sig
-      ? 'Model is <b>statistisch significant</b> (p\u00a0&lt;\u00a0.05): het lineaire verband tussen X en Y is statistisch aantoonbaar\u00a0\u2014 de kans dat dit resultaat puur op toeval berust is kleiner dan 5%.'
-      : 'Model is <b>niet statistisch significant</b> (p\u00a0\u2265\u00a0.05): op basis van deze steekproef kan geen statistisch aantoonbaar verband worden vastgesteld\u00a0\u2014 het resultaat kan op toeval berusten.'}</li>
+      ? `Model is <b>statistisch significant</b> (p&nbsp;&lt;&nbsp;.05): het verband tussen <em>${xN}</em> en <em>${yN}</em> is statistisch aantoonbaar. R², r en b zijn betrouwbare schattingen voor de populatie.`
+      : `Model is <b>niet statistisch significant</b> (p&nbsp;≥&nbsp;.05): op basis van deze steekproef kan geen statistisch aantoonbaar verband tussen <em>${xN}</em> en <em>${yN}</em> worden vastgesteld. R², r en b zijn <em>niet</em> betrouwbaar interpreteerbaar — het resultaat kan op toeval berusten.`}</li>
     </ul>
   `;
 }

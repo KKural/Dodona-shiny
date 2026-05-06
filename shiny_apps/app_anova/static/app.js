@@ -583,7 +583,7 @@ function renderDeviationTable() {
         ],
         mergeCells: mergeCells,
         colWidths: [w0, w1, w2, wF, wF, wF, wF],
-        rowHeaders: false,
+        rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
         width: hot3W,
         height: 'auto',
         stretchH: 'none',
@@ -634,7 +634,7 @@ function renderGroupMeansTable() {
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
         ],
         colWidths: [hot2ColW, 150],
-        rowHeaders: false,
+        rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
         width: hot2W,
         height: 'auto',
         stretchH: 'none',
@@ -679,7 +679,7 @@ function renderSSTable() {
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
         ],
         colWidths: [220, 140],
-        rowHeaders: false,
+        rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
         width: 375,
         height: 'auto',
         stretchH: 'none',
@@ -733,7 +733,7 @@ function renderANOVAHotTable() {
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
         ],
         colWidths: [160, 105, 58, 110, 110, 82],
-        rowHeaders: false,
+        rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
         width: 630,
         height: 'auto',
         stretchH: 'none',
