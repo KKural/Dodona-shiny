@@ -436,14 +436,13 @@ function updateSectionSummary(divId, correct, total, labelOk, labelPartial) {
   if (!el) return;
   if (total === 0) { el.innerHTML = ''; el.className = 'section-summary'; return; }
   if (correct === total) {
-    el.innerHTML = `? ${labelOk} (${correct}/${total})`;
+    el.innerHTML = `&#10003; ${labelOk} (${correct}/${total})`;
     el.className = 'section-summary ok';
   } else {
-    el.innerHTML = `${correct}/${total} correct � ${labelPartial}`;
+    el.innerHTML = `${correct}/${total} correct &mdash; ${labelPartial}`;
     el.className = 'section-summary partial';
   }
 }
-
 function renderFeedbackPanel(panelId, fieldMap) {
   const panel = document.getElementById(panelId);
   if (!panel) return;
@@ -453,7 +452,7 @@ function renderFeedbackPanel(panelId, fieldMap) {
   if (!items.length) { panel.innerHTML = ''; panel.className = 'feedback-panel'; return; }
   let html = '<div class="feedback-panel-title">Aanwijzingen:</div>';
   items.forEach(item => {
-    html += `<div class="feedback-detail-item"><span class="feedback-detail-label">${item.label}</span> � ${item.html}</div>`;
+    html += `<div class="feedback-detail-item"><span class="feedback-detail-label">${item.label}</span> &mdash; ${item.html}</div>`;
   });
   panel.innerHTML = html;
   panel.className = 'feedback-panel visible';
@@ -764,8 +763,52 @@ function fillScenarioSelect() {
   });
 }
 
+function renderTaskDetail() {
+  const detail = document.getElementById('task-detail');
+  if (!detail || !state.scenario) return;
+
+  const { x, y } = state.names;
+  const sc = state.scenario;
+  const corrMode = state.mode === 'Correlation';
+  const xUnit = sc.vars?.x?.unit ? ` (${sc.vars.x.unit})` : '';
+  const yUnit = sc.vars?.y?.unit ? ` (${sc.vars.y.unit})` : '';
+
+  detail.innerHTML = corrMode
+    ? `
+      <p><strong>Opdracht:</strong> onderzoek de lineaire samenhang tussen <strong>${x}</strong> en <strong>${y}</strong>.</p>
+      <ul>
+        <li>Gebruik <strong>${x}</strong>${xUnit} als X-variabele.</li>
+        <li>Gebruik <strong>${y}</strong>${yUnit} als Y-variabele.</li>
+        <li>Bereken eerst de gemiddelden, afwijkingen, kwadraten en kruisproducten.</li>
+        <li>Bereken daarna variantie, standaarddeviatie, covariantie en Pearson r.</li>
+      </ul>
+      <p>Rond alle handmatige berekeningen af op <strong>4 decimalen</strong>. Wanneer alles correct is, verschijnt de visualisatie automatisch.</p>
+    `
+    : `
+      <p><strong>Opdracht:</strong> voer een bivariate lineaire regressie uit met <strong>${y}</strong> als afhankelijke variabele en <strong>${x}</strong> als onafhankelijke variabele.</p>
+      <ul>
+        <li>Gebruik <strong>${x}</strong>${xUnit} als X-variabele.</li>
+        <li>Gebruik <strong>${y}</strong>${yUnit} als Y-variabele.</li>
+        <li>Bereken de voorbereidende correlatiematen: gemiddelden, afwijkingen, varianties, standaarddeviaties, covariantie en r.</li>
+        <li>Bereken daarna de regressiecoefficienten, voorspelde waarden, R2, vervreemding, F en model-p-waarde.</li>
+      </ul>
+      <p>Rond alle handmatige berekeningen af op <strong>4 decimalen</strong>. Wanneer alles correct is, verschijnen de visualisaties automatisch.</p>
+    `;
+}
+
 function setScenarioText(sc, names) {
-  document.getElementById('scenario-text').innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br>X = <b>${names.x}</b> | Y = <b>${names.y}</b>`;
+  const title = document.getElementById('scenario-title');
+  const text = document.getElementById('scenario-text');
+  const meta = document.getElementById('scenario-meta');
+
+  if (title) title.textContent = sc.title;
+  if (text) text.textContent = sc.vignette;
+  if (meta) {
+    const xUnit = sc.vars?.x?.unit ? ` (${sc.vars.x.unit})` : '';
+    const yUnit = sc.vars?.y?.unit ? ` (${sc.vars.y.unit})` : '';
+    meta.innerHTML = `X = <b>${names.x}</b>${xUnit} | Y = <b>${names.y}</b>${yUnit}`;
+  }
+  renderTaskDetail();
 }
 
 function renderDatasetTable() {
@@ -838,23 +881,23 @@ function clearStatuses() {
 }
 
 const FIELD_HINTS = {
-  mean_X: 'gem(X) = SX / n',
-  mean_Y: 'gem(Y) = SY / n',
-  tot_X1_2: 'Variatie = S(Xi - X�)�',
-  tot_Y2: 'Variatie = S(Yi - Y�)�',
-  var_X: 's�(X) = Variatie(X) / (n-1)',
-  sd_X: 's(X) = vVar(X)',
-  var_Y: 's�(Y) = Variatie(Y) / (n-1)',
-  sd_Y: 's(Y) = vVar(Y)',
-  cross_product_sum: 'KPS = S(Xi-X�)(Yi-Y�)',
-  covariance: 'Cov = KPS / (n-1)',
-  sd_product: 's(X) � s(Y)',
-  correlation: 'r = Cov(X,Y) / (s(X)�s(Y))',
+  mean_X: 'gem(X) = som(X) / n',
+  mean_Y: 'gem(Y) = som(Y) / n',
+  tot_X1_2: 'Variatie X = som((Xi - Xbar)^2)',
+  tot_Y2: 'Variatie Y = som((Yi - Ybar)^2)',
+  var_X: 'Var(X) = Variatie(X) / (n - 1)',
+  sd_X: 'SD(X) = sqrt(Var(X))',
+  var_Y: 'Var(Y) = Variatie(Y) / (n - 1)',
+  sd_Y: 'SD(Y) = sqrt(Var(Y))',
+  cross_product_sum: 'KPS = som((Xi - Xbar)(Yi - Ybar))',
+  covariance: 'Cov = KPS / (n - 1)',
+  sd_product: 'SD(X) * SD(Y)',
+  correlation: 'r = Cov(X,Y) / (SD(X) * SD(Y))',
   slope: 'b = Cov(X,Y) / Var(X)',
-  intercept: 'a = Y� - b�X�',
-  r_squared: 'R� = r�',
-  alienation: 'Vervreemding = 1 - R�',
-  f_stat: 'F = (R�/k) / ((1-R�)/(n-k-1))',
+  intercept: 'a = Ybar - b * Xbar',
+  r_squared: 'R2 = r^2',
+  alienation: 'Vervreemding = 1 - R2',
+  f_stat: 'F = (R2 / k) / ((1 - R2) / (n - k - 1))',
   model_p_value: 'p = P(F = f-waarde)',
 };
 
@@ -1069,7 +1112,7 @@ function evaluateAll() {
     });
     state.hotRegCellClasses = newRegCls;
     if (state.hotReg) state.hotReg.render();
-    updateSectionSummary('feedback-deel5', d5c, regFields.length, 'Regressieco�ffici�nten correct', 'controleer helling en intercept');
+    updateSectionSummary('feedback-deel5', d5c, regFields.length, 'Regressiecoefficienten correct', 'controleer helling en intercept');
     renderFeedbackPanel('feedback-detail-deel5', Object.fromEntries(regFields.map(f => [f.label, f.id])));
 
     // Deel VI: Predictions
@@ -1195,7 +1238,7 @@ function applyModeUI() {
 
   if (nav4) nav4.textContent = 'IV. Stappen 5-9';
   if (hdr4) hdr4.textContent = 'Deel IV - Stappen 5-9: Covariatie en Voorbereiding';
-  if (hdr5) hdr5.textContent = 'Deel VI - Stappen 10-12: Correlatie en Regressieco�ffici�nten';
+  if (hdr5) hdr5.textContent = 'Deel VI - Stappen 10-12: Correlatie en regressiecoefficienten';
   if (hdr6) hdr6.textContent = 'Deel VII - Stap 13: Voorspellingen Yhat';
   if (hdr7) hdr7.textContent = 'Deel VIII - Stappen 14-17: Model Fit en F-toets';
 
@@ -1209,6 +1252,8 @@ function applyModeUI() {
       ? 'Correlatieanalyse correct uitgewerkt'
       : 'Volledige bivariate regressie correct uitgewerkt';
   }
+
+  renderTaskDetail();
 
   const active = document.querySelector('#section-nav .nav-item.active');
   if (active && active.classList.contains('hidden')) {

@@ -410,6 +410,7 @@ function setScenarioText(sc) {
 function renderDatasetTable() {
   const sc = state.scenario;
   const tbl = document.getElementById('dataset-table');
+  tbl.className = 'dataset-table';
   const rows = state.data;
   tbl.innerHTML = '';
 

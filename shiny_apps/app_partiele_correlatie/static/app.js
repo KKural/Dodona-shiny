@@ -406,12 +406,45 @@ function buildFixedFields() {
 }
 
 function renderMeansHot() {
-  renderFixedHotTable({
-    containerId: 'means-grid',
-    hotKey: 'hotMeans',
-    classKey: 'hotMeansCellClasses',
-    fields: FIELD_GROUPS.means,
-    firstColWidth: 220
+  const container = document.getElementById('means-grid');
+  if (!container) return;
+  if (state.hotMeans) { state.hotMeans.destroy(); state.hotMeans = null; }
+  state.hotMeansCellClasses = {};
+  container.innerHTML = '';
+  const { x, y, z } = state.names;
+  const tableData = [
+    [`Gemiddelde X (${x || 'X'})`, null],
+    [`Gemiddelde Y (${y || 'Y'})`, null],
+    [`Gemiddelde Z (${z || 'Z'})`, null]
+  ];
+  const longestLabel = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Grootheid');
+  const w0 = Math.max(130, Math.ceil(longestLabel.length * 7) + 16);
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotMeans = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [w0, 140],
+    rowHeaders: false,
+    width: w0 + 140,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const key = `${row}-${col}`;
+      const cls = state.hotMeansCellClasses[key];
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      if (cls === 'correct') classes.push('htCorrect');
+      if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
   });
 }
 

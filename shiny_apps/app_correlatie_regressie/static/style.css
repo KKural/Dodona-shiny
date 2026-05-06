@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg: #f1f5f9;
   --card: #ffffff;
   --ink: #0f172a;
@@ -367,9 +367,8 @@ body {
 .dataset-table {
   border-collapse: collapse;
   font-size: 13px;
-  width: 100%;
-  min-width: 760px;
-  table-layout: fixed;
+  width: auto;
+  min-width: 0;
 }
 
 .dataset-table th,
@@ -409,6 +408,40 @@ body {
   margin-top: 10px;
   font-size: 13px;
   color: #1e3a5f;
+}
+
+.scenario-meta {
+  margin: 6px 0 0 0;
+  font-size: 12px;
+  color: #475569;
+}
+
+.task-detail {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid #dbe3ef;
+  border-radius: 8px;
+  background: #f8fafd;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.task-detail p {
+  margin: 0 0 8px 0;
+}
+
+.task-detail p:last-child {
+  margin-bottom: 0;
+}
+
+.task-detail ul {
+  margin: 6px 0 8px 18px;
+  padding: 0;
+}
+
+.task-detail li {
+  margin-bottom: 3px;
 }
 
 table {
@@ -728,22 +761,6 @@ td.hot-sum-label-cell {
 /* Sum-row value cells (slightly tinted) */
 td.hot-sum-value-cell {
   background-color: #f8fafc !important;
-}
-
-/* Section-level summary badge */
-.section-summary {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  min-height: 1.4em;
-}
-
-.section-summary.ok {
-  color: var(--ok);
-}
-
-.section-summary.partial {
-  color: #92400e;
 }
 
 /* Feedback panel with formula hints */

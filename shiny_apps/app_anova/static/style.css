@@ -657,7 +657,7 @@ body {
 .dataset-table {
     border-collapse: collapse;
     font-size: 12.5px;
-    width: 100%;
+    width: auto;
 }
 
 .dataset-table th,
