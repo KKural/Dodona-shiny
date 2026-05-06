@@ -10,12 +10,17 @@
     padding: 0;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
     font-size: 14px;
     background: #f0f2f5;
     color: #222;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* LAYOUT */

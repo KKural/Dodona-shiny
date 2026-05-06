@@ -1,4 +1,5 @@
-﻿'use strict';
+(function () {
+'use strict';
 
 const N_FIXED = 10;
 
@@ -2441,3 +2442,5 @@ function removePrintIndicators() {
 
 window.addEventListener('beforeprint', injectPrintIndicators);
 window.addEventListener('afterprint', removePrintIndicators);
+
+})();

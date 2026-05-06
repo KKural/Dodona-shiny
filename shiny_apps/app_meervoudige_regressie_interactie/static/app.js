@@ -1,4 +1,5 @@
-﻿'use strict';
+(function () {
+'use strict';
 
 const MAX_SAMPLE_SIZE = 40;
 
@@ -1128,3 +1129,5 @@ function init() {
 
 document.addEventListener('DOMContentLoaded', init);
 
+
+})();

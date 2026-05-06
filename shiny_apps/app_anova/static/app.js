@@ -1,4 +1,5 @@
-﻿/* =============================================================
+(function () {
+/* =============================================================
    ANOVA App \u2013 app.js
    Static, fully client-side reactive ANOVA teaching app
    Dutch language, criminological scenarios
@@ -1565,3 +1566,5 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+})();
