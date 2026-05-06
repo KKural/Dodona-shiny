@@ -6,7 +6,7 @@ const SCENARIOS = [
   {
     id: 'delinquency_age',
     title: 'Delictpleging, slachtofferschap en leeftijd',
-    vignette: 'In een slachtofferenqu\u00eate bij middelbare scholieren worden zelfgerapporteerde delicten en keren slachtofferschap gemeten. Leeftijd be\u00efnvloedt zowel de kans op betrokkenheid bij delicten als de kwetsbaarheid voor slachtofferschap. Onderzoeksvraag: is er een partieel verband tussen delictenGepleegd (X) en slachtofferschap (Y), nadat voor leeftijd (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
+    vignette: 'In een slachtofferenqu\u00eate bij middelbare scholieren worden zelfgerapporteerde delicten en keren slachtofferschap gemeten. Leeftijd be\u00efnvloedt zowel de kans op betrokkenheid bij delicten als de kwetsbaarheid voor slachtofferschap. Onderzoeksvraag: is er een partieel verband tussen gepleegde delicten (X) en slachtofferschap (Y), nadat voor leeftijd (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'DelictenGepleegd', unit: 'aantal' }, y: { name: 'DelictenSlachtoffer', unit: 'aantal' }, z: { name: 'Leeftijd', unit: 'jaar' } },
     entity: 'Scholier',
     r_xy_target: 0.65, r_xz_target: 0.60, r_yz_target: 0.55,

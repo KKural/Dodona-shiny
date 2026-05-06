@@ -535,6 +535,10 @@ td .pred-input {
   overflow: auto;
 }
 
+.card-body>.hot-table-container:first-child {
+  margin-top: 0;
+}
+
 #means-grid .handsontable td,
 #dev-table-wrap .handsontable td,
 #varsd-table-wrap .handsontable td,

@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const MAX_SAMPLE_SIZE = 50;
 
@@ -1298,7 +1298,7 @@ function setupSidebarChrome() {
       if (!resizeHandle.classList.contains('dragging')) return;
       const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
       sidebarEl.style.width = `${newWidth}px`;
-      if (layoutEl) layoutEl.style.gridTemplateColumns = `${newWidth}px 8px 1fr`;
+      if (layoutEl) layoutEl.style.gridTemplateColumns = `${newWidth}px 6px 1fr`;
     });
     document.addEventListener('mouseup', () => {
       if (!resizeHandle.classList.contains('dragging')) return;
@@ -1387,3 +1387,4 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
