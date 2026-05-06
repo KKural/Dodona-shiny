@@ -1293,11 +1293,11 @@ function renderDataset(rows) {
   const showVal = (v) => (Number.isInteger(v) ? String(v) : fmt2(v));
   tbody.innerHTML = rows.map((row) => `
     <tr>
-      <td>${row.respondent}</td>
-      <td>${showVal(row.x1)}</td>
-      <td>${showVal(row.x2)}</td>
-      <td>${showVal(row.y)}</td>
-      <td>${row.binLabel}</td>
+      <td class="num-cell">${row.respondent}</td>
+      <td class="num-cell">${showVal(row.x1)}</td>
+      <td class="num-cell">${showVal(row.x2)}</td>
+      <td class="num-cell">${showVal(row.y)}</td>
+      <td class="text-cell">${row.binLabel}</td>
     </tr>
   `).join('');
 }

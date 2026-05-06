@@ -432,6 +432,7 @@ body {
 .dataset-table td:first-child {
   font-weight: 500;
   color: #334155;
+  text-align: left;
 }
 
 .dataset-table tr:nth-child(even) {
@@ -502,8 +503,11 @@ td {
   text-align: center;
 }
 
-th:first-child,
 td:first-child {
+  text-align: left;
+}
+
+th:first-child {
   text-align: center;
 }
 
@@ -512,6 +516,7 @@ td .pred-input {
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
+  text-align: center;
 }
 
 .table-input {
@@ -607,7 +612,7 @@ td .pred-input {
   overflow: auto;
 }
 
-.card-body > .hot-table-container:first-child {
+.card-body>.hot-table-container:first-child {
   margin-top: 0;
 }
 
@@ -635,6 +640,24 @@ td .pred-input {
   font-size: 0.82rem;
   white-space: normal;
   line-height: 1.25;
+}
+
+#hot-means-container .handsontable td.htLeft,
+#hot-dev-container .handsontable td.htLeft,
+#hot-stats-container .handsontable td.htLeft,
+#hot-reg-container .handsontable td.htLeft,
+#hot-pred-container .handsontable td.htLeft,
+#hot-fit-container .handsontable td.htLeft {
+  text-align: left !important;
+}
+
+#hot-means-container .handsontable td.htCenter,
+#hot-dev-container .handsontable td.htCenter,
+#hot-stats-container .handsontable td.htCenter,
+#hot-reg-container .handsontable td.htCenter,
+#hot-pred-container .handsontable td.htCenter,
+#hot-fit-container .handsontable td.htCenter {
+  text-align: center !important;
 }
 
 #hot-means-container .handsontable td[class*='htReadOnly'],
@@ -745,16 +768,16 @@ td .pred-input {
   }
 
   .sidebar-resize-handle {
-  width: 6px;
-  cursor: col-resize;
-  background: transparent;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  align-self: flex-start;
-  z-index: 20;
-  transition: background 0.15s;
-}
+    width: 6px;
+    cursor: col-resize;
+    background: transparent;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    align-self: flex-start;
+    z-index: 20;
+    transition: background 0.15s;
+  }
 
   .sidebar {
     position: fixed;

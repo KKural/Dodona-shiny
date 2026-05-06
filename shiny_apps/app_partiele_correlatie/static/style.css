@@ -428,10 +428,15 @@ body {
   text-align: center;
 }
 
+.dataset-table td:first-child {
+  text-align: left;
+}
+
 .dataset-table th {
   background: #f1f5f9;
   font-weight: 600;
   color: #475569;
+  text-align: center;
 }
 
 .dataset-table tr:nth-child(even) {
@@ -451,9 +456,12 @@ td {
   text-align: center;
 }
 
-th:first-child,
-td:first-child {
+th:first-child {
   text-align: center;
+}
+
+td:first-child {
+  text-align: left;
 }
 
 td .pred-input {
@@ -461,6 +469,7 @@ td .pred-input {
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
+  text-align: center;
 }
 
 .status {
@@ -547,6 +556,22 @@ td .pred-input {
   font-size: 0.86rem;
   vertical-align: middle;
   text-align: left;
+}
+
+#means-grid .handsontable td.htLeft,
+#dev-table-wrap .handsontable td.htLeft,
+#varsd-table-wrap .handsontable td.htLeft,
+#covr-table-wrap .handsontable td.htLeft,
+#partial-grid .handsontable td.htLeft {
+  text-align: left !important;
+}
+
+#means-grid .handsontable td.htCenter,
+#dev-table-wrap .handsontable td.htCenter,
+#varsd-table-wrap .handsontable td.htCenter,
+#covr-table-wrap .handsontable td.htCenter,
+#partial-grid .handsontable td.htCenter {
+  text-align: center !important;
 }
 
 #means-grid .handsontable th,

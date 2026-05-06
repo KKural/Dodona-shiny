@@ -417,10 +417,15 @@ body {
   text-align: center;
 }
 
+.dataset-table td:first-child {
+  text-align: left;
+}
+
 .dataset-table th {
   background: #f1f5f9;
   font-weight: 600;
   color: #475569;
+  text-align: center;
 }
 
 .dataset-table tr:nth-child(even) {
@@ -440,9 +445,12 @@ td {
   text-align: center;
 }
 
-th:first-child,
-td:first-child {
+th:first-child {
   text-align: center;
+}
+
+td:first-child {
+  text-align: left;
 }
 
 .readonly-cell {
@@ -457,6 +465,7 @@ td .pred-input {
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
+  text-align: center;
 }
 
 .status {

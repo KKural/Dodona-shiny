@@ -361,7 +361,7 @@ body {
     border: 1.5px solid #cbd5e1;
     border-radius: 5px;
     font-size: 13px;
-    text-align: right;
+    text-align: center;
     transition: border-color 0.2s, background 0.2s;
 }
 
@@ -581,7 +581,7 @@ body {
     border-radius: 4px;
     font-size: 12px;
     padding: 3px 5px;
-    text-align: right;
+    text-align: center;
     transition: border-color 0.2s, background 0.2s;
 }
 
@@ -701,6 +701,11 @@ body {
 .dataset-table td.group-col {
     font-weight: 600;
     color: #1e3a5f;
+    text-align: left;
+}
+
+.dataset-table td:first-child {
+    text-align: left;
 }
 
 /* FIELD DIAGNOSTICS */
@@ -1033,10 +1038,10 @@ details.test-panel[open]>summary::before {
     overflow: auto;
 }
 
-.card-body > #hot-container:first-child,
-.card-body > #hot2-container:first-child,
-.card-body > #hot4-container:first-child,
-.card-body > #hot5-container:first-child {
+.card-body>#hot-container:first-child,
+.card-body>#hot2-container:first-child,
+.card-body>#hot4-container:first-child,
+.card-body>#hot5-container:first-child {
     margin-top: 0;
 }
 
@@ -1074,6 +1079,20 @@ details.test-panel[open]>summary::before {
     font-size: 0.82rem;
     white-space: normal;
     line-height: 1.25;
+}
+
+#hot-container .handsontable td.htLeft,
+#hot2-container .handsontable td.htLeft,
+#hot4-container .handsontable td.htLeft,
+#hot5-container .handsontable td.htLeft {
+    text-align: left !important;
+}
+
+#hot-container .handsontable td.htCenter,
+#hot2-container .handsontable td.htCenter,
+#hot4-container .handsontable td.htCenter,
+#hot5-container .handsontable td.htCenter {
+    text-align: center !important;
 }
 
 #hot-container .handsontable td.htDimmed,

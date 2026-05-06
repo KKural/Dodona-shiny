@@ -291,7 +291,7 @@ td {
 th {
     background: var(--blue-soft);
     color: var(--blue);
-    text-align: left;
+    text-align: center;
 }
 
 .data-table {
@@ -307,6 +307,15 @@ th {
     vertical-align: middle;
 }
 
+.data-table tbody th,
+.data-table td.text-cell {
+    text-align: left;
+}
+
+.data-table td.num-cell {
+    text-align: center;
+}
+
 .compact-table {
     min-width: 0;
     width: auto;
@@ -320,6 +329,15 @@ th {
 
 .answer-table td:first-child {
     width: 44%;
+    text-align: left;
+}
+
+.answer-table td {
+    text-align: left;
+}
+
+.answer-table input[type="text"] {
+    text-align: center;
 }
 
 .mcq-list {

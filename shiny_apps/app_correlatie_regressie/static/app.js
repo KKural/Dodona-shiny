@@ -553,7 +553,7 @@ function renderHotDev() {
       const key = `${row}-${col}`;
       const cls = state.hotDevCellClasses[key];
       const isLastRow = row === n;
-      const classes = [col < 3 ? 'htLeft' : 'htCenter'];
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
       if (isLastRow && col < 5) {
         classes.push('hot-sum-label-cell');
         return { readOnly: true, type: 'text', className: classes.join(' ') };
