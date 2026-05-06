@@ -770,10 +770,15 @@ function setScenarioText(sc, names) {
 
 function renderDatasetTable() {
   const tbl = document.getElementById('dataset-table');
+  const info = document.getElementById('dataset-info');
   tbl.className = 'dataset-table';
   tbl.innerHTML = '';
 
   const { x, y } = state.names;
+  if (info) {
+    info.innerHTML = `<strong>N = ${state.rows.length}</strong> waarnemingen. X = <strong>${x}</strong>; Y = <strong>${y}</strong>.`;
+  }
+
   const thead = document.createElement('thead');
   thead.innerHTML = `<tr><th>Eenheid</th><th>${x}</th><th>${y}</th></tr>`;
   tbl.appendChild(thead);

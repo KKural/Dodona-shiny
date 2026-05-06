@@ -482,20 +482,6 @@ function setScenarioText(sc, names) {
   if (el) {
     el.innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br>X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
   }
-
-  const placeholder = document.getElementById('scenario-placeholder');
-  const detailBox = document.getElementById('scenario-detail-box');
-  const detailTitle = document.getElementById('scenario-detail-title');
-  const detailText = document.getElementById('scenario-detail-text');
-  const detailMeta = document.getElementById('scenario-detail-meta');
-
-  if (placeholder) placeholder.classList.add('hidden');
-  if (detailBox) detailBox.classList.remove('hidden');
-  if (detailTitle) detailTitle.textContent = sc.title;
-  if (detailText) detailText.textContent = sc.vignette;
-  if (detailMeta) {
-    detailMeta.innerHTML = `X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
-  }
 }
 
 function renderDatasetTable() {

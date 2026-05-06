@@ -356,30 +356,53 @@ body {
 }
 
 .table-wrap {
+  width: 100%;
+  max-height: 430px;
   overflow: auto;
+  border: 1px solid #e5eaf0;
+  border-radius: 6px;
+  background: #fff;
 }
 
 .dataset-table {
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: 13px;
   width: 100%;
+  min-width: 760px;
+  table-layout: fixed;
 }
 
 .dataset-table th,
 .dataset-table td {
-  border: 1px solid #e2e8f0;
-  padding: 5px 10px;
+  border: 1px solid #e5eaf0;
+  padding: 7px 10px;
+  height: 32px;
   text-align: center;
+  vertical-align: middle;
 }
 
 .dataset-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   background: #f1f5f9;
   font-weight: 600;
-  color: #475569;
+  color: #334155;
+}
+
+.dataset-table td:first-child {
+  font-weight: 500;
+  color: #334155;
 }
 
 .dataset-table tr:nth-child(even) {
   background: #f8fafd;
+}
+
+.dataset-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 4px 0;
 }
 
 .scenario-task-note {

@@ -31,14 +31,15 @@
 
       <div class="sidebar-card">
         <div class="sidebar-card-title">Scenario &amp; dataset</div>
-        <p class="sidebar-help">Kies een scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te openen.</p>
+        <p class="sidebar-help">Kies een scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te openen.
+        </p>
         <div class="sidebar-section">
           <label for="scenario">Scenario</label>
           <select id="scenario"></select>
         </div>
         <div class="sidebar-section">
           <label for="n">Steekproefgrootte N (4-50)</label>
-          <input id="n" type="number" min="4" max="50" step="1" value="15" />
+          <input id="n" type="number" min="4" max="50" step="1" value="10" />
         </div>
         <div class="sidebar-section">
           <label for="seed">Datasetcode (seed)</label>
@@ -108,8 +109,6 @@
         <span>Partiële Correlatie</span>
       </div>
 
-      <div class="vignette-card"><span id="scenario-text">Genereer een dataset om te starten.</span></div>
-
       <section class="card" id="deel1">
         <div class="card-header">Deel I - Dataset</div>
         <div class="card-body">
@@ -122,13 +121,10 @@
       <section class="card" id="deel-taak">
         <div class="card-header">Taak &amp; vignette</div>
         <div class="card-body">
-          <p class="muted" id="scenario-placeholder">Genereer een dataset om de taakomschrijving te zien.</p>
-          <div class="vignette-card hidden" id="scenario-detail-box">
-            <strong id="scenario-detail-title"></strong>
-            <p id="scenario-detail-text" style="margin:6px 0 0 0;"></p>
-            <p id="scenario-detail-meta" class="scenario-meta"></p>
+          <div class="vignette-card" id="scenario-vignette-box">
+            <span id="scenario-text">Genereer een dataset om de taakomschrijving te zien.</span>
           </div>
-          <p class="scenario-task-note"><strong>Opdracht:</strong> bereken de parti&euml;le correlatie tussen X en Y,
+          <p class="scenario-task-note"><strong>Opdracht:</strong> bereken de partiële correlatie tussen X en Y,
             gecontroleerd voor Z. Voltooi Deel II t/m VI stap voor stap. Wanneer alle antwoorden correct zijn,
             verschijnen de visualisaties automatisch in Deel VII.</p>
         </div>
