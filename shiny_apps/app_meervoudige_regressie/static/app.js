@@ -93,6 +93,9 @@ function normalizeScenarioLabels() {
     if (sc?.vars?.y?.name) sc.vars.y.name = humanizeLabel(sc.vars.y.name);
     if (Array.isArray(sc?.extras)) sc.extras = sc.extras.map((v) => humanizeLabel(v));
     if (sc?.entity) sc.entity = humanizeLabel(sc.entity);
+    if (sc?.vignette) {
+      sc.vignette = sc.vignette.replace(/\b([A-Za-z][a-z]+(?:[A-Z][a-z]+)+)\b/g, (m) => humanizeLabel(m));
+    }
   });
 }
 
@@ -1227,6 +1230,7 @@ function setupSidebarChrome() {
   if (resizeHandle && sidebarEl) {
     let startX = 0;
     let startWidth = 0;
+    const layoutEl = sidebarEl.closest('.layout');
     resizeHandle.addEventListener('mousedown', (e) => {
       startX = e.clientX;
       startWidth = sidebarEl.getBoundingClientRect().width;
@@ -1239,6 +1243,7 @@ function setupSidebarChrome() {
       if (!resizeHandle.classList.contains('dragging')) return;
       const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
       sidebarEl.style.width = `${newWidth}px`;
+      if (layoutEl) layoutEl.style.gridTemplateColumns = `${newWidth}px 8px 1fr`;
     });
     document.addEventListener('mouseup', () => {
       if (!resizeHandle.classList.contains('dragging')) return;

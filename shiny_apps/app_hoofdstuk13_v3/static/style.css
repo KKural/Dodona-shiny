@@ -297,6 +297,8 @@ th {
 .data-table {
     width: auto;
     min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .data-table th,
@@ -308,6 +310,8 @@ th {
 .compact-table {
     min-width: 0;
     width: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .divider-row td {

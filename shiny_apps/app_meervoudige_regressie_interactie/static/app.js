@@ -53,6 +53,9 @@ function normalizeScenarioLabels() {
     if (sc?.vars?.x2) sc.vars.x2 = humanizeLabel(sc.vars.x2);
     if (sc?.vars?.y) sc.vars.y = humanizeLabel(sc.vars.y);
     if (sc?.entity) sc.entity = humanizeLabel(sc.entity);
+    if (sc?.vignette) {
+      sc.vignette = sc.vignette.replace(/\b([A-Z][a-z]+(?:[A-Z][a-z]+)+)\b/g, (m) => humanizeLabel(m));
+    }
   });
 }
 
