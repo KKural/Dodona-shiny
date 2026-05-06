@@ -327,8 +327,23 @@ th {
     border-top: 2px solid #9fb8e8;
 }
 
+.answer-table {
+    width: auto;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.answer-table th,
+.answer-table td {
+    padding: 5px 8px;
+    vertical-align: middle;
+    font-size: 0.88rem;
+}
+
 .answer-table td:first-child {
     width: 44%;
+    min-width: 220px;
     text-align: left;
 }
 
@@ -337,7 +352,9 @@ th {
 }
 
 .answer-table input[type="text"] {
+    width: 130px;
     text-align: center;
+    font-size: 0.86rem;
 }
 
 .mcq-list {
