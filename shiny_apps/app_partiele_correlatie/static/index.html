@@ -6,7 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Partiële Correlatie Oefening</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.js"></script>
 </head>
 
 <body>
@@ -114,7 +116,9 @@
       <section class="card" id="deel2">
         <div class="card-header">Deel II - Stap 1: Rekenkundige Gemiddelden</div>
         <div class="card-body">
-          <div class="grid three" id="means-grid"></div>
+          <div class="hot-table-container" id="means-grid"></div>
+          <div id="means-msg" class="section-summary"></div>
+          <div id="means-detail" class="feedback-panel"></div>
         </div>
       </section>
 
@@ -122,8 +126,9 @@
         <div class="card-header">Deel III - Stappen 2-4: Afwijkingtabel</div>
         <div class="card-body">
           <p class="instruction">Vul alle afwijkingen, kwadraten en kruisproducten in (4 decimalen).</p>
-          <div class="table-wrap" id="dev-table-wrap"></div>
-          <div id="dev-msg" class="status"></div>
+          <div class="hot-table-container" id="dev-table-wrap"></div>
+          <div id="dev-msg" class="section-summary"></div>
+          <div id="dev-detail" class="feedback-panel"></div>
         </div>
       </section>
 
@@ -131,8 +136,9 @@
         <div class="card-header">Deel IV - Stap 5: Sommen, Varianties en Standaarddeviaties</div>
         <div class="card-body">
           <p class="instruction">Vul SS, Var en SD in voor X, Y en Z (4 decimalen).</p>
-          <div class="table-wrap" id="varsd-table-wrap"></div>
-          <div id="varsd-msg" class="status"></div>
+          <div class="hot-table-container" id="varsd-table-wrap"></div>
+          <div id="varsd-msg" class="section-summary"></div>
+          <div id="varsd-detail" class="feedback-panel"></div>
         </div>
       </section>
 
@@ -140,15 +146,18 @@
         <div class="card-header">Deel V - Stap 6: SCP, Covarianties en Bivariate Correlaties</div>
         <div class="card-body">
           <p class="instruction">Vul SCP, Cov en r in voor de paren XY, XZ en YZ (4 decimalen).</p>
-          <div class="table-wrap" id="covr-table-wrap"></div>
-          <div id="covr-msg" class="status"></div>
+          <div class="hot-table-container" id="covr-table-wrap"></div>
+          <div id="covr-msg" class="section-summary"></div>
+          <div id="covr-detail" class="feedback-panel"></div>
         </div>
       </section>
 
       <section class="card" id="deel6">
         <div class="card-header">Deel VI - Stap 7: Partiële Correlatie r_xy.z</div>
         <div class="card-body">
-          <div class="grid three" id="partial-grid"></div>
+          <div class="hot-table-container" id="partial-grid"></div>
+          <div id="partial-msg" class="section-summary"></div>
+          <div id="partial-detail" class="feedback-panel"></div>
           <div class="field" style="margin-top: 10px;">
             <label for="conclusie_type">Type conclusie (1-5)</label>
             <select id="conclusie_type">

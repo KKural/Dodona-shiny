@@ -6,6 +6,8 @@
   <title>Oefeningen voor Correlatie &amp; Regressie</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.js"></script>
 </head>
 <body>
   <div class="layout">
@@ -112,35 +114,57 @@
 
       <section class="card" id="deel2">
         <div class="card-header">Deel II - Stap 1: Rekenkundige Gemiddelden</div>
-        <div class="card-body"><div class="grid two" id="means-grid"></div></div>
+        <div class="card-body">
+          <div id="hot-means-container" class="hot-table-container"></div>
+          <div class="section-summary" id="feedback-deel2"></div>
+          <div class="feedback-panel" id="feedback-detail-deel2"></div>
+        </div>
       </section>
 
       <section class="card" id="deel3">
         <div class="card-header">Deel III - Stappen 2-4: Afwijkingen en Sommen</div>
-        <div class="card-body"><div class="grid two" id="totals-grid"></div></div>
+        <div class="card-body">
+          <p class="instruction">Bereken per rij de afwijkingen, kwadraten en kruisproducten. De onderste rij bevat de kolomsommen.</p>
+          <div id="hot-dev-container" class="hot-table-container"></div>
+          <div class="section-summary" id="feedback-deel3"></div>
+          <div class="feedback-panel" id="feedback-detail-deel3"></div>
+        </div>
       </section>
 
       <section class="card" id="deel4">
         <div class="card-header" id="hdr-deel4">Deel IV - Stappen 5-9: Covariatie en Voorbereiding</div>
-        <div class="card-body"><div class="grid three" id="stats-grid"></div></div>
+        <div class="card-body">
+          <div id="hot-stats-container" class="hot-table-container"></div>
+          <div class="section-summary" id="feedback-deel4"></div>
+          <div class="feedback-panel" id="feedback-detail-deel4"></div>
+        </div>
       </section>
 
       <section class="card" id="deel5">
         <div class="card-header" id="hdr-deel5">Deel V-VI - Regressievergelijking</div>
-        <div class="card-body"><div class="grid three" id="reg-grid"></div></div>
+        <div class="card-body">
+          <div id="hot-reg-container" class="hot-table-container"></div>
+          <div class="section-summary" id="feedback-deel5"></div>
+          <div class="feedback-panel" id="feedback-detail-deel5"></div>
+        </div>
       </section>
 
       <section class="card" id="deel6">
         <div class="card-header" id="hdr-deel6">Deel VII - Voorspellingen Yhat</div>
         <div class="card-body">
-          <div class="table-wrap"><table id="pred-table"></table></div>
-          <div id="pred-msg" class="status"></div>
+          <div id="hot-pred-container" class="hot-table-container"></div>
+          <div class="section-summary" id="feedback-deel6"></div>
+          <div class="feedback-panel" id="feedback-detail-deel6"></div>
         </div>
       </section>
 
       <section class="card" id="deel7">
         <div class="card-header" id="hdr-deel7">Deel VIII - R2 en F-toets</div>
-        <div class="card-body"><div class="grid two" id="fit-grid"></div></div>
+        <div class="card-body">
+          <div id="hot-fit-container" class="hot-table-container"></div>
+          <div class="section-summary" id="feedback-deel7"></div>
+          <div class="feedback-panel" id="feedback-detail-deel7"></div>
+        </div>
       </section>
 
       <section class="card success hidden" id="success-card">
