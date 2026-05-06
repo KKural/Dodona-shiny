@@ -401,17 +401,12 @@ body {
 }
 
 .table-wrap {
-  width: 100%;
-  max-height: 430px;
   overflow: auto;
-  border: 1px solid #e5eaf0;
-  border-radius: 6px;
-  background: #fff;
 }
 
 .dataset-table {
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 12.5px;
   width: auto;
   min-width: 0;
   margin-left: auto;
@@ -420,25 +415,18 @@ body {
 
 .dataset-table th,
 .dataset-table td {
-  border: 1px solid #e5eaf0;
-  padding: 7px 10px;
-  height: 32px;
+  border: 1px solid #e2e8f0;
+  padding: 5px 10px;
   text-align: center;
-  vertical-align: middle;
 }
 
 .dataset-table th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   background: #f1f5f9;
   font-weight: 600;
-  color: #334155;
+  color: #475569;
 }
 
 .dataset-table td:first-child {
-  font-weight: 500;
-  color: #334155;
   text-align: left;
 }
 

@@ -6,7 +6,7 @@ const MAX_SAMPLE_SIZE = 50;
 const SCENARIOS = [
   {
     id: 'crime_program',
-    title: 'Implementatie criminaliteitspreventieprogramma',
+    title: 'Implementatie criminaliteits preventie programma',
     vignette: 'Een stad heeft een criminaliteitspreventieprogramma uitgerold in tien vergelijkbare buurten. De mate van blootstelling aan het programma verschilt per buurt naargelang de intensiteit van de uitvoering. De afhankelijke variabele is het inbraakcijfer per 1.000 inwoners. Onderzoeksvraag: hangt een hogere programma-blootstelling (X) significant samen met een lager inbraakcijfer (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'Programma-blootstelling', unit: '%' }, y: { name: 'Inbraakcijfer', unit: 'per 1.000' } },
     gen: { r_target: -0.45 },
@@ -769,7 +769,14 @@ function setScenarioText(sc, names) {
   const meta = document.getElementById('scenario-meta');
 
   if (title) title.textContent = sc.title;
-  if (text) text.textContent = sc.vignette;
+  if (text) {
+    let displayVignette = sc.vignette;
+    if (state.mode === 'Correlation') {
+      // Remove the regression-specific instruction from the scenario description
+      displayVignette = displayVignette.replace(/ en schat de regressierechte\s*\([^)]*\)/g, '');
+    }
+    text.textContent = displayVignette;
+  }
   if (meta) meta.innerHTML = '';
 }
 
@@ -1246,6 +1253,11 @@ function applyModeUI() {
     active.classList.remove('active');
     const fallback = document.querySelector('#section-nav .nav-item[data-target="deel4"]');
     if (fallback) fallback.classList.add('active');
+  }
+
+  // Refresh vignette text so regression clause shows/hides correctly on mode switch
+  if (state.scenario) {
+    setScenarioText(state.scenario, state.names);
   }
 }
 

@@ -6,7 +6,7 @@ const N_FIXED = 10;
 const SCENARIOS = [
   {
     id: 'crime_program',
-    title: 'Implementatie criminaliteitspreventieprogramma',
+    title: 'Implementatie criminaliteits preventie programma',
     vignette: 'Een criminoloog onderzoekt of de blootstelling aan een preventieprogramma samenhangt met inbraakcijfers, gecontroleerd voor politiezichtbaarheid.',
     entityLabel: 'Buurt',
     vars: {
