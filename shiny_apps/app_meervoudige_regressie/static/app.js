@@ -374,8 +374,480 @@ function calcTruth(rows, names) {
   };
 }
 
+// ─── Helper functions ───────────────────────────────────────────────────────
+
+function fillScenarioSelect() {
+  const sel = document.getElementById('scenario');
+  if (!sel) return;
+  sel.innerHTML = '';
+  SCENARIOS.forEach(sc => {
+    const opt = document.createElement('option');
+    opt.value = sc.id;
+    opt.textContent = sc.title;
+    sel.appendChild(opt);
+  });
+}
+
+function setScenarioText(sc, names) {
+  const titleEl = document.getElementById('scenario-title');
+  if (titleEl) titleEl.textContent = sc.title;
+  const textEl = document.getElementById('scenario-text');
+  if (textEl) textEl.textContent = sc.vignette;
+  const metaEl = document.getElementById('scenario-meta');
+  if (metaEl) metaEl.innerHTML = `x1 = <b>${names.x1}</b> | x2 = <b>${names.x2}</b> | Y = <b>${names.y}</b>`;
+  const infoEl = document.getElementById('dataset-info');
+  if (infoEl) infoEl.textContent = `Dataset: N\u00a0=\u00a0${state.rows.length} | Datasetcode: ${document.getElementById('seed').value}`;
+}
+
+function renderDatasetTable() {
+  const tbl = document.getElementById('dataset-table');
+  if (!tbl) return;
+  tbl.innerHTML = '';
+  const { x1, x2, y } = state.names;
+  const thead = document.createElement('thead');
+  thead.innerHTML = `<tr><th>Eenheid</th><th>${x1}</th><th>${x2}</th><th>${y}</th></tr>`;
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  state.rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.entity}</td><td>${Number(r[x1]).toFixed(2)}</td><td>${Number(r[x2]).toFixed(2)}</td><td>${Number(r[y]).toFixed(2)}</td>`;
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+}
+
+function updateSectionSummary(divId, correct, total, labelOk, labelPartial) {
+  const el = document.getElementById(divId);
+  if (!el) return;
+  if (total === 0) { el.innerHTML = ''; el.className = 'section-summary'; return; }
+  if (correct === total) {
+    el.innerHTML = `\u2713 ${labelOk} (${correct}/${total})`;
+    el.className = 'section-summary ok';
+  } else {
+    el.innerHTML = `${correct}/${total} correct \u2014 ${labelPartial}`;
+    el.className = 'section-summary partial';
+  }
+}
+
+function markField(id, ok, attempted) {
+  const m = FIELD_HOT_MAP[id];
+  if (!m) return;
+  const key = `${m.row}-${m.col}`;
+  if (!attempted) {
+    delete state[m.classKey][key];
+  } else if (ok) {
+    state[m.classKey][key] = 'correct';
+  } else {
+    state[m.classKey][key] = 'incorrect';
+  }
+}
+
+function clearStatuses() {
+  state.hotMeansCellClasses = {};
+  state.hotTotalsCellClasses = {};
+  state.hotVarSdCellClasses = {};
+  state.hotCovCellClasses = {};
+  state.hotCorrCellClasses = {};
+  state.hotCoefCellClasses = {};
+  state.hotFitCellClasses = {};
+  state.hotPredCellClasses = {};
+  ['fb-deel2', 'fb-deel3', 'fb-deel4', 'fb-deel4a', 'fb-deel4b', 'fb-deel5', 'fb-deel6', 'fb-deel7'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.innerHTML = ''; el.className = 'section-summary'; }
+  });
+  const suc = document.getElementById('success-card');
+  const viz = document.getElementById('viz-card');
+  const vizLock = document.getElementById('viz-lock');
+  const vizCont = document.getElementById('viz-content');
+  if (suc) suc.classList.add('hidden');
+  if (viz) { viz.classList.add('locked'); viz.classList.add('hidden'); }
+  if (vizLock) vizLock.classList.remove('hidden');
+  if (vizCont) vizCont.classList.add('hidden');
+  state.unlocked = false;
+  setVizNavLock(false);
+  updateProgress(0, 0);
+}
+
+// ─── Handsontable render functions ──────────────────────────────────────────
+
+function makeHotCells(classKey) {
+  return function cells(row, col) {
+    const key = `${row}-${col}`;
+    const cls = state[classKey][key];
+    const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+    if (cls === 'correct') classes.push('htCorrect');
+    if (cls === 'incorrect') classes.push('htIncorrect');
+    return { className: classes.join(' ') };
+  };
+}
+
+function renderHotMeans() {
+  const container = document.getElementById('hot-means-container');
+  if (!container) return;
+  if (state.hotMeans) { state.hotMeans.destroy(); state.hotMeans = null; }
+  state.hotMeansCellClasses = {};
+  container.innerHTML = '';
+  if (!state.rows.length) return;
+  const { x1, x2, y } = state.names;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    [`Gemiddelde X\u2081 \u2014 ${x1}`, null],
+    [`Gemiddelde X\u2082 \u2014 ${x2}`, null],
+    [`Gemiddelde Y \u2014 ${y}`, null]
+  ];
+  state.hotMeans = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [280, 140],
+    rowHeaders: false, width: 420, height: 'auto', stretchH: 'none',
+    cells: makeHotCells('hotMeansCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotTotals() {
+  const container = document.getElementById('hot-totals-container');
+  if (!container) return;
+  if (state.hotTotals) { state.hotTotals.destroy(); state.hotTotals = null; }
+  state.hotTotalsCellClasses = {};
+  container.innerHTML = '';
+  if (!state.rows.length) return;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    ['S\u2081\u2081 = \u03a3(x\u2081\u2212x\u0304\u2081)\u00b2 &mdash; kolomsom kwadraten X\u2081', null],
+    ['S\u2082\u2082 = \u03a3(x\u2082\u2212x\u0304\u2082)\u00b2 &mdash; kolomsom kwadraten X\u2082', null],
+    ['S\u2081\u2082 = \u03a3(x\u2081\u2212x\u0304\u2081)(x\u2082\u2212x\u0304\u2082) &mdash; kruisproducten X\u2081X\u2082', null],
+    ['S\u2081y = \u03a3(x\u2081\u2212x\u0304\u2081)(y\u2212\u0233) &mdash; kruisproducten X\u2081Y', null],
+    ['S\u2082y = \u03a3(x\u2082\u2212x\u0304\u2082)(y\u2212\u0233) &mdash; kruisproducten X\u2082Y', null],
+    ['SST = \u03a3(y\u2212\u0233)\u00b2 &mdash; totale kwadratensom Y', null]
+  ];
+  state.hotTotals = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true, renderer: 'html' },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [420, 140],
+    rowHeaders: false, width: 560, height: 'auto', stretchH: 'none',
+    cells: makeHotCells('hotTotalsCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotVarSd() {
+  const container = document.getElementById('hot-varsd-container');
+  if (!container) return;
+  if (state.hotVarSd) { state.hotVarSd.destroy(); state.hotVarSd = null; }
+  state.hotVarSdCellClasses = {};
+  container.innerHTML = '';
+  if (!state.rows.length) return;
+  const { x1, x2, y } = state.names;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    ['Variantie \u2014 s\u00b2', null, null, null],
+    ['Standaardafwijking \u2014 s', null, null, null]
+  ];
+  state.hotVarSd = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['', x1, x2, y],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [200, 130, 130, 130],
+    rowHeaders: false, width: 590, height: 'auto', stretchH: 'none',
+    cells: makeHotCells('hotVarSdCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotCov() {
+  const container = document.getElementById('hot-cov-container');
+  if (!container) return;
+  if (state.hotCov) { state.hotCov.destroy(); state.hotCov = null; }
+  state.hotCovCellClasses = {};
+  container.innerHTML = '';
+  if (!state.rows.length) return;
+  const { x1, x2, y } = state.names;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    [`Cov(X\u2081,Y) \u2014 covariantie ${x1} en ${y}`, null],
+    [`Cov(X\u2082,Y) \u2014 covariantie ${x2} en ${y}`, null],
+    [`Cov(X\u2081,X\u2082) \u2014 covariantie ${x1} en ${x2}`, null]
+  ];
+  state.hotCov = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [360, 140],
+    rowHeaders: false, width: 500, height: 'auto', stretchH: 'none',
+    cells: makeHotCells('hotCovCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotCorr() {
+  const container = document.getElementById('hot-corr-container');
+  if (!container) return;
+  if (state.hotCorr) { state.hotCorr.destroy(); state.hotCorr = null; }
+  state.hotCorrCellClasses = {};
+  container.innerHTML = '';
+  if (!state.rows.length) return;
+  const { x1, x2, y } = state.names;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    [`r(X\u2081,Y) \u2014 correlatie ${x1} en ${y}`, null],
+    [`r(X\u2082,Y) \u2014 correlatie ${x2} en ${y}`, null],
+    [`r(X\u2081,X\u2082) \u2014 correlatie ${x1} en ${x2}`, null]
+  ];
+  state.hotCorr = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [360, 140],
+    rowHeaders: false, width: 500, height: 'auto', stretchH: 'none',
+    cells: makeHotCells('hotCorrCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotCoef() {
+  const container = document.getElementById('hot-coef-container');
+  if (!container) return;
+  if (state.hotCoef) { state.hotCoef.destroy(); state.hotCoef = null; }
+  state.hotCoefCellClasses = {};
+  container.innerHTML = '';
+  if (!state.rows.length) return;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    ['D = S\u2081\u2081\u00b7S\u2082\u2082 \u2212 S\u2081\u2082\u00b2 &mdash; <b>determinant</b>', null],
+    ['b\u2081 &mdash; <b>parti\u00eble regressiecoëfficiënt X\u2081</b>', null],
+    ['b\u2082 &mdash; <b>parti\u00eble regressiecoëfficiënt X\u2082</b>', null],
+    ['a &mdash; <b>intercept</b>', null]
+  ];
+  state.hotCoef = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true, renderer: 'html' },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [380, 140],
+    rowHeaders: false, width: 520, height: 'auto', stretchH: 'none',
+    cells: makeHotCells('hotCoefCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotFit() {
+  const container = document.getElementById('hot-fit-container');
+  if (!container) return;
+  if (state.hotFit) { state.hotFit.destroy(); state.hotFit = null; }
+  state.hotFitCellClasses = {};
+  container.innerHTML = '';
+  if (!state.rows.length) return;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    ['R\u00b2 \u2014 determinatiecoëfficiënt', null],
+    ['1 \u2212 R\u00b2 \u2014 vervreemding', null],
+    ['F \u2014 F-statistiek (df\u2081\u00a0=\u00a02)', null],
+    ['p \u2014 model p-waarde', null]
+  ];
+  state.hotFit = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [300, 140],
+    rowHeaders: false, width: 440, height: 'auto', stretchH: 'none',
+    cells: makeHotCells('hotFitCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotPred() {
+  const container = document.getElementById('pred-table-container');
+  if (!container) return;
+  if (state.hotPred) { state.hotPred.destroy(); state.hotPred = null; }
+  state.hotPredCellClasses = {};
+  container.innerHTML = '';
+  if (!state.rows.length || !state.truth) return;
+  const { x1, x2, y } = state.names;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = state.rows.map(r => [
+    r.entity,
+    r2(Number(r[x1])),
+    r2(Number(r[x2])),
+    r2(Number(r[y])),
+    null
+  ]);
+  const w0 = Math.max(70, Math.ceil(state.rows[0].entity.length * 7) + 16);
+  const wN = 100;
+  state.hotPred = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Eenheid', x1, x2, y, 'Y\u0302 = a + b\u2081X\u2081 + b\u2082X\u2082'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [w0, wN, wN, wN, 160],
+    rowHeaders: false, width: w0 + wN * 3 + 160, height: 'auto', stretchH: 'none',
+    cells(row, col) {
+      const key = `${row}-${col}`;
+      const cls = state.hotPredCellClasses[key];
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      if (cls === 'correct') classes.push('htCorrect');
+      if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+// ─── Prediction evaluation ───────────────────────────────────────────────────
+
+function evaluatePredictions() {
+  if (!state.truth || !state.rows.length) return { allEntered: false, allCorrect: false };
+  const t = state.truth;
+  const { x1, x2 } = state.names;
+  const n = state.rows.length;
+  const newCls = {};
+  let correct = 0, entered = 0;
+  const d = state.hotPred ? state.hotPred.getData() : [];
+  for (let i = 0; i < n; i++) {
+    const x1v = r2(Number(state.rows[i][x1]));
+    const x2v = r2(Number(state.rows[i][x2]));
+    const expected = r4(t.intercept + t.b1 * x1v + t.b2 * x2v);
+    const raw = d[i] ? d[i][4] : null;
+    const str = raw == null ? '' : String(raw).trim();
+    if (!str) continue;
+    entered++;
+    const num = parseFloat(str.replace(',', '.'));
+    if (!Number.isFinite(num)) { newCls[`${i}-4`] = 'incorrect'; continue; }
+    if (check4(num, expected)) {
+      newCls[`${i}-4`] = 'correct';
+      correct++;
+    } else {
+      newCls[`${i}-4`] = 'incorrect';
+    }
+  }
+  state.hotPredCellClasses = newCls;
+  if (state.hotPred) state.hotPred.render();
+  updateSectionSummary('fb-deel6', correct, n, 'Voorspellingen correct', 'controleer Y\u0302 = a + b\u2081X\u2081 + b\u2082X\u2082');
+  return { allEntered: entered === n, allCorrect: correct === n };
+}
+
+// ─── Charts ──────────────────────────────────────────────────────────────────
+
+function destroyCharts() {
+  Object.values(state.charts).forEach(ch => { if (ch) ch.destroy(); });
+  state.charts = { calibration: null, residual: null, predictor: null };
+}
+
+function renderCharts() {
+  destroyCharts();
+  const t = state.truth;
+  const { x1, x2, y } = state.names;
+  const X1 = state.rows.map(r => r2(Number(r[x1])));
+  const X2 = state.rows.map(r => r2(Number(r[x2])));
+  const Y = state.rows.map(r => r2(Number(r[y])));
+  const Yhat = X1.map((v, i) => r4(t.intercept + t.b1 * v + t.b2 * X2[i]));
+  const n = state.rows.length;
+
+  // Calibration: Ŷ vs Y
+  const calPts = Yhat.map((yh, i) => ({ x: yh, y: Y[i] }));
+  const calMin = Math.min(...calPts.map(p => Math.min(p.x, p.y)));
+  const calMax = Math.max(...calPts.map(p => Math.max(p.x, p.y)));
+  state.charts.calibration = new Chart(document.getElementById('calibration-chart').getContext('2d'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label: 'Observaties', data: calPts, backgroundColor: '#2563eb', pointRadius: 4 },
+        { type: 'line', label: 'Perfecte fit', data: [{ x: calMin, y: calMin }, { x: calMax, y: calMax }], borderColor: '#dc2626', borderDash: [6, 6], pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, plugins: { title: { display: true, text: 'Kalibratieplot (Y\u0302 vs Y)' } },
+      scales: { x: { title: { display: true, text: 'Voorspeld (Y\u0302)' } }, y: { title: { display: true, text: `Geobserveerd (${y})` } } }
+    }
+  });
+
+  // Residuals: Ŷ vs e
+  const resPts = Yhat.map((yh, i) => ({ x: yh, y: r4(Y[i] - yh) }));
+  const resMin = Math.min(...resPts.map(p => p.x));
+  const resMax = Math.max(...resPts.map(p => p.x));
+  state.charts.residual = new Chart(document.getElementById('residual-chart').getContext('2d'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label: 'Residuen', data: resPts, backgroundColor: '#7c3aed', pointRadius: 4 },
+        { type: 'line', label: 'Nul-lijn', data: [{ x: resMin, y: 0 }, { x: resMax, y: 0 }], borderColor: '#dc2626', pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, plugins: { title: { display: true, text: 'Residuenplot (Y\u0302 vs e)' } },
+      scales: { x: { title: { display: true, text: 'Voorspeld (Y\u0302)' } }, y: { title: { display: true, text: 'Residuen (e = Y \u2212 Y\u0302)' } } }
+    }
+  });
+
+  // Predictors: X1 vs Y and X2 vs Y
+  state.charts.predictor = new Chart(document.getElementById('predictor-chart').getContext('2d'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label: x1, data: X1.map((v, i) => ({ x: v, y: Y[i] })), backgroundColor: '#0f766e', pointRadius: 4 },
+        { label: x2, data: X2.map((v, i) => ({ x: v, y: Y[i] })), backgroundColor: '#f59e0b', pointRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, plugins: { title: { display: true, text: `Voorspellers vs ${y}` }, legend: { display: true } },
+      scales: { x: { title: { display: true, text: 'Voorspeller' } }, y: { title: { display: true, text: y } } }
+    }
+  });
+
+  // Interpretation
+  const pText = Number.isFinite(t.model_p) ? (t.model_p < 0.0001 ? '< 0,0001' : t.model_p.toFixed(4)) : 'n.v.t.';
+  const sig = Number.isFinite(t.model_p) && t.model_p < 0.05;
+  document.getElementById('interpretation').innerHTML = `
+    <b>Interpretatie</b>
+    <ul>
+      <li>b\u2081\u00a0=\u00a0${t.b1.toFixed(4)}, b\u2082\u00a0=\u00a0${t.b2.toFixed(4)}, a\u00a0=\u00a0${t.intercept.toFixed(4)}</li>
+      <li>R\u00b2\u00a0=\u00a0${t.R_squared.toFixed(4)}; onverklaard\u00a0=\u00a0${t.alienation.toFixed(4)}</li>
+      <li>F(2,\u00a0${n - 3})\u00a0=\u00a0${t.F_stat.toFixed(4)}, p\u00a0=\u00a0${pText}</li>
+      <li>${sig ? 'Model is statistisch significant op 5%-niveau.' : 'Model is niet statistisch significant op 5%-niveau.'}</li>
+    </ul>`;
+}
+
+// ─── Evaluation ──────────────────────────────────────────────────────────────
+
 function evaluateAll() {
-  if (!state.truth) return;
+
 
   let allEntered = true;
   let allCorrect = true;
@@ -399,6 +871,10 @@ function evaluateAll() {
 
     markField(id, ok, attempted);
   });
+
+  // Re-render all hot tables to reflect updated cell classes
+  [state.hotMeans, state.hotTotals, state.hotVarSd, state.hotCov, state.hotCorr, state.hotCoef, state.hotFit]
+    .forEach(hot => { if (hot) hot.render(); });
 
   const predResult = evaluatePredictions();
 

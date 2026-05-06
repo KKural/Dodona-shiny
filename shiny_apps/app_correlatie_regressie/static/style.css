@@ -578,6 +578,45 @@ td .pred-input {
   pointer-events: none;
 }
 
+/* Step-by-step section locking */
+.step-locked {
+  position: relative;
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.step-locked::after {
+  content: '🔒 Voltooi het vorige deel eerst';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  background: rgba(248, 250, 252, 0.55);
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.step-unlocked {
+  transition: opacity 0.35s ease;
+}
+
+/* Nav items for locked steps */
+.nav-item.step-nav-locked {
+  color: #4b5e70;
+  cursor: not-allowed;
+}
+
+.nav-item.step-nav-locked::before {
+  content: '🔒 ';
+  font-size: 0.75em;
+}
+
 .chart-wrap {
   margin-top: 8px;
   border: 1px solid var(--border);

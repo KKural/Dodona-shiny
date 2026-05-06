@@ -1059,15 +1059,16 @@ function evaluateAll() {
 
   // -- Deel V-VIII: Bivariate only -------------------------------
   const corrMode = state.mode === 'Correlation';
+  let d5c = 0, d5total = 0, d6c = 0, d6total = 0, d7c = 0, d7total = 0;
   if (!corrMode) {
     // Deel V: Regression coefficients
     const d5data = state.hotReg ? state.hotReg.getData() : [];
     const newRegCls = {};
-    let d5c = 0;
     const regFields = [
       { row: 0, expected: t.slope, id: 'slope', label: 'Helling (regressiecoëfficiënt) — b', hint: FIELD_HINTS.slope },
       { row: 1, expected: t.intercept, id: 'intercept', label: 'Snijpunt (intercept) — a', hint: FIELD_HINTS.intercept }
     ];
+    d5total = regFields.length;
     regFields.forEach(f => {
       const raw = d5data[f.row] ? d5data[f.row][1] : null;
       const st = chkHot(newRegCls, f.row, 1, f.expected, raw, f.id, f.hint);
@@ -1082,7 +1083,7 @@ function evaluateAll() {
     // Deel VI: Predictions
     const d6data = state.hotPred ? state.hotPred.getData() : [];
     const newPredCls = {};
-    let d6c = 0;
+    d6total = n;
     for (let i = 0; i < n; i++) {
       const raw = d6data[i] ? d6data[i][3] : null;
       const st = chkHot(newPredCls, i, 3, t.predictions[i], raw, `pred-${i}`, null);
@@ -1096,13 +1097,13 @@ function evaluateAll() {
     // Deel VII: Model fit
     const d7data = state.hotFit ? state.hotFit.getData() : [];
     const newFitCls = {};
-    let d7c = 0;
     const fitFields = [
       { row: 0, expected: t.r_squared, id: 'r_squared', label: 'R\u00b2', hint: FIELD_HINTS.r_squared },
       { row: 1, expected: t.alienation, id: 'alienation', label: '1 − R²', hint: FIELD_HINTS.alienation },
       { row: 2, expected: t.f_stat, id: 'f_stat', label: 'F', hint: FIELD_HINTS.f_stat },
       { row: 3, expected: t.model_p, id: 'model_p_value', label: 'p', hint: FIELD_HINTS.model_p_value }
     ];
+    d7total = fitFields.length;
     fitFields.forEach(f => {
       const raw = d7data[f.row] ? d7data[f.row][1] : null;
       const st = chkHot(newFitCls, f.row, 1, f.expected, raw, f.id, f.hint);
@@ -1116,6 +1117,18 @@ function evaluateAll() {
   }
 
   updateProgress(totalCorrect, totalCount);
+
+  // Step-by-step unlocking — each section unlocks the next when 100% correct
+  const stepDone = {
+    2: d2c === meansFields.length,
+    3: d3c === d3total,
+    4: d4c === statsFields.length,
+    5: !corrMode && d5total > 0 ? d5c === d5total : false,
+    6: !corrMode && d6total > 0 ? d6c === d6total : false,
+    7: !corrMode && d7total > 0 ? d7c === d7total : false
+  };
+  updateStepLocks(stepDone);
+
   const allDone = totalCount > 0 && totalCorrect === totalCount;
   if (allDone !== state.unlocked) {
     state.unlocked = allDone;
@@ -1242,6 +1255,45 @@ function setVizNavLock(unlocked) {
   nav.classList.toggle('locked', !unlocked);
 }
 
+// Step-by-step section locking
+// stepDone[N] = true means section N is fully correct → section N+1 unlocks
+function updateStepLocks(stepDone) {
+  const corrMode = state.mode === 'Correlation';
+  // In Correlation mode, only steps 2-4 exist; 5-7 are hidden so skip them
+  const lastStep = corrMode ? 4 : 7;
+
+  for (let step = 2; step <= 7; step++) {
+    const sec = document.getElementById(`deel${step}`);
+    const nav = document.querySelector(`.nav-item[data-target="deel${step}"]`);
+    if (!sec) continue;
+
+    // Step 2 unlocks as soon as a dataset exists (no prerequisite)
+    const prevDone = step === 2 ? true : (stepDone[step - 1] === true);
+    const locked = !prevDone;
+
+    if (locked) {
+      sec.classList.add('step-locked');
+      if (nav) {
+        nav.classList.add('step-nav-locked');
+        nav.classList.add('locked');
+      }
+    } else {
+      sec.classList.remove('step-locked');
+      if (nav) {
+        nav.classList.remove('step-nav-locked');
+        // Only remove locked if the viz-card lock logic hasn't set it
+        if (step <= lastStep) nav.classList.remove('locked');
+      }
+    }
+  }
+}
+
+function lockAllSteps() {
+  // Called when a new dataset is generated — reset all to locked except step 2
+  const done = {};
+  updateStepLocks(done);
+}
+
 function setupNav() {
   const nav = document.getElementById('section-nav');
   if (!nav) return;
@@ -1341,6 +1393,7 @@ function generate(random = false) {
   renderDatasetTable();
   buildFields();
   clearStatuses();
+  lockAllSteps();
   evaluateAll();
 }
 
