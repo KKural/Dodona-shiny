@@ -747,7 +747,7 @@ function renderHotCoef() {
   state.hotCoef = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Co\u00ebffici\u00ebnt', 'Waarde'],
+    colHeaders: ['Co\u00ebffici\u00ebnt', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -787,7 +787,7 @@ function renderHotFit() {
   state.hotFit = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Grootheid', 'Waarde'],
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
