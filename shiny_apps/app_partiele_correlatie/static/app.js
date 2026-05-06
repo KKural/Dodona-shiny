@@ -614,10 +614,10 @@ function renderVarSdTable() {
     { label: 'Standaardafwijking (s)', cells: ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
-  const ww = s => Math.max(...s.split(/\s+/).filter(Boolean).map(w => Math.ceil(w.length * 7))) + 16;
-  const wX = Math.max(110, ww(x));
-  const wY = Math.max(110, ww(y));
-  const wZ = Math.max(110, ww(z));
+  const ww = s => Math.max(110, Math.ceil(s.length * 8));
+  const wX = ww(x);
+  const wY = ww(y);
+  const wZ = ww(z);
   const colWidths = [170, wX, wY, wZ];
   const hotValidate = debounce(evaluateAll, 250);
 
@@ -669,10 +669,10 @@ function renderCovRTable() {
     { label: 'Correlatie r', cells: ['cv_r_XY', 'cv_r_XZ', 'cv_r_YZ'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
-  const ww = s => Math.max(...s.split(/\s+/).filter(Boolean).map(w => Math.ceil(w.length * 7))) + 16;
-  const wXY = Math.max(110, ww(x), ww(y));
-  const wXZ = Math.max(110, ww(x), ww(z));
-  const wYZ = Math.max(110, ww(y), ww(z));
+  const ww = s => Math.max(110, Math.ceil(s.length * 8));
+  const wXY = Math.max(ww(x), ww(y));
+  const wXZ = Math.max(ww(x), ww(z));
+  const wYZ = Math.max(ww(y), ww(z));
   const colWidths = [150, wXY, wXZ, wYZ];
   const hotValidate = debounce(evaluateAll, 250);
 

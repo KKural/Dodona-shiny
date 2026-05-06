@@ -638,17 +638,17 @@ function renderHotCoef() {
   if (!state.rows.length) return;
   const hotValidate = debounce(evaluateAll, 250);
   const tableData = [
-    ['D = S\u2081\u2081\u00b7S\u2082\u2082 \u2212 S\u2081\u2082\u00b2 &mdash; <b>determinant</b>', null],
-    ['b\u2081 &mdash; <b>parti\u00eble regressiecoëfficiënt X\u2081</b>', null],
-    ['b\u2082 &mdash; <b>parti\u00eble regressiecoëfficiënt X\u2082</b>', null],
-    ['a &mdash; <b>intercept</b>', null]
+    ['D = S\u2081\u2081\u00b7S\u2082\u2082 \u2212 S\u2081\u2082\u00b2 \u2014 determinant', null],
+    ['b\u2081 \u2014 parti\u00eble regressiecoëfficiënt X\u2081', null],
+    ['b\u2082 \u2014 parti\u00eble regressiecoëfficiënt X\u2082', null],
+    ['a \u2014 intercept', null]
   ];
   state.hotCoef = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
     colHeaders: ['Grootheid', 'Jouw antwoord'],
     columns: [
-      { type: 'text', readOnly: true, renderer: 'html' },
+      { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [380, 140],
