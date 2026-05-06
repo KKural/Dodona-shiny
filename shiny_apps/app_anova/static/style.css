@@ -653,11 +653,23 @@ body {
     text-align: left;
 }
 
+.title-card h1 {
+    margin: 0 0 6px 0;
+    color: #1d4ed8;
+    font-size: 1.55rem;
+}
+
+.title-card p {
+    margin: 0;
+}
+
 /* DATASET TABLE */
 .dataset-table {
     border-collapse: collapse;
     font-size: 12.5px;
     width: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .dataset-table th,

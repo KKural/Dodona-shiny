@@ -775,16 +775,18 @@ function renderTaskDetail() {
 
   detail.innerHTML = corrMode
     ? `
-      <p><strong>Opdracht:</strong> onderzoek de lineaire samenhang tussen <strong>${x}</strong> en <strong>${y}</strong>.</p>
+      <p><strong>Context:</strong> in deze oefening onderzoek je of er in de gegenereerde criminologische dataset een lineaire samenhang bestaat tussen twee gemeten kenmerken.</p>
+      <p><strong>Opdracht:</strong> bereken de Pearson-correlatie tussen <strong>${x}</strong> en <strong>${y}</strong>.</p>
       <ul>
         <li>Gebruik <strong>${x}</strong>${xUnit} als X-variabele.</li>
         <li>Gebruik <strong>${y}</strong>${yUnit} als Y-variabele.</li>
         <li>Bereken eerst de gemiddelden, afwijkingen, kwadraten en kruisproducten.</li>
         <li>Bereken daarna variantie, standaarddeviatie, covariantie en Pearson r.</li>
       </ul>
-      <p>Rond alle handmatige berekeningen af op <strong>4 decimalen</strong>. Wanneer alles correct is, verschijnt de visualisatie automatisch.</p>
+      <p><strong>Rond af:</strong> gebruik <strong>4 decimalen</strong> voor alle handmatige berekeningen. Wanneer alles correct is, verschijnt de visualisatie automatisch.</p>
     `
     : `
+      <p><strong>Context:</strong> in deze oefening onderzoek je of verschillen in <strong>${x}</strong> kunnen helpen om verschillen in <strong>${y}</strong> te voorspellen.</p>
       <p><strong>Opdracht:</strong> voer een bivariate lineaire regressie uit met <strong>${y}</strong> als afhankelijke variabele en <strong>${x}</strong> als onafhankelijke variabele.</p>
       <ul>
         <li>Gebruik <strong>${x}</strong>${xUnit} als X-variabele.</li>
@@ -792,7 +794,7 @@ function renderTaskDetail() {
         <li>Bereken de voorbereidende correlatiematen: gemiddelden, afwijkingen, varianties, standaarddeviaties, covariantie en r.</li>
         <li>Bereken daarna de regressiecoefficienten, voorspelde waarden, R2, vervreemding, F en model-p-waarde.</li>
       </ul>
-      <p>Rond alle handmatige berekeningen af op <strong>4 decimalen</strong>. Wanneer alles correct is, verschijnen de visualisaties automatisch.</p>
+      <p><strong>Rond af:</strong> gebruik <strong>4 decimalen</strong> voor alle handmatige berekeningen. Wanneer alles correct is, verschijnen de visualisaties automatisch.</p>
     `;
 }
 
