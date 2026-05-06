@@ -602,19 +602,23 @@ function renderVarSdTable() {
   state.hotVarSdCellClasses = {};
   wrap.innerHTML = '';
 
+  const { x, y, z } = state.names;
   const rows = [
     { label: 'SS', cells: ['vs_SS_X', 'vs_SS_Y', 'vs_SS_Z'] },
     { label: 'Var', cells: ['vs_Var_X', 'vs_Var_Y', 'vs_Var_Z'] },
     { label: 'SD', cells: ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
-  const colWidths = [120, 160, 160, 160];
+  const wX = Math.max(120, Math.ceil(x.length * 7) + 16);
+  const wY = Math.max(120, Math.ceil(y.length * 7) + 16);
+  const wZ = Math.max(120, Math.ceil(z.length * 7) + 16);
+  const colWidths = [80, wX, wY, wZ];
   const hotValidate = debounce(evaluateAll, 250);
 
   state.hotVarSd = new Handsontable(wrap, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['', state.names.x, state.names.y, state.names.z],
+    colHeaders: ['', x, y, z],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } },
@@ -649,19 +653,26 @@ function renderCovRTable() {
   state.hotCovRCellClasses = {};
   wrap.innerHTML = '';
 
+  const { x, y, z } = state.names;
+  const hXY = `${x}–${y}`;
+  const hXZ = `${x}–${z}`;
+  const hYZ = `${y}–${z}`;
   const rows = [
     { label: 'SCP', cells: ['cv_SCP_XY', 'cv_SCP_XZ', 'cv_SCP_YZ'] },
     { label: 'Cov', cells: ['cv_Cov_XY', 'cv_Cov_XZ', 'cv_Cov_YZ'] },
     { label: 'r', cells: ['cv_r_XY', 'cv_r_XZ', 'cv_r_YZ'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
-  const colWidths = [120, 160, 160, 160];
+  const wXY = Math.max(120, Math.ceil(hXY.length * 7) + 16);
+  const wXZ = Math.max(120, Math.ceil(hXZ.length * 7) + 16);
+  const wYZ = Math.max(120, Math.ceil(hYZ.length * 7) + 16);
+  const colWidths = [60, wXY, wXZ, wYZ];
   const hotValidate = debounce(evaluateAll, 250);
 
   state.hotCovR = new Handsontable(wrap, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['', `${state.names.x}–${state.names.y}`, `${state.names.x}–${state.names.z}`, `${state.names.y}–${state.names.z}`],
+    colHeaders: ['', hXY, hXZ, hYZ],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } },
