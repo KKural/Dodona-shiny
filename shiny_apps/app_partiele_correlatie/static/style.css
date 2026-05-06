@@ -104,6 +104,21 @@ body {
   margin-bottom: 3px;
 }
 
+.sidebar-howto-list ul {
+  margin-top: 4px;
+  padding-left: 16px;
+}
+
+.text-ok {
+  color: #86efac;
+  font-weight: 700;
+}
+
+.text-err {
+  color: #fca5a5;
+  font-weight: 700;
+}
+
 .sidebar-divider {
   border-top: 1px solid var(--sidebar-border);
   margin: 4px 0;

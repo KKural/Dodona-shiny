@@ -21,29 +21,49 @@
       <div class="sidebar-card">
         <div class="sidebar-card-title">Hoe deze webpagina werkt</div>
         <ul class="sidebar-howto-list">
-          <li>Oefen multiple regressieanalyse met 2 voorspellers (x1, x2) met criminologiedatasets.</li>
-          <li>Gebruik 4 decimalen voor alle handmatige berekeningen.</li>
-          <li>Voltooi de delen I-VIII stap voor stap; visualisaties ontgrendelen pas na volledige juistheid.</li>
+          <li>Oefen <b>meervoudige regressieanalyse</b> met 2 voorspellers (x1, x2) met criminologiedatasets (gebruik
+            <b>4 decimalen</b>).</li>
+          <li>Voltooi <b>9 delen</b> om handmatig meervoudige regressie uit te voeren:
+            <ul>
+              <li><b>Deel I:</b> Dataset bekijken</li>
+              <li><b>Deel II:</b> Rekenkundige gemiddelden voor x1, x2 en Y</li>
+              <li><b>Deel III:</b> Afwijkingen, kwadraten en kruisproducten</li>
+              <li><b>Deel IV:</b> Varianties en standaardafwijkingen</li>
+              <li><b>Deel IV-A/B:</b> Covarianties en correlaties</li>
+              <li><b>Deel V:</b> Regressiecoëfficiënten a, b1 en b2</li>
+              <li><b>Deel VI:</b> Voorspelde waarden Y&#770;</li>
+              <li><b>Deel VII:</b> R², F-statistiek en model p-waarde</li>
+              <li><b>Deel IX:</b> Visualisaties &#128274;</li>
+            </ul>
+          </li>
+          <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij
+            fout.</li>
+          <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> automatisch.</li>
         </ul>
       </div>
 
       <div class="sidebar-divider"></div>
 
-      <div class="sidebar-section">
-        <label for="scenario">Scenario</label>
-        <select id="scenario"></select>
-      </div>
-      <div class="sidebar-section">
-        <label for="n">Steekproefgrootte N (5-50)</label>
-        <input id="n" type="number" min="5" max="50" step="1" value="10" />
-      </div>
-      <div class="sidebar-section">
-        <label for="seed">Datasetcode (seed, optioneel)</label>
-        <input id="seed" type="number" min="1" placeholder="bijv. 123" />
-      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Scenario &amp; dataset</div>
+        <p class="sidebar-help">Kies een scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te openen.
+        </p>
+        <div class="sidebar-section">
+          <label for="scenario">Scenario</label>
+          <select id="scenario"></select>
+        </div>
+        <div class="sidebar-section">
+          <label for="n">Steekproefgrootte N (5-50)</label>
+          <input id="n" type="number" min="5" max="50" step="1" value="10" />
+        </div>
+        <div class="sidebar-section">
+          <label for="seed">Datasetcode (seed, optioneel)</label>
+          <input id="seed" type="number" min="1" placeholder="bijv. 123" />
+        </div>
 
-      <button id="btn-generate" class="btn-primary">&#9654; Genereer dataset</button>
-      <button id="btn-random" class="btn-secondary">&#8635; Willekeurig scenario</button>
+        <button id="btn-generate" class="btn-primary">&#9654; Genereer dataset</button>
+        <button id="btn-random" class="btn-secondary">&#8635; Willekeurig scenario</button>
+      </div>
 
       <div class="sidebar-divider"></div>
       <div class="sidebar-card">

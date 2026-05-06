@@ -411,7 +411,7 @@ function getFeedbackMsg(fieldKey, userVal, t) {
         const nj = t.nGroups[g];
         const grpSum = r4(t.grpMeans[g] * nj);
         if (Math.abs(v - t.grandMean) <= tol(t.grandMean))
-            return `<b>Waarom fout:</b> U vulde het grootgemiddelde (Y&#x0305;.. = ${t.grandMean.toFixed(4)}) in als groepsgemiddelde van '${g}'.<br><b>Oorzaak:</b> Het groepsgemiddelde gebruikt alleen de waarden bÃ­nnen groep '${g}', niet alle N = ${t.N} waarnemingen.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub>.`;
+            return `<b>Waarom fout:</b> U vulde het grootgemiddelde (Y&#x0305;.. = ${t.grandMean.toFixed(4)}) in als groepsgemiddelde van '${g}'.<br><b>Oorzaak:</b> Het groepsgemiddelde gebruikt alleen de waarden binnen groep '${g}', niet alle N = ${t.N} waarnemingen.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub>.`;
         if (Math.abs(v - t.MSW) <= tol(t.MSW))
             return `<b>Waarom fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in \u2014 dat is een gemiddeld kwadraat, geen rekenkundig gemiddelde.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub>.`;
         if (nj > 1 && Math.abs(v - grpSum) <= Math.max(0.5, tol(grpSum)))
@@ -425,7 +425,7 @@ function getFeedbackMsg(fieldKey, userVal, t) {
         if (Math.abs(v - t.SST) <= bigTol(t.SST))
             return `<b>Fout:</b> U vulde SST (${t.SST.toFixed(4)}) in bij SSW.<br><b>Oorzaak:</b> SST = SSW + SSB; SSW is alleen de binnengroepse variatie.<br><b>Correctie:</b> Haal SSB van SST af: SSW = SST \u2212 SSB = ${t.SST.toFixed(4)} \u2212 ${t.SSB.toFixed(4)}.`;
         if (Math.abs(v - t.MSW) <= bigTol(t.MSW))
-            return `<b>Fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in bij SSW.<br><b>Oorzaak:</b> MSW = SSW / df<sub>binnen</sub> \u2014 SSW is de som vÃ³Ã³r deling door df.<br><b>Correctie:</b> Vermenigvuldig MSW met df<sub>binnen</sub>: SSW = ${t.MSW.toFixed(4)} \u00d7 ${t.dfWithin}.`;
+            return `<b>Fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in bij SSW.<br><b>Oorzaak:</b> MSW = SSW / df<sub>binnen</sub> \u2014 SSW is de som vóór deling door df.<br><b>Correctie:</b> Vermenigvuldig MSW met df<sub>binnen</sub>: SSW = ${t.MSW.toFixed(4)} \u00d7 ${t.dfWithin}.`;
         return 'SSW onjuist. SSW = som van alle (Y\u2212Y&#x0305;<sub>j</sub>)\u00b2 uit de afwijkingtabel.';
     }
     if (fieldKey === 'ssb') {
@@ -434,7 +434,7 @@ function getFeedbackMsg(fieldKey, userVal, t) {
         if (Math.abs(v - t.SST) <= bigTol(t.SST))
             return `<b>Fout:</b> U vulde SST (${t.SST.toFixed(4)}) in bij SSB.<br><b>Oorzaak:</b> SSB is alleen de tussengroepse variatie, niet het totaal.<br><b>Correctie:</b> Haal SSW van SST af: SSB = SST \u2212 SSW = ${t.SST.toFixed(4)} \u2212 ${t.SSW.toFixed(4)}.`;
         if (Math.abs(v - t.MSB) <= bigTol(t.MSB))
-            return `<b>Fout:</b> U vulde MSB (${t.MSB.toFixed(4)}) in bij SSB.<br><b>Oorzaak:</b> MSB = SSB / df<sub>tussen</sub> \u2014 SSB is de som vÃ³Ã³r deling door df.<br><b>Correctie:</b> Vermenigvuldig MSB met df<sub>tussen</sub>: SSB = ${t.MSB.toFixed(4)} \u00d7 ${t.dfBetween}.`;
+            return `<b>Fout:</b> U vulde MSB (${t.MSB.toFixed(4)}) in bij SSB.<br><b>Oorzaak:</b> MSB = SSB / df<sub>tussen</sub> \u2014 SSB is de som vóór deling door df.<br><b>Correctie:</b> Vermenigvuldig MSB met df<sub>tussen</sub>: SSB = ${t.MSB.toFixed(4)} \u00d7 ${t.dfBetween}.`;
         return 'SSB onjuist. SSB = \u03a3 n<sub>j</sub>(Y&#x0305;<sub>j</sub>\u2212Y&#x0305;..)\u00b2 (tussengroepse variatie).';
     }
     if (fieldKey === 'sst') {

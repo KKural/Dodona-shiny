@@ -19,34 +19,49 @@
       <div class="sidebar-card">
         <div class="sidebar-card-title">Hoe deze webpagina werkt</div>
         <ul class="sidebar-howto-list">
-          <li>Oefen multiple regressie met interactieterm.</li>
-          <li>Gebruik 4 decimalen voor alle handmatige berekeningen.</li>
+          <li>Oefen <b>meervoudige regressie met interactieterm</b> met criminologiedatasets (gebruik <b>4
+              decimalen</b>).</li>
+          <li>Voltooi <b>7 delen</b> om handmatig een interactiemodel uit te voeren:
+            <ul>
+              <li><b>Deel I:</b> Dataset bekijken</li>
+              <li><b>Deel II:</b> Rekenkundige gemiddelden voor X1, X2 en Y</li>
+              <li><b>Deel III:</b> Gecentreerde predictors en interactieterm</li>
+              <li><b>Deel IV:</b> Regressiecoëfficiënten a, b1, b2 en b3</li>
+              <li><b>Deel V:</b> Voorspelde waarden Y&#770;</li>
+              <li><b>Deel VI:</b> R², Delta R² en vervreemdingscoëfficiënt</li>
+              <li><b>Deel VII:</b> Visualisaties &#128274;</li>
+            </ul>
+          </li>
           <li><b>Gecentreerde predictors:</b> X1c = X1 &minus; X&#773;<sub>1</sub> en X2c = X2 &minus;
-            X&#773;<sub>2</sub>. Centreren vermijdt multicollineariteit in het interactiemodel.</li>
-          <li><b>Interactieterm:</b> INT = X1c &times; X2c (product van de twee gecentreerde predictors).</li>
-          <li>Kolommen X1c, X2c en INT zijn read-only (grijs) &mdash; ze worden automatisch ingevuld op basis van jouw
-            gemiddelden.</li>
-          <li>Voltooi Stap 1 t/m 5 om de visualisaties te ontgrendelen.</li>
+            X&#773;<sub>2</sub>. De interactieterm is INT = X1c &times; X2c.</li>
+          <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij
+            fout. Read-only kolommen worden automatisch ingevuld.</li>
+          <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> automatisch.</li>
         </ul>
       </div>
 
       <div class="sidebar-divider"></div>
 
-      <div class="sidebar-section">
-        <label for="scenario">Scenario</label>
-        <select id="scenario"></select>
-      </div>
-      <div class="sidebar-section">
-        <label for="n">Steekproefgrootte N (5-40)</label>
-        <input id="n" type="number" min="5" max="40" step="1" value="10" />
-      </div>
-      <div class="sidebar-section">
-        <label for="seed">Datasetcode (seed, optioneel)</label>
-        <input id="seed" type="number" min="1" placeholder="bijv. 123" />
-      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Scenario &amp; dataset</div>
+        <p class="sidebar-help">Kies een scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te openen.
+        </p>
+        <div class="sidebar-section">
+          <label for="scenario">Scenario</label>
+          <select id="scenario"></select>
+        </div>
+        <div class="sidebar-section">
+          <label for="n">Steekproefgrootte N (5-40)</label>
+          <input id="n" type="number" min="5" max="40" step="1" value="10" />
+        </div>
+        <div class="sidebar-section">
+          <label for="seed">Datasetcode (seed, optioneel)</label>
+          <input id="seed" type="number" min="1" placeholder="bijv. 123" />
+        </div>
 
-      <button id="btn-generate" class="btn-primary">&#9654; Genereer dataset</button>
-      <button id="btn-random" class="btn-secondary">&#8635; Willekeurig scenario</button>
+        <button id="btn-generate" class="btn-primary">&#9654; Genereer dataset</button>
+        <button id="btn-random" class="btn-secondary">&#8635; Willekeurig scenario</button>
+      </div>
 
       <div class="sidebar-divider"></div>
       <div class="sidebar-card">
@@ -121,7 +136,7 @@
       </section>
 
       <section class="card" id="deel2">
-        <div class="card-header">Stap I &mdash; Gemiddelden</div>
+        <div class="card-header">Deel II &mdash; Stap I: Gemiddelden</div>
         <div class="card-body">
           <div class="grid three" id="step1-grid"></div>
           <div id="fb-deel2" class="section-summary"></div>
@@ -129,7 +144,7 @@
       </section>
 
       <section class="card" id="deel3">
-        <div class="card-header">Stap II &mdash; Totalen voor het interactiemodel</div>
+        <div class="card-header">Deel III &mdash; Stap II: Totalen voor het interactiemodel</div>
         <div class="card-body">
           <div class="grid two" id="step2-grid"></div>
           <div id="fb-deel3" class="section-summary"></div>
@@ -137,7 +152,7 @@
       </section>
 
       <section class="card" id="deel4">
-        <div class="card-header">Stap III &mdash; Coëfficiënten</div>
+        <div class="card-header">Deel IV &mdash; Stap III: Coëfficiënten</div>
         <div class="card-body">
           <div class="grid two" id="step3-grid"></div>
           <div id="fb-deel4" class="section-summary"></div>
@@ -145,7 +160,7 @@
       </section>
 
       <section class="card" id="deel5">
-        <div class="card-header">Stap IV &mdash; Voorspellingen</div>
+        <div class="card-header">Deel V &mdash; Stap IV: Voorspellingen</div>
         <div class="card-body">
           <p class="instruction">Gebruik de read-only kolommen X1c (X1 gecentreerd), X2c (X2 gecentreerd) en INT (X1c
             &times; X2c) om Y&#770; te berekenen.</p>
@@ -157,7 +172,7 @@
       </section>
 
       <section class="card" id="deel6">
-        <div class="card-header">Stap V &mdash; Model fit</div>
+        <div class="card-header">Deel VI &mdash; Stap V: Model fit</div>
         <div class="card-body">
           <div class="grid three" id="step5-grid"></div>
           <div id="fb-deel6" class="section-summary"></div>
@@ -169,7 +184,7 @@
       </section>
 
       <section class="card locked" id="viz-card">
-        <div class="card-header">Visualisaties</div>
+        <div class="card-header">Deel VII &mdash; Visualisaties &#128274;</div>
         <div class="card-body">
           <div class="chart-wrap"><canvas id="interaction-chart"></canvas></div>
           <div class="chart-wrap"><canvas id="calibration-chart"></canvas></div>

@@ -2011,7 +2011,7 @@ function printQuestionPaper() {
     </tbody>
   </table>
 
-  <h2>Opgave</h2>
+  <h2>Scenario en opdracht</h2>
   <div class="context">${context}</div>
   <p class="var-info">
     <strong>X1</strong> = ${x1name} (verklarende) &emsp;
