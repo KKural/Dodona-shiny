@@ -6,7 +6,7 @@ const SCENARIOS = [
   {
     id: 'delinquency_age',
     title: 'Delictpleging, slachtofferschap en leeftijd',
-    vignette: 'Onderzoek het verband tussen delicten gepleegd (X) en slachtofferschap (Y), gecontroleerd voor leeftijd (Z).',
+    vignette: 'In een slachtofferenqu\u00eate bij middelbare scholieren worden zelfgerapporteerde delicten en keren slachtofferschap gemeten. Leeftijd be\u00efnvloedt zowel de kans op betrokkenheid bij delicten als de kwetsbaarheid voor slachtofferschap. Onderzoeksvraag: is er een partieel verband tussen delictenGepleegd (X) en slachtofferschap (Y), nadat voor leeftijd (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'DelictenGepleegd', unit: 'aantal' }, y: { name: 'DelictenSlachtoffer', unit: 'aantal' }, z: { name: 'Leeftijd', unit: 'jaar' } },
     entity: 'Scholier',
     r_xy_target: 0.65, r_xz_target: 0.60, r_yz_target: 0.55,
@@ -15,7 +15,7 @@ const SCENARIOS = [
   {
     id: 'fitness_salary_service',
     title: 'Fysieke bekwaamheid, salaris en dienstjaren',
-    vignette: 'Onderzoek het verband tussen fysieke bekwaamheid (X) en salaris (Y), gecontroleerd voor dienstjaren (Z).',
+    vignette: 'Bij politieagenten worden fysieke bekwaamheidsscores vergeleken met hun salarisindex. Dienstjaren zijn een mogelijke confound: ervaren agenten hebben doorgaans een hoger salaris maar ook een lagere fysieke score. Onderzoeksvraag: is er een partieel verband tussen fysieke bekwaamheid (X) en salaris (Y), nadat voor dienstjaren (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'FysiekeBekwaamheid', unit: 'score' }, y: { name: 'Salaris', unit: 'index' }, z: { name: 'DienstJaren', unit: 'jaar' } },
     entity: 'Agent',
     r_xy_target: -0.44, r_xz_target: -0.68, r_yz_target: 0.82,
@@ -24,7 +24,7 @@ const SCENARIOS = [
   {
     id: 'disorder_fear_income',
     title: 'Wanorde, angst en inkomensniveau',
-    vignette: 'Onderzoek het verband tussen wanorde (X) en angst (Y), gecontroleerd voor inkomensniveau (Z).',
+    vignette: 'Buurten worden gemeten op wanordeindex en de gemiddelde angst voor criminaliteit bij bewoners. Rijkere buurten vertonen doorgaans minder wanorde \u00e9n minder angst, waardoor inkomensniveau een mogelijke confound vormt. Onderzoeksvraag: is er een partieel verband tussen wanorde (X) en angst (Y), nadat voor inkomensniveau (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'WanordeIndex', unit: '0-10' }, y: { name: 'AngstScore', unit: '0-100' }, z: { name: 'InkomenNiveau', unit: 'index' } },
     entity: 'Buurt',
     r_xy_target: 0.65, r_xz_target: -0.55, r_yz_target: -0.50,
@@ -33,7 +33,7 @@ const SCENARIOS = [
   {
     id: 'recidivism_support_age',
     title: 'Recidive, ondersteuning en leeftijd bij aanvang',
-    vignette: 'Onderzoek het verband tussen ondersteuningsuren (X) en recidiverisico (Y), gecontroleerd voor leeftijd bij aanvang (Z).',
+    vignette: 'Ex-gedetineerden nemen deel aan een re-integratieprogramma met variabele ondersteuningsintensiteit. Leeftijd bij aanvang be\u00efnvloedt zowel de toegewezen ondersteuning als de basisrisicoscore voor recidive. Onderzoeksvraag: is er een partieel verband tussen ondersteuningsuren (X) en recidiverisico (Y), nadat voor leeftijd bij aanvang (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'OndersteuningsUren', unit: 'per maand' }, y: { name: 'RecidiveRisico', unit: '0-100' }, z: { name: 'LeeftijdAanvang', unit: 'jaar' } },
     entity: 'Deelnemer',
     r_xy_target: -0.50, r_xz_target: 0.40, r_yz_target: -0.45,
@@ -42,7 +42,7 @@ const SCENARIOS = [
   {
     id: 'training_clicks_experience',
     title: 'Cybertraining, klikratio en werkervaring',
-    vignette: 'Onderzoek het verband tussen trainingsuren (X) en klikratio (Y), gecontroleerd voor werkervaring (Z).',
+    vignette: 'Medewerkers in een overheidsorganisatie volgen cyberveiligheidstraining en worden getest via gesimuleerde phishing. Werkervaring kan samenhangen met zowel meer gevolgde training als een lagere basisgevoeligheid voor phishing. Onderzoeksvraag: is er een partieel verband tussen trainingsuren (X) en klikratio (Y), nadat voor werkervaring (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'TrainingsUren', unit: 'uren' }, y: { name: 'Klikratio', unit: '%' }, z: { name: 'WerkErvaring', unit: 'jaren' } },
     entity: 'Medewerker',
     r_xy_target: -0.55, r_xz_target: 0.45, r_yz_target: -0.40,
@@ -51,7 +51,7 @@ const SCENARIOS = [
   {
     id: 'guardianship_victimization_density',
     title: 'Toezicht, slachtofferschap en bevolkingsdichtheid',
-    vignette: 'Onderzoek het verband tussen toezicht (X) en slachtofferschap (Y), gecontroleerd voor bevolkingsdichtheid (Z).',
+    vignette: 'Buurten worden beoordeeld op toezichtsniveau en het aantal slachtofferschapincidenten. Bevolkingsdichtheid vergroot opportuniteiten voor misdaad maar vergroot ook de aanwezigheid van potentieel toezicht. Onderzoeksvraag: is er een partieel verband tussen toezicht (X) en slachtofferschap (Y), nadat voor bevolkingsdichtheid (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'Toezicht', unit: '0-10' }, y: { name: 'Slachtofferschap', unit: 'aantal' }, z: { name: 'BevolkingsDichtheid', unit: 'per km2' } },
     entity: 'Buurt',
     r_xy_target: -0.45, r_xz_target: -0.35, r_yz_target: 0.50,
@@ -60,7 +60,7 @@ const SCENARIOS = [
   {
     id: 'impulsivity_aggression_parental',
     title: 'Impulsiviteit, agressie en ouderlijk toezicht',
-    vignette: 'Onderzoek het verband tussen impulsiviteit (X) en agressie-incidenten (Y), gecontroleerd voor ouderlijk toezicht (Z).',
+    vignette: 'Jongeren op school worden gescoord op impulsiviteit en het aantal agressie-incidenten per trimester. Ouderlijk toezicht be\u00efnvloedt zowel de impulsiviteitsregulatie als het probleemgedrag op school. Onderzoeksvraag: is er een partieel verband tussen impulsiviteit (X) en agressie-incidenten (Y), nadat voor ouderlijk toezicht (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'Impulsiviteit', unit: 'z-score' }, y: { name: 'AgressieIncidenten', unit: 'meldingen' }, z: { name: 'OuderlijkToezicht', unit: '0-10' } },
     entity: 'Student',
     r_xy_target: 0.55, r_xz_target: -0.50, r_yz_target: -0.45,
@@ -69,7 +69,7 @@ const SCENARIOS = [
   {
     id: 'police_trust_contact_ethnicity',
     title: 'Politiecontact, vertrouwen en minderheidspositie',
-    vignette: 'Onderzoek het verband tussen positief politiecontact (X) en vertrouwen in politie (Y), gecontroleerd voor minderheidspositie (Z).',
+    vignette: 'Respondenten worden bevraagd over positieve ervaringen met de politie en hun vertrouwen daarin. Minderheidspositie gaat doorgaans samen met minder positief contact \u00e9n lager vertrouwen in de politie. Onderzoeksvraag: is er een partieel verband tussen positief politiecontact (X) en vertrouwen in de politie (Y), nadat voor minderheidspositie (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
     vars: { x: { name: 'PositiefContact', unit: 'score' }, y: { name: 'VertrouwenInPolitie', unit: '1-7' }, z: { name: 'MinderheidsScore', unit: '0-1' } },
     entity: 'Respondent',
     r_xy_target: 0.60, r_xz_target: -0.40, r_yz_target: -0.35,
@@ -522,6 +522,9 @@ function renderDatasetTable() {
   tbl.className = 'dataset-table';
   tbl.innerHTML = '';
   const { x, y, z } = state.names;
+
+  const info = document.getElementById('dataset-info');
+  if (info) info.innerHTML = `<strong>N = ${state.rows.length}</strong> waarnemingen. X = <strong>${x}</strong> | Y = <strong>${y}</strong> | Z = <strong>${z}</strong>.`;
 
   const thead = document.createElement('thead');
   thead.innerHTML = `<tr><th>Eenheid</th><th>${x}</th><th>${y}</th><th>${z}</th></tr>`;

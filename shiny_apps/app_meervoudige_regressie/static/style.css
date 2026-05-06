@@ -275,6 +275,13 @@ body {
   color: var(--muted);
 }
 
+.dataset-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 6px 0;
+  text-align: center;
+}
+
 .grid {
   display: grid;
   gap: 10px;

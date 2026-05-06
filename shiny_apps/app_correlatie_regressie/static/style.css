@@ -406,6 +406,10 @@ body {
   margin: 0 0 4px 0;
 }
 
+#dataset-info {
+  text-align: center;
+}
+
 .scenario-task-note {
   margin-top: 10px;
   font-size: 13px;

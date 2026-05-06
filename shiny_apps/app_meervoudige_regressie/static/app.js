@@ -6,7 +6,7 @@ const SCENARIOS = [
   {
     id: 'crime_program',
     title: 'Implementatie criminaliteitspreventieprogramma',
-    vignette: 'Een stad heeft een preventieprogramma geimplementeerd in verschillende buurten. Onderzoek of een hogere blootstelling samenhangt met lagere inbraakcijfers (met controle voor een tweede voorspeller).',
+    vignette: 'Een stad heeft een criminaliteitspreventieprogramma uitgerold in tien vergelijkbare buurten. De blootstelling aan het programma en een tweede buurtkarakteristiek worden als onafhankelijke variabelen ingezet. De afhankelijke variabele is het inbraakcijfer per 1.000 inwoners. Onderzoeksvraag: welke combinatie van voorspellers verklaart inbraakcijfers het best? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'ProgrammaBlootstelling', unit: '%' }, y: { name: 'InbraakCijfer', unit: 'per 1.000' } },
     gen: { r_target: -0.45 },
     extras: ['PolitieZichtbaarheid', 'BuurtBijeenkomsten', 'HerhaaldSlachtofferschapPercentage', 'StraatVerlichting', 'BuurtPreventie'],
@@ -15,7 +15,7 @@ const SCENARIOS = [
   {
     id: 'hotspots_policing',
     title: 'Hot-spot politiestrategie',
-    vignette: 'Straten varieren in aantal voetpatrouille-uren op criminele hotspots. Beoordeel de relatie met het aantal meldingen aan de politie (met controle voor een tweede voorspeller).',
+    vignette: 'Een stedelijke politiezone concentreert voetpatrouilles op meldingenrijke locaties. Naast het aantal patrouille-uren wordt een tweede politiegerelateerde variabele als voorspeller meegenomen. De afhankelijke variabele is het aantal meldingen aan de politie per straat per week. Onderzoeksvraag: verklaren beide voorspellers samen significant de variantie in meldingen? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'VoetPatrouilleUren', unit: 'uren/week' }, y: { name: 'MeldingenAanPolitie', unit: 'per week' } },
     gen: { r_target: -0.25 },
     extras: ['GerichtePatrouilles', 'Arrestaties', 'Reactietijd', 'ProactieveControles', 'OpenbareOrdeMeldingen'],
@@ -24,7 +24,7 @@ const SCENARIOS = [
   {
     id: 'fear_disorder',
     title: 'Angst voor criminaliteit en buurtwanorde',
-    vignette: 'Ondervraagde bewoners beoordelen fysieke/sociale wanorde en angst voor criminaliteit (met controle voor een tweede voorspeller).',
+    vignette: 'Bewoners in een stedelijke gemeente worden bevraagd over omgevingswanorde en angst voor criminaliteit. Naast de wanordeindex wordt een tweede buurtkarakteristiek als voorspeller opgenomen. De afhankelijke variabele is de angstschaal (0\u2013100). Onderzoeksvraag: verklaren beide voorspellers samen significant de variantie in angstscores? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'WanordeIndex', unit: '0-10' }, y: { name: 'AngstScore', unit: '0-100' } },
     gen: { r_target: 0.55 },
     extras: ['OnbeschoftheidIncidenten', 'CollectieveEffectiviteit', 'StraatVerlichting', 'GraffitiMeldingen', 'ZwerfvuilKlachten'],
@@ -33,7 +33,7 @@ const SCENARIOS = [
   {
     id: 'police_public_relations',
     title: 'Politie-publiek relaties',
-    vignette: 'Percepties van procedurale rechtvaardigheid versus vertrouwen in politie per district (met controle voor een tweede voorspeller).',
+    vignette: 'Burgers beoordelen hun contacten met de politie op procedurele rechtvaardigheid en een tweede kwaliteitsindicator. De afhankelijke variabele is het vertrouwen in de politie (1\u20137). Onderzoeksvraag: verklaren beide aspecten van politiecontact samen significant het vertrouwen in de politie? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'ProcedureleRechtvaardigheid', unit: '1-7' }, y: { name: 'VertrouwenInPolitie', unit: '1-7' } },
     gen: { r_target: 0.70 },
     extras: ['Eerlijkheid', 'Respect', 'Inspraak', 'Tevredenheid', 'KlachtenPercentage'],
@@ -42,7 +42,7 @@ const SCENARIOS = [
   {
     id: 'guardianship_victimization',
     title: 'Toezicht en slachtofferschap',
-    vignette: 'Toezichtscores van huishoudens versus slachtofferschapincidenten (met controle voor een tweede voorspeller).',
+    vignette: 'De routineactiviteitentheorie stelt dat toezicht en andere kenmerken van de woonomgeving het slachtofferschapsrisico bepalen. Twee huishoudkenmerken worden als voorspellers opgenomen. De afhankelijke variabele is het aantal slachtofferschapincidenten per jaar. Onderzoeksvraag: verklaren beide voorspellers samen significant de variantie in slachtofferschap? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'Toezicht', unit: '0-10' }, y: { name: 'Slachtofferschap', unit: 'aantal' } },
     gen: { r_target: -0.40 },
     extras: ['SlotKwaliteit', 'BuitenVerlichting', 'AlarmBezit', 'RoutineActiviteiten', 'BekwaamToezicht'],
@@ -51,7 +51,7 @@ const SCENARIOS = [
   {
     id: 'biosocial',
     title: 'Biosociaal risico',
-    vignette: 'Impulsiviteit versus agressieve incidenten onder jongeren (met controle voor een tweede voorspeller).',
+    vignette: 'Jongeren worden gescoord op impulsiviteit en een tweede biosociale risicofactor. Het aantal schoolmeldingen van agressieve incidenten per trimester wordt als uitkomst geregistreerd. Onderzoeksvraag: verklaren beide risicofactoren samen significant de variantie in agressieve incidenten? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'Impulsiviteit', unit: 'z-score' }, y: { name: 'AgressieveIncidenten', unit: 'schoolmeldingen/trimester' } },
     gen: { r_target: 0.45 },
     extras: ['Zelfbeheersing', 'LeeftijdgenotenAfwijkendGedrag', 'DocentenOndersteuning', 'OuderlijkToezicht', 'SchoolBetrokkenheid'],
@@ -60,7 +60,7 @@ const SCENARIOS = [
   {
     id: 'reentry_recidivism',
     title: 'Re-integratiebegeleiding en recidiverisico',
-    vignette: 'Begeleiding na vrijlating (in uren per maand) versus een gevalideerde recidiverisicoscore (met controle voor een tweede voorspeller).',
+    vignette: 'Na vrijlating ontvangen deelnemers re-integratiebegeleiding van variabele intensiteit. Naast de ondersteuningsuren wordt een tweede indicator van de begeleidingskwaliteit als voorspeller opgenomen. Na zes maanden wordt een gevalideerde recidiverisicoscore (0\u2013100) afgenomen. Onderzoeksvraag: verklaren beide voorspellers samen significant het recidiverisico? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'OndersteuningsUren', unit: 'per maand' }, y: { name: 'RecidiveRisico', unit: '0-100' } },
     gen: { r_target: -0.35 },
     extras: ['HuisvestingsOndersteuning', 'WerkgelegenheidsWorkshops', 'IdentiteitsdocumentenHulp', 'DossierContacten', 'VerslavingsBegeleiding'],
@@ -69,7 +69,7 @@ const SCENARIOS = [
   {
     id: 'cyber_training',
     title: 'Cybercrime-bewustmakingstraining',
-    vignette: 'Phishing-trainingsuren versus gesimuleerde klikratio (met controle voor een tweede voorspeller).',
+    vignette: 'Een overheidsorganisatie evalueert het effect van cyberveiligheidstraining op phishinggevoeligheid. Naast het aantal trainingsuren wordt een tweede kenmerk van de cyberbeveiliging meegenomen als voorspeller. De afhankelijke variabele is het klikratio op nep-phishingmails (%). Onderzoeksvraag: verklaren beide voorspellers samen significant de variantie in klikratio? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'TrainingsUren', unit: 'uren' }, y: { name: 'Klikratio', unit: '%' } },
     gen: { r_target: -0.55 },
     extras: ['QuizScores', 'GesimuleerdeMeldingen', 'BewustzijnsIndex', 'MeldingsTijd', 'BeleidKennis'],
@@ -829,6 +829,9 @@ function renderDatasetTable() {
   tbl.className = 'dataset-table';
   tbl.innerHTML = '';
   const { x1, x2, y } = state.names;
+
+  const info = document.getElementById('dataset-info');
+  if (info) info.innerHTML = `<strong>N = ${state.rows.length}</strong> waarnemingen. x1 = <strong>${x1}</strong> | x2 = <strong>${x2}</strong> | Y = <strong>${y}</strong>.`;
 
   const thead = document.createElement('thead');
   thead.innerHTML = `<tr><th>Eenheid</th><th>${x1}</th><th>${x2}</th><th>${y}</th></tr>`;

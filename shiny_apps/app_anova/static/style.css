@@ -685,6 +685,10 @@ body {
     margin-top: 4px;
 }
 
+#dataset-info {
+    text-align: center;
+}
+
 .dataset-table th {
     background: #f1f5f9;
     font-weight: 600;

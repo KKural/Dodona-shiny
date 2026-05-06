@@ -6,7 +6,7 @@ const SCENARIOS = [
   {
     id: 'crime_program',
     title: 'Implementatie criminaliteitspreventieprogramma',
-    vignette: 'Een stad heeft een preventieprogramma geimplementeerd in verschillende buurten. Onderzoek of een hogere blootstelling samenhangt met lagere inbraakcijfers.',
+    vignette: 'Een stad heeft een criminaliteitspreventieprogramma uitgerold in tien vergelijkbare buurten. De mate van blootstelling aan het programma verschilt per buurt naargelang de intensiteit van de uitvoering. De afhankelijke variabele is het inbraakcijfer per 1.000 inwoners. Onderzoeksvraag: hangt een hogere programmaBlootstelling (X) significant samen met een lager inbraakcijfer (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'ProgrammaBlootstelling', unit: '%' }, y: { name: 'InbraakCijfer', unit: 'per 1.000' } },
     gen: { r_target: -0.45 },
     entity: 'Buurt'
@@ -14,7 +14,7 @@ const SCENARIOS = [
   {
     id: 'hotspots_policing',
     title: 'Hot-spot politiestrategie',
-    vignette: 'Straten varieren in aantal voetpatrouille-uren op criminele hotspots. Beoordeel de relatie met het aantal meldingen aan de politie.',
+    vignette: 'Een stedelijke politiezone concentreert voetpatrouilles op meldingenrijke locaties. Het aantal patrouille-uren per straat per week varieert naargelang prioriteit en beschikbare capaciteit. De afhankelijke variabele is het aantal meldingen aan de politie per straat per week. Onderzoeksvraag: gaat een hoger aantal voetPatrouilleUren (X) significant samen met minder politiemeldingen (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'VoetPatrouilleUren', unit: 'uren/week' }, y: { name: 'MeldingenAanPolitie', unit: 'per week' } },
     gen: { r_target: -0.25 },
     entity: 'Straat'
@@ -22,7 +22,7 @@ const SCENARIOS = [
   {
     id: 'fear_disorder',
     title: 'Angst voor criminaliteit en buurtwanorde',
-    vignette: 'Ondervraagde bewoners beoordelen fysieke/sociale wanorde en angst voor criminaliteit.',
+    vignette: 'Bewoners in een stedelijke gemeente worden bevraagd via een slachtofferenqu\u00eate. Hun buurten worden door getrainde observatoren gescoord op fysieke en sociale wanorde (graffiti, verval, overlast). De afhankelijke variabele is de angst voor criminaliteit gemeten op een gevalideerde schaal (0\u2013100). Onderzoeksvraag: gaat een hogere wanordeIndex (X) significant samen met meer angst voor criminaliteit (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'WanordeIndex', unit: '0-10' }, y: { name: 'AngstScore', unit: '0-100' } },
     gen: { r_target: 0.55 },
     entity: 'Buurt'
@@ -30,7 +30,7 @@ const SCENARIOS = [
   {
     id: 'police_public_relations',
     title: 'Politie-publiek relaties',
-    vignette: 'Percepties van procedurale rechtvaardigheid versus vertrouwen in politie per district.',
+    vignette: 'Burgers in diverse wijken worden bevraagd over hun meest recente contact met de politie. Procedurele rechtvaardigheid meet de mate waarin men zich eerlijk en respectvol behandeld voelde. De afhankelijke variabele is het vertrouwen in de politie op een schaal van 1 tot 7. Onderzoeksvraag: hangt een hogere perceptie van procedurele rechtvaardigheid (X) significant samen met meer vertrouwen in de politie (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'ProcedureleRechtvaardigheid', unit: '1-7' }, y: { name: 'VertrouwenInPolitie', unit: '1-7' } },
     gen: { r_target: 0.70 },
     entity: 'District'
@@ -38,7 +38,7 @@ const SCENARIOS = [
   {
     id: 'guardianship_victimization',
     title: 'Toezicht en slachtofferschap',
-    vignette: 'Toezichtscores van huishoudens versus slachtofferschapincidenten.',
+    vignette: 'De routineactiviteitentheorie stelt dat toezicht (\u2018guardianship\u2019) het risico op victimisatie remt. Huishoudens worden gescoord op een gecombineerde toezichtsindex (sociale controle, beveiliging, bezetting). De afhankelijke variabele is het aantal slachtofferschapincidenten in het voorbije jaar. Onderzoeksvraag: hangt een hogere toezichtsscore (X) significant samen met minder slachtofferschapincidenten (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'Toezicht', unit: '0-10' }, y: { name: 'Slachtofferschap', unit: 'aantal' } },
     gen: { r_target: -0.40 },
     entity: 'Huishouden'
@@ -46,7 +46,7 @@ const SCENARIOS = [
   {
     id: 'biosocial',
     title: 'Biosociaal risico',
-    vignette: 'Impulsiviteit versus agressieve incidenten onder jongeren.',
+    vignette: 'Op basis van een biosociale risicobeoordeling wordt bij jongeren een impulsiviteitsscore bepaald via een gevalideerd zelfinvulformulier (z-score). Het aantal schoolmeldingen van agressieve incidenten per trimester wordt geregistreerd door leerkrachten. Onderzoeksvraag: gaat een hogere impulsiviteitsscore (X) significant samen met meer agressieve incidenten (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'Impulsiviteit', unit: 'z-score' }, y: { name: 'AgressieveIncidenten', unit: 'schoolmeldingen/trimester' } },
     gen: { r_target: 0.45 },
     entity: 'Student'
@@ -54,7 +54,7 @@ const SCENARIOS = [
   {
     id: 'reentry_recidivism',
     title: 'Re-integratiebegeleiding en recidiverisico',
-    vignette: 'Begeleiding na vrijlating (in uren per maand) versus gevalideerde recidiverisicoscore.',
+    vignette: 'Na vrijlating nemen ex-gedetineerden deel aan een re-integratieprogramma met variabele intensiteit naargelang zorgbehoefte. Het aantal ondersteuningsuren per maand verschilt per deelnemer. Na zes maanden wordt een gevalideerde recidiverisicoscore (0\u2013100) afgenomen. Onderzoeksvraag: hangt meer begeleiding (X) significant samen met een lager recidiverisico (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'OndersteuningsUren', unit: 'per maand' }, y: { name: 'RecidiveRisico', unit: '0-100' } },
     gen: { r_target: -0.35 },
     entity: 'Deelnemer'
@@ -62,7 +62,7 @@ const SCENARIOS = [
   {
     id: 'cyber_training',
     title: 'Cybercrime-bewustmakingstraining',
-    vignette: 'Phishing-trainingsuren versus gesimuleerde klikratio.',
+    vignette: 'Een overheidsorganisatie voert een gesimuleerde phishing-campagne uit bij medewerkers. Het aantal gevolgde cyberveiligheidstrainingsuren verschilt per medewerker naargelang afdeling en planning. De afhankelijke variabele is het klikratio op nep-phishingmails (%). Onderzoeksvraag: gaat meer trainingstijd (X) significant samen met een lager klikratio (Y)? Toets de correlatie en schat de regressierechte (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'TrainingsUren', unit: 'uren' }, y: { name: 'Klikratio', unit: '%' } },
     gen: { r_target: -0.55 },
     entity: 'Medewerker'
