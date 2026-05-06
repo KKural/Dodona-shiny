@@ -97,6 +97,12 @@ textarea {
     background: #fff;
 }
 
+select {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .btn-row {
     display: grid;
     gap: 8px;

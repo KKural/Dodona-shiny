@@ -97,6 +97,12 @@ textarea {
     background: #fff;
 }
 
+select {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .btn-row {
     display: grid;
     gap: 8px;
@@ -285,7 +291,7 @@ table {
 th,
 td {
     border: 1px solid var(--line);
-    padding: 8px;
+    padding: 5px 8px;
     vertical-align: top;
 }
 
@@ -306,6 +312,13 @@ th {
 .data-table td {
     text-align: center;
     vertical-align: middle;
+    padding: 5px 10px;
+}
+
+.data-table th {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
 }
 
 .data-table tbody th,
@@ -315,6 +328,10 @@ th {
 
 .data-table td.num-cell {
     text-align: center;
+}
+
+.data-table tr:nth-child(even) td {
+    background: #f8fafd;
 }
 
 .compact-table {
@@ -353,7 +370,7 @@ th {
 }
 
 .answer-table input[type="text"] {
-    width: 130px;
+    width: 140px;
     text-align: center;
     font-size: 0.86rem;
 }

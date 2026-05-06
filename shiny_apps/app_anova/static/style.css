@@ -91,6 +91,9 @@ body {
     padding: 5px 8px;
     font-size: 13px;
     width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-section select:focus,

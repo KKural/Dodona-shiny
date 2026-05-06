@@ -150,6 +150,9 @@ body {
   background: #2c3e50;
   color: #e8f0f8;
   font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-section input:focus,
