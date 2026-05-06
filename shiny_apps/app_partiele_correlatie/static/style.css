@@ -17,8 +17,9 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Tahoma, sans-serif;
-  color: var(--ink);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  color: #222;
   background: var(--bg);
 }
 
@@ -512,10 +513,6 @@ td .pred-input {
 
 .hot-table-container {
   margin-top: 10px;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 100%;
-  overflow: auto;
 }
 
 #means-grid .handsontable td,
