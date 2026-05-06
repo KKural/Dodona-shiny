@@ -339,7 +339,7 @@ function getFeedbackMsg(fieldKey, userVal, t) {
         return `Groepsgemiddelde onjuist. Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub> (n<sub>${g}</sub> = ${nj}).`;
     }
 
-        if (fieldKey === 'ssw') {
+    if (fieldKey === 'ssw') {
         if (Math.abs(v - t.SSB) <= bigTol(t.SSB))
             return `<b>Verwisseld:</b> U vulde SSB (${t.SSB.toFixed(4)}) in bij SSW \u2014 deze zijn verwisseld.<br><b>Oorzaak:</b> SSW = <em>binnengroepse</em> variatie \u03a3(Y\u2212Y&#x0305;<sub>j</sub>)\u00b2; SSB = <em>tussengroepse</em> variatie.<br><b>Correctie:</b> Gebruik de juiste kolomsom uit de afwijkingtabel.`;
         if (Math.abs(v - t.SST) <= bigTol(t.SST))
@@ -1344,7 +1344,7 @@ function doGenerate() {
         if (titleEl) titleEl.textContent = sc.title;
         scenarioTextEl.textContent = sc.vignette;
         const metaEl = document.getElementById('scenario-meta');
-        if (metaEl) metaEl.innerHTML = `<strong>Y:</strong> ${humanizeLabel(sc.yName)} (${sc.yUnit}) &nbsp;|&nbsp; <strong>Groepen:</strong> ${groupsStr}`;
+        if (metaEl) metaEl.innerHTML = '';
     }
 
     // update seed display

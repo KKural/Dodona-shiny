@@ -394,7 +394,7 @@ function setScenarioText(sc, names) {
   const textEl = document.getElementById('scenario-text');
   if (textEl) textEl.textContent = sc.vignette;
   const metaEl = document.getElementById('scenario-meta');
-  if (metaEl) metaEl.innerHTML = `x1 = <b>${names.x1}</b> | x2 = <b>${names.x2}</b> | Y = <b>${names.y}</b>`;
+  if (metaEl) metaEl.innerHTML = '';
   const infoEl = document.getElementById('dataset-info');
   if (infoEl) infoEl.textContent = `Dataset: N\u00a0=\u00a0${state.rows.length} | Datasetcode: ${document.getElementById('seed').value}`;
 }

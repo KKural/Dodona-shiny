@@ -411,7 +411,7 @@ function setScenarioText(sc) {
   const el = document.getElementById('scenario-text');
   el.textContent = sc.vignette;
   const metaEl = document.getElementById('scenario-meta');
-  if (metaEl) metaEl.innerHTML = `x1 = <b>${sc.vars.x1}</b> | x2 = <b>${sc.vars.x2}</b> | Y = <b>${sc.vars.y}</b>`;
+  if (metaEl) metaEl.innerHTML = '';
 }
 
 function renderDatasetTable() {

@@ -519,7 +519,7 @@ function setScenarioText(sc, names) {
   const el = document.getElementById('scenario-text');
   if (el) el.textContent = sc.vignette;
   const metaEl = document.getElementById('scenario-meta');
-  if (metaEl) metaEl.innerHTML = `X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
+  if (metaEl) metaEl.innerHTML = '';
 }
 
 function renderDatasetTable() {

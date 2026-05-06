@@ -769,11 +769,7 @@ function setScenarioText(sc, names) {
 
   if (title) title.textContent = sc.title;
   if (text) text.textContent = sc.vignette;
-  if (meta) {
-    const xUnit = sc.vars?.x?.unit ? ` (${sc.vars.x.unit})` : '';
-    const yUnit = sc.vars?.y?.unit ? ` (${sc.vars.y.unit})` : '';
-    meta.innerHTML = `X = <b>${names.x}</b>${xUnit} | Y = <b>${names.y}</b>${yUnit}`;
-  }
+  if (meta) meta.innerHTML = '';
 }
 
 function renderDatasetTable() {
@@ -784,7 +780,7 @@ function renderDatasetTable() {
 
   const { x, y } = state.names;
   if (info) {
-    info.innerHTML = `<strong>N = ${state.rows.length}</strong> waarnemingen. X = <strong>${x}</strong>; Y = <strong>${y}</strong>.`;
+    info.innerHTML = `<strong>N = ${state.rows.length}</strong> waarnemingen.`;
   }
 
   const thead = document.createElement('thead');
