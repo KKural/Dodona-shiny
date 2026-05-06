@@ -439,7 +439,7 @@ function updateSectionSummary(divId, correct, total, labelOk, labelPartial) {
     el.innerHTML = `? ${labelOk} (${correct}/${total})`;
     el.className = 'section-summary ok';
   } else {
-    el.innerHTML = `${correct}/${total} correct — ${labelPartial}`;
+    el.innerHTML = `${correct}/${total} correct ï¿½ ${labelPartial}`;
     el.className = 'section-summary partial';
   }
 }
@@ -453,7 +453,7 @@ function renderFeedbackPanel(panelId, fieldMap) {
   if (!items.length) { panel.innerHTML = ''; panel.className = 'feedback-panel'; return; }
   let html = '<div class="feedback-panel-title">Aanwijzingen:</div>';
   items.forEach(item => {
-    html += `<div class="feedback-detail-item"><span class="feedback-detail-label">${item.label}</span> — ${item.html}</div>`;
+    html += `<div class="feedback-detail-item"><span class="feedback-detail-label">${item.label}</span> ï¿½ ${item.html}</div>`;
   });
   panel.innerHTML = html;
   panel.className = 'feedback-panel visible';
@@ -834,21 +834,21 @@ function clearStatuses() {
 const FIELD_HINTS = {
   mean_X: 'gem(X) = SX / n',
   mean_Y: 'gem(Y) = SY / n',
-  tot_X1_2: 'Variatie = S(Xi - X¯)²',
-  tot_Y2: 'Variatie = S(Yi - Y¯)²',
-  var_X: 's²(X) = Variatie(X) / (n-1)',
+  tot_X1_2: 'Variatie = S(Xi - Xï¿½)ï¿½',
+  tot_Y2: 'Variatie = S(Yi - Yï¿½)ï¿½',
+  var_X: 'sï¿½(X) = Variatie(X) / (n-1)',
   sd_X: 's(X) = vVar(X)',
-  var_Y: 's²(Y) = Variatie(Y) / (n-1)',
+  var_Y: 'sï¿½(Y) = Variatie(Y) / (n-1)',
   sd_Y: 's(Y) = vVar(Y)',
-  cross_product_sum: 'KPS = S(Xi-X¯)(Yi-Y¯)',
+  cross_product_sum: 'KPS = S(Xi-Xï¿½)(Yi-Yï¿½)',
   covariance: 'Cov = KPS / (n-1)',
-  sd_product: 's(X) × s(Y)',
-  correlation: 'r = Cov(X,Y) / (s(X)·s(Y))',
+  sd_product: 's(X) ï¿½ s(Y)',
+  correlation: 'r = Cov(X,Y) / (s(X)ï¿½s(Y))',
   slope: 'b = Cov(X,Y) / Var(X)',
-  intercept: 'a = Y¯ - b·X¯',
-  r_squared: 'R² = r²',
-  alienation: 'Vervreemding = 1 - R²',
-  f_stat: 'F = (R²/k) / ((1-R²)/(n-k-1))',
+  intercept: 'a = Yï¿½ - bï¿½Xï¿½',
+  r_squared: 'Rï¿½ = rï¿½',
+  alienation: 'Vervreemding = 1 - Rï¿½',
+  f_stat: 'F = (Rï¿½/k) / ((1-Rï¿½)/(n-k-1))',
   model_p_value: 'p = P(F = f-waarde)',
 };
 
@@ -1063,7 +1063,7 @@ function evaluateAll() {
     });
     state.hotRegCellClasses = newRegCls;
     if (state.hotReg) state.hotReg.render();
-    updateSectionSummary('feedback-deel5', d5c, regFields.length, 'Regressiecoëfficiënten correct', 'controleer helling en intercept');
+    updateSectionSummary('feedback-deel5', d5c, regFields.length, 'Regressiecoï¿½fficiï¿½nten correct', 'controleer helling en intercept');
     renderFeedbackPanel('feedback-detail-deel5', Object.fromEntries(regFields.map(f => [f.label, f.id])));
 
     // Deel VI: Predictions
@@ -1140,37 +1140,56 @@ function applyModeUI() {
   if (howtoList) {
     howtoList.innerHTML = corrMode
       ? `
-      <li>Oefen correlatieanalyse met criminologische datasets.</li>
-      <li>Bestudeer de dataset. Vul daarna de berekeningstabellen in: gemiddelden, afwijkingen, kwadraten, kruisproducten en sommen.</li>
-      <li>Bereken daarna varianties, standaardafwijkingen, covariantie en Pearson r.</li>
-      <li>Gebruik 4 decimalen. Wanneer alle stappen kloppen, verschijnt de visualisatie.</li>
+      <li>Oefen <b>correlatieanalyse</b> met criminologiedatasets (gebruik <b>4 decimalen</b>).</li>
+      <li>Voltooi <b>4 delen</b> om handmatig Pearson r te berekenen:
+        <ul>
+          <li><b>Deel I:</b> Dataset bekijken</li>
+          <li><b>Deel II:</b> Rekenkundige gemiddelden (X&#772; en Y&#772;)</li>
+          <li><b>Deel III:</b> Afwijkingen, kwadraten en kruisproducten</li>
+          <li><b>Deel IV:</b> Variantie, SD, covariantie en correlatie r</li>
+        </ul>
+      </li>
+      <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij fout.</li>
+      <li>Wanneer alles correct is, verschijnt de <b>visualisatie</b> automatisch.</li>
       `
       : `
-      <li>Oefen bivariate regressieanalyse met criminologische datasets.</li>
-      <li>Bestudeer de dataset. Vul daarna de berekeningstabellen in: gemiddelden, afwijkingen, kwadraten, kruisproducten en sommen.</li>
-      <li>Bereken daarna r, b, a, voorspellingen, R2, F en model p-waarde.</li>
-      <li>Gebruik 4 decimalen. Visualisaties verschijnen pas wanneer alle verplichte stappen correct zijn.</li>
+      <li>Oefen <b>bivariate regressie</b> met criminologiedatasets (gebruik <b>4 decimalen</b>).</li>
+      <li>Voltooi <b>8 delen</b> om handmatig correlatie- en regressieanalyse uit te voeren:
+        <ul>
+          <li><b>Deel I:</b> Dataset bekijken</li>
+          <li><b>Deel II:</b> Rekenkundige gemiddelden (X&#772; en Y&#772;)</li>
+          <li><b>Deel III:</b> Afwijkingen, kwadraten en kruisproducten</li>
+          <li><b>Deel IV:</b> Variantie, SD, covariantie en correlatie r</li>
+          <li><b>Deel V&ndash;VI:</b> Helling b en intercept a</li>
+          <li><b>Deel VII:</b> Voorspelde waarden Y&#770;</li>
+          <li><b>Deel VIII:</b> R&#178;, vervreemding, F en model p</li>
+        </ul>
+      </li>
+      <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij fout.</li>
+      <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> automatisch.</li>
       `;
   }
 
   if (stepsList) {
     stepsList.innerHTML = corrMode
       ? `
-      <li>Deel II: Stap 1 (rekenkundige gemiddelden).</li>
-      <li>Deel III: Stappen 2-4 (afwijkingen en sommen).</li>
-      <li>Deel IV: Stappen 5-9 (varianties, SD, covariantie en r).</li>
+      <li>Bereken X&#772; en Y&#772; (Deel II).</li>
+      <li>Bereken (x&minus;x&#772;), (y&minus;y&#772;), kwadraten en kruisproducten per rij (Deel III).</li>
+      <li>Bereken Var, SD, Cov(X,Y) en r (Deel IV).</li>
       `
       : `
-      <li>Deel II: Stap 1 (rekenkundige gemiddelden).</li>
-      <li>Deel III: Stappen 2-4 (afwijkingen en sommen).</li>
-      <li>Deel IV: Stappen 5-9 (varianties, SD, covariantie en r).</li>
-      <li>Deel VI-VIII: Stappen 10-17 (b, a, voorspellingen en model fit).</li>
+      <li>Bereken X&#772; en Y&#772; (Deel II).</li>
+      <li>Bereken (x&minus;x&#772;), (y&minus;y&#772;), kwadraten en kruisproducten per rij (Deel III).</li>
+      <li>Bereken Var, SD, Cov(X,Y) en r (Deel IV).</li>
+      <li>Bereken helling b en intercept a (Deel V&ndash;VI).</li>
+      <li>Bereken voorspellingen Y&#770; = a + b&#183;X (Deel VII).</li>
+      <li>Bereken R&#178;, vervreemding, F en model p (Deel VIII).</li>
       `;
   }
 
   if (nav4) nav4.textContent = 'IV. Stappen 5-9';
   if (hdr4) hdr4.textContent = 'Deel IV - Stappen 5-9: Covariatie en Voorbereiding';
-  if (hdr5) hdr5.textContent = 'Deel VI - Stappen 10-12: Correlatie en Regressiecoëfficiënten';
+  if (hdr5) hdr5.textContent = 'Deel VI - Stappen 10-12: Correlatie en Regressiecoï¿½fficiï¿½nten';
   if (hdr6) hdr6.textContent = 'Deel VII - Stap 13: Voorspellingen Yhat';
   if (hdr7) hdr7.textContent = 'Deel VIII - Stappen 14-17: Model Fit en F-toets';
 

@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="nl">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,6 +10,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.js"></script>
 </head>
+
 <body>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
@@ -19,15 +21,28 @@
       <div class="sidebar-card">
         <div class="sidebar-card-title">Hoe deze webpagina werkt</div>
         <ul class="sidebar-howto-list" id="howto-list">
-          <li>Oefen bivariate correlatie- en regressieberekeningen met criminologiedatasets.</li>
-          <li>Bestudeer eerst de dataset. Vul daarna stap voor stap de berekeningstabellen in.</li>
-          <li>Gebruik 4 decimalen. Visualisaties verschijnen pas wanneer alle verplichte stappen correct zijn.</li>
+          <li>Oefen <b>bivariate regressie</b> met criminologiedatasets (gebruik <b>4 decimalen</b>).</li>
+          <li>Voltooi <b>8 delen</b> om handmatig correlatie- en regressieanalyse uit te voeren:
+            <ul>
+              <li><b>Deel I:</b> Dataset bekijken</li>
+              <li><b>Deel II:</b> Rekenkundige gemiddelden (X&#772; en Y&#772;)</li>
+              <li><b>Deel III:</b> Afwijkingen, kwadraten en kruisproducten</li>
+              <li><b>Deel IV:</b> Variantie, SD, covariantie en correlatie r</li>
+              <li><b>Deel V&ndash;VI:</b> Helling b en intercept a</li>
+              <li><b>Deel VII:</b> Voorspelde waarden Y&#770;</li>
+              <li><b>Deel VIII:</b> R&#178;, vervreemding, F en model p</li>
+            </ul>
+          </li>
+          <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij
+            fout.</li>
+          <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> automatisch.</li>
         </ul>
       </div>
 
       <div class="sidebar-card">
         <div class="sidebar-card-title">Scenario &amp; dataset</div>
-        <p class="sidebar-help">Kies een analysetype en scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te openen.</p>
+        <p class="sidebar-help">Kies een analysetype en scenario, of gebruik een datasetcode om dezelfde oefening
+          opnieuw te openen.</p>
         <div class="sidebar-section">
           <label for="mode">Analysetype</label>
           <select id="mode">
@@ -56,17 +71,21 @@
       <div class="sidebar-card">
         <div class="sidebar-card-title">Stappen</div>
         <ol class="sidebar-steps-list" id="steps-list">
-          <li>Gemiddelden en afwijkingen van X en Y.</li>
-          <li>Variantie, SD, covariantie en correlatie.</li>
-          <li>Helling b en intercept a.</li>
-          <li>Voorspellingen, R2, F en model p.</li>
+          <li>Bereken X&#772; en Y&#772; (Deel II).</li>
+          <li>Bereken (x&minus;x&#772;), (y&minus;y&#772;), kwadraten en kruisproducten per rij (Deel III).</li>
+          <li>Bereken Var, SD, Cov(X,Y) en r (Deel IV).</li>
+          <li>Bereken helling b en intercept a (Deel V&ndash;VI).</li>
+          <li>Bereken voorspellingen Y&#770; = a + b&#183;X (Deel VII).</li>
+          <li>Bereken R&#178;, vervreemding, F en model p (Deel VIII).</li>
         </ol>
       </div>
 
       <div class="sidebar-divider"></div>
       <div class="progress-block" id="progress-block">
         <div class="progress-label">Voortgang</div>
-        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
         <div class="progress-text" id="progress-text">0 / 0 correct</div>
       </div>
 
@@ -102,7 +121,11 @@
 
       <section class="card" id="deel1">
         <div class="card-header">Deel I - Dataset</div>
-        <div class="card-body"><div class="table-wrap"><table id="dataset-table"></table></div></div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table id="dataset-table"></table>
+          </div>
+        </div>
       </section>
 
       <section class="card" id="deel-taak">
@@ -124,7 +147,8 @@
       <section class="card" id="deel3">
         <div class="card-header">Deel III - Stappen 2-4: Afwijkingen en Sommen</div>
         <div class="card-body">
-          <p class="instruction">Bereken per rij de afwijkingen, kwadraten en kruisproducten. De onderste rij bevat de kolomsommen.</p>
+          <p class="instruction">Bereken per rij de afwijkingen, kwadraten en kruisproducten. De onderste rij bevat de
+            kolomsommen.</p>
           <div id="hot-dev-container" class="hot-table-container"></div>
           <div class="section-summary" id="feedback-deel3"></div>
           <div class="feedback-panel" id="feedback-detail-deel3"></div>
@@ -185,4 +209,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>

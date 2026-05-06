@@ -718,3 +718,5 @@ td.hot-sum-value-cell {
 .feedback-detail-label {
   font-weight: 600;
 }
+.text-ok { color: #16a34a; font-weight: 600; }
+.text-err { color: #dc2626; font-weight: 600; }

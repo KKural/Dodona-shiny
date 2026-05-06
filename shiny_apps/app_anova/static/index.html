@@ -44,20 +44,25 @@
 
             <div class="sidebar-divider"></div>
 
-            <div class="sidebar-section">
-                <label for="sel-scenario">Scenario</label>
-                <select id="sel-scenario"></select>
+            <div class="sidebar-card">
+                <div class="sidebar-card-title">Scenario &amp; dataset</div>
+                <p class="sidebar-help">Kies een scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te
+                    openen.</p>
+                <div class="sidebar-section">
+                    <label for="sel-scenario">Scenario</label>
+                    <select id="sel-scenario"></select>
+                </div>
+                <div class="sidebar-section">
+                    <label for="inp-n">n per groep</label>
+                    <input type="number" id="inp-n" value="8" min="3" max="16" />
+                </div>
+                <div class="sidebar-section">
+                    <label for="inp-seed">Datasetcode (seed)</label>
+                    <input type="number" id="inp-seed" value="42" min="1" />
+                </div>
+                <button class="btn-primary" id="btn-generate">Genereer dataset</button>
+                <button class="btn-secondary" id="btn-random">&#8635; Willekeurig scenario</button>
             </div>
-            <div class="sidebar-section">
-                <label for="inp-n">n per groep</label>
-                <input type="number" id="inp-n" value="8" min="3" max="16" />
-            </div>
-            <div class="sidebar-section">
-                <label for="inp-seed">Seed</label>
-                <input type="number" id="inp-seed" value="42" min="1" />
-            </div>
-            <button class="btn-primary" id="btn-generate">Genereer dataset</button>
-            <button class="btn-secondary" id="btn-random">&#8635; Willekeurig scenario</button>
 
             <div class="sidebar-divider"></div>
 
@@ -90,6 +95,7 @@
             <div class="sidebar-divider"></div>
             <div class="section-nav" id="section-nav">
                 <div class="nav-item active" data-target="deel1">I. Dataset</div>
+                <div class="nav-item" data-target="deel-taak">Taak &amp; vignette</div>
                 <div class="nav-item" data-target="deel2">II. Gemiddelden</div>
                 <div class="nav-item" data-target="deel3">III. Afwijkingtabel</div>
                 <div class="nav-item" data-target="deel4">IV. SS-waarden</div>
@@ -125,6 +131,22 @@
                         <span id="seed-used">&ndash;</span>
                     </p>
                     <div id="dataset-table-wrap"></div>
+                </div>
+            </section>
+
+            <!-- Taak & Vignette -->
+            <section class="card" id="deel-taak">
+                <div class="card-header">Taak &amp; vignette</div>
+                <div class="card-body">
+                    <p class="muted" id="scenario-placeholder">Genereer een dataset om de taakomschrijving te zien.</p>
+                    <div class="vignette-card hidden" id="scenario-detail-box">
+                        <strong id="scenario-title"></strong>
+                        <p id="scenario-text" style="margin:6px 0 0 0;"></p>
+                        <p id="scenario-meta" class="scenario-meta"></p>
+                    </div>
+                    <p class="scenario-task-note"><strong>Opdracht:</strong> Voltooi Deel II t/m V stap voor stap.
+                        Wanneer alle antwoorden correct zijn, verschijnen de visualisaties en BI-intervallen automatisch
+                        in Deel VI&ndash;VII.</p>
                 </div>
             </section>
 

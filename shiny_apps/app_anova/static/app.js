@@ -11,15 +11,15 @@ const SCENARIOS = [
     {
         id: 'crime_program',
         title: 'Criminaliteitspreventieprogramma (3 niveaus)',
-        vignette: 'Een stad test drie interventieniveaus in buurten: geen programma, basispreventie en intensief programma. Onderzoek of het interventieniveau samenhangt met het inbraakcijfer.',
+        vignette: 'Een stad wil weten of haar criminaliteitspreventiebeleid effectief is. Twaalf vergelijkbare buurten worden willekeurig toegewezen aan drie interventieniveaus: (1) geen programma (controlegroep), (2) basispreventie (informatiepanelen en buurtwerk) of (3) intensief programma (dagelijkse surveillance en gerichte coaching). De afhankelijke variabele is het inbraakcijfer per 1.000 inwoners. Onderzoeksvraag: verschilt het gemiddeld inbraakcijfer significant tussen de drie groepen? Toets via eenweg-ANOVA (α = 0,05).',
         groups: ['GeenProgramma', 'BasisProgramma', 'IntensiefProgramma'],
         yName: 'InbraakCijfer', yUnit: 'per 1.000', entity: 'Buurt',
         means: [28, 22, 16], sdWithin: 5, subtleScale: 0.25
     },
     {
         id: 'hotspots_policing',
-        title: 'PolitiestrategieÃ«n & meldingen (3 typen)',
-        vignette: 'Drie typen politiestrategie worden vergeleken in stedelijke straten: standaard patrouille, hot-spot aanpak, en gemeenschapsgerichte strategie. Uitkomst: meldingen aan de politie per week.',
+        title: 'Politiestrategie\u00EBn & meldingen (3 typen)',
+        vignette: 'Een politiezone test drie strategie\u00EBn in vergelijkbare stedelijke straten. Standaard patrouille verloopt op vaste tijdstippen; de hot-spot aanpak concentreert politie op meldingenrijke locaties; de gemeenschapsgerichte strategie zet in op dialoog en wijkteams. De afhankelijke variabele is het aantal meldingen aan de politie per straat per week. Onderzoeksvraag: zijn er significante gemiddelde verschillen in meldingsfrequentie naargelang de gekozen politiestrategie?',
         groups: ['StandaardPatrouille', 'HotSpotAanpak', 'GemeenschapsStrategie'],
         yName: 'MeldingenAanPolitie', yUnit: 'per week', entity: 'Straat',
         means: [65, 48, 38], sdWithin: 10, subtleScale: 0.25
@@ -27,7 +27,7 @@ const SCENARIOS = [
     {
         id: 'fear_disorder',
         title: 'Wijkniveau & angst voor criminaliteit',
-        vignette: 'Bewoners van drie typen wijken (lage, gemiddelde en hoge wanorde) worden vergeleken op angstscores. Uitkomst: angstschaal (0\u2013100).',
+        vignette: 'Bewoners in een stedelijke gemeente worden bevraagd via een slachtofferenqu\u00EAte. Hun wijken zijn op basis van observatiedata ingedeeld in drie categorie\u00EBn van fysieke en sociale wanorde: laag, gemiddeld en hoog. De afhankelijke variabele is de angstschaal (0\u20130100). Onderzoeksvraag: verschilt de gemiddelde angst voor criminaliteit significant naargelang het wanordeniveau van de wijk?',
         groups: ['LaagWanorde', 'GemiddeldWanorde', 'HoogWanorde'],
         yName: 'AngstScore', yUnit: '0\u2013100', entity: 'Bewoner',
         means: [38, 55, 70], sdWithin: 10, subtleScale: 0.25
@@ -35,7 +35,7 @@ const SCENARIOS = [
     {
         id: 'police_trust',
         title: 'Politieaanpak & vertrouwen (3 condities)',
-        vignette: 'Drie politiecondities worden vergeleken op vertrouwen van burgers: geen interventie, standaard contact, en procedurale rechtvaardigheidsaanpak. Uitkomst: vertrouwensscore (1\u20137).',
+        vignette: 'In een gerandomiseerde studie worden drie politiecondities vergeleken op burgervertrouwen. Geen interventie vormt de controlegroep; standaard contact volgt een basisprotocol; de procedurele rechtvaardigheidsaanpak legt de nadruk op respectvolle communicatie en transparante besluitvorming. De afhankelijke variabele is de vertrouwensscore van burgers (1\u20137). Onderzoeksvraag: heeft de politieaanpak een significant effect op het gemiddeld vertrouwen van burgers?',
         groups: ['GeenInterventie', 'StandaardContact', 'ProcedureleAanpak'],
         yName: 'VertrouwenInPolitie', yUnit: '1\u20137', entity: 'District',
         means: [3.5, 4.5, 5.5], sdWithin: 0.8, subtleScale: 0.25
@@ -43,7 +43,7 @@ const SCENARIOS = [
     {
         id: 'guardianship',
         title: 'Toezichtsniveaus & slachtofferschap',
-        vignette: 'Drie niveaus van buurttoezicht worden vergeleken op slachtofferschapincidenten: laag, gemiddeld en hoog toezicht. Uitkomst: aantal slachtofferschapincidenten.',
+        vignette: 'De routineactiviteitentheorie stelt dat toezicht (\u2018guardianship\u2019) criminaliteit remt. Drie wijken met respectievelijk laag, gemiddeld en hoog toezicht (gemeten via aanwezige burgers, bewakingscamera\u2019s en buurtpreventie-activiteiten) worden vergeleken op het jaarlijkse aantal slachtofferschapincidenten per huishouden. Onderzoeksvraag: leidt een hoger toezichtsniveau tot significant minder slachtofferschap?',
         groups: ['LaagToezicht', 'GemiddeldToezicht', 'HoogToezicht'],
         yName: 'Slachtofferschap', yUnit: 'aantal', entity: 'Huishouden',
         means: [8, 5, 3], sdWithin: 2, subtleScale: 0.25
@@ -51,7 +51,7 @@ const SCENARIOS = [
     {
         id: 'biosocial',
         title: 'Risicogroepen & agressieve incidenten',
-        vignette: 'Drie risicogroepen onder jongeren (laag, gemiddeld en hoog risico) worden vergeleken op agressieve incidenten op school. Uitkomst: schoolmeldingen per trimester.',
+        vignette: 'Op basis van een gecombineerde biosociale risicoscore (famili\u00E4re en biologische risicofactoren) worden leerlingen ingedeeld in drie risicogroepen: laag, gemiddeld en hoog. De afhankelijke variabele is het aantal schoolmeldingen van agressieve incidenten per trimester. Onderzoeksvraag: verschilt het gemiddeld aantal agressieve incidenten significant tussen de drie risicogroepen?',
         groups: ['LaagRisico', 'GemiddeldRisico', 'HoogRisico'],
         yName: 'AgressieveIncidenten', yUnit: 'schoolmeldingen/trimester', entity: 'Student',
         means: [2, 5, 9], sdWithin: 2, subtleScale: 0.20
@@ -59,7 +59,7 @@ const SCENARIOS = [
     {
         id: 'reentry_recidivism',
         title: 'Re-integratieniveaus & recidiverisico',
-        vignette: 'Drie typen begeleiding worden vergeleken op recidiverisico na vrijlating: minimaal, standaard en intensief. Uitkomst: recidiverisicoScore (0\u2013100).',
+        vignette: 'Na vrijlating ontvangen gedetineerden willekeurig minimale, standaard of intensieve nazorgbegeleiding. Na zes maanden wordt een gevalideerde recidiverisicoscore (0\u2013100) afgenomen. Onderzoeksvraag: is er een significant verschil in het gemiddeld recidiverisico naargelang de intensiteit van de begeleiding bij re-integratie?',
         groups: ['MinimaleBegeleiding', 'StandaardBegeleiding', 'IntensieveBegeleiding'],
         yName: 'RecidiveRisico', yUnit: '0\u2013100', entity: 'Deelnemer',
         means: [62, 48, 35], sdWithin: 10, subtleScale: 0.25
@@ -67,39 +67,39 @@ const SCENARIOS = [
     {
         id: 'cyber_training',
         title: 'Cybertrainingsniveaus & klikratio',
-        vignette: 'Drie trainingsintensiteiten worden vergeleken op het klikratio bij gesimuleerde phishingaanvallen: geen training, basistraining en intensieve training. Uitkomst: klikratio (%).',
+        vignette: 'Een overheidsorganisatie voert een gesimuleerde phishing-campagne uit bij medewerkers die willekeurig zijn ingedeeld in drie groepen: geen training (controle), basistraining (\u00E9\u00E9n uur) of intensieve training (dagworkshop). De afhankelijke variabele is het klikratio op de nep-phishingmails (%). Onderzoeksvraag: verschilt het gemiddeld klikratio significant naargelang de trainingsintensiteit?',
         groups: ['GeenTraining', 'BasisTraining', 'IntensieveTraining'],
         yName: 'Klikratio', yUnit: '%', entity: 'Medewerker',
         means: [35, 22, 12], sdWithin: 8, subtleScale: 0.20
     },
     {
         id: 'gender_fear',
-        title: 'Geslacht & angst voor criminaliteit (k = 2)',
-        vignette: 'Ervaren mannen en vrouwen een verschillende mate van angst voor criminaliteit in de openbare ruimte? Twee groepen worden vergeleken op angstscore (0\u2013100). Bij k = 2 is ANOVA equivalent aan de onafhankelijke t-toets.',
+        title: 'Geslacht & angst voor criminaliteit (k\u00A0=\u00A02)',
+        vignette: 'Mannelijke en vrouwelijke respondenten uit een representatieve steekproef worden vergeleken op angst voor criminaliteit in de openbare ruimte, gemeten via een gevalideerde schaal (0\u2013100). Bij k\u00A0=\u00A02 is eenweg-ANOVA equivalent aan de onafhankelijke-steekproeven t-toets (F\u00A0=\u00A0t\u00B2). Onderzoeksvraag: ervaren vrouwen gemiddeld een significant hogere angst voor criminaliteit dan mannen?',
         groups: ['Man', 'Vrouw'],
         yName: 'AngstScore', yUnit: '0\u2013100', entity: 'Respondent',
         means: [42, 63], sdWithin: 12, subtleScale: 0.30
     },
     {
         id: 'nationality_victimisation',
-        title: 'Nationaliteit & slachtofferschap (k = 2)',
-        vignette: 'Worden personen met Belgische en niet-Belgische nationaliteit even vaak slachtoffer van vermogenscriminaliteit? Twee groepen worden vergeleken op slachtofferschapindex (0\u2013100). Bij k = 2 geldt: F = t\u00b2.',
+        title: 'Nationaliteit & slachtofferschap (k\u00A0=\u00A02)',
+        vignette: 'Respondenten met Belgische en niet-Belgische nationaliteit worden via een survey vergeleken op een slachtofferschapindex (0\u2013100). Bij k\u00A0=\u00A02 geldt: F\u00A0=\u00A0t\u00B2. Onderzoeksvraag: is er een significant verschil in gemiddeld slachtofferschaprisico op basis van nationaliteit?',
         groups: ['Belgisch', 'NietBelgisch'],
         yName: 'SlachtofferschapIndex', yUnit: '0\u2013100', entity: 'Respondent',
         means: [38, 52], sdWithin: 10, subtleScale: 0.30
     },
     {
         id: 'education_police_trust',
-        title: 'Opleidingsniveau & vertrouwen in politie (k = 3)',
-        vignette: 'Verschilt het vertrouwen in de politie naargelang het opleidingsniveau van de respondent? Drie onderwijsgroepen worden vergeleken op vertrouwensscore (1\u20137).',
+        title: 'Opleidingsniveau & vertrouwen in politie (k\u00A0=\u00A03)',
+        vignette: 'Drie groepen respondenten met respectievelijk laag, gemiddeld en hoog opleidingsniveau worden vergeleken op vertrouwen in de politie (1\u20137). Sociaaleconomische positie en opleiding zijn in de criminologische literatuur gelinkt aan attitudes tegenover gezagsdragers. Onderzoeksvraag: hangt het gemiddeld politievertrouwen significant samen met het opleidingsniveau van de respondent?',
         groups: ['LaagOnderwijs', 'GemiddeldOnderwijs', 'HoogOnderwijs'],
         yName: 'VertrouwenPolitie', yUnit: '1\u20137', entity: 'Respondent',
         means: [3.8, 4.5, 5.2], sdWithin: 0.9, subtleScale: 0.30
     },
     {
         id: 'age_group_victimisation',
-        title: 'Leeftijdsgroep & slachtofferschap (k = 3)',
-        vignette: 'Worden bepaalde leeftijdsgroepen vaker slachtoffer van criminaliteit? Jongeren, volwassenen en ouderen worden vergeleken op slachtofferschaprate (per 1.000).',
+        title: 'Leeftijdsgroep & slachtofferschap (k\u00A0=\u00A03)',
+        vignette: 'Jongeren (18\u201325), volwassenen (26\u201355) en ouderen (56+) worden via een nationale slachtofferenqu\u00EAte vergeleken op slachtofferschaprate (per 1.000 inwoners). Routineactiviteitentheorie voorspelt dat leeftijdsgebonden leefstijlverschillen de blootstelling aan criminaliteit be\u00EFnvloeden. Onderzoeksvraag: verschilt de slachtofferschaprate significant tussen de drie leeftijdsgroepen?',
         groups: ['Jongeren', 'Volwassenen', 'Ouderen'],
         yName: 'Slachtofferschaprate', yUnit: 'per 1.000', entity: 'Respondent',
         means: [62, 45, 30], sdWithin: 12, subtleScale: 0.25
@@ -1412,8 +1412,23 @@ function doGenerate() {
     state.allCorrect = false;
     destroyCharts();
 
-    // update vignette
+    // update vignette banner
     document.getElementById('vignette-text').textContent = sc.vignette;
+
+    // update taak & vignette section
+    const scenarioPlaceholder = document.getElementById('scenario-placeholder');
+    const scenarioDetailBox = document.getElementById('scenario-detail-box');
+    const scenarioTitle = document.getElementById('scenario-title');
+    const scenarioText = document.getElementById('scenario-text');
+    const scenarioMeta = document.getElementById('scenario-meta');
+    if (scenarioPlaceholder) scenarioPlaceholder.style.display = 'none';
+    if (scenarioDetailBox) scenarioDetailBox.classList.remove('hidden');
+    if (scenarioTitle) scenarioTitle.textContent = sc.title;
+    if (scenarioText) scenarioText.textContent = sc.vignette;
+    if (scenarioMeta) {
+        const groupsStr = sc.groups.join(' \u2022 ');
+        scenarioMeta.innerHTML = `<strong>Y:</strong> ${humanizeLabel(sc.yName)} (${sc.yUnit}) &nbsp;&nbsp; <strong>Groepen:</strong> ${groupsStr}`;
+    }
 
     // update seed display
     const seedUsedEl = document.getElementById('seed-used');
