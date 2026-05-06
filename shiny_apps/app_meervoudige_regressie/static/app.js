@@ -157,6 +157,11 @@ const CORE_REQUIRED_FIELDS = [
 ];
 const CORE_REQUIRED_SET = new Set(CORE_REQUIRED_FIELDS);
 
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
 const state = {
   scenario: null,
   rows: [],
@@ -164,8 +169,57 @@ const state = {
   truth: null,
   predInputs: [],
   unlocked: false,
-  charts: { calibration: null, residual: null, predictor: null }
+  charts: { calibration: null, residual: null, predictor: null },
+  hotMeans: null, hotMeansCellClasses: {},
+  hotTotals: null, hotTotalsCellClasses: {},
+  hotVarSd: null, hotVarSdCellClasses: {},
+  hotCov: null, hotCovCellClasses: {},
+  hotCorr: null, hotCorrCellClasses: {},
+  hotCoef: null, hotCoefCellClasses: {},
+  hotFit: null, hotFitCellClasses: {}
 };
+
+const FIELD_HOT_MAP = {
+  mean_X1:          { hotKey: 'hotMeans',  classKey: 'hotMeansCellClasses',  row: 0, col: 1 },
+  mean_X2:          { hotKey: 'hotMeans',  classKey: 'hotMeansCellClasses',  row: 1, col: 1 },
+  mean_Y:           { hotKey: 'hotMeans',  classKey: 'hotMeansCellClasses',  row: 2, col: 1 },
+  tot_X1_2:         { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 0, col: 1 },
+  tot_X2_2:         { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 1, col: 1 },
+  tot_X1X2:         { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 2, col: 1 },
+  tot_X1Y:          { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 3, col: 1 },
+  tot_X2Y:          { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 4, col: 1 },
+  tot_Y2:           { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 5, col: 1 },
+  var_X1:           { hotKey: 'hotVarSd',  classKey: 'hotVarSdCellClasses',  row: 0, col: 1 },
+  sd_X1:            { hotKey: 'hotVarSd',  classKey: 'hotVarSdCellClasses',  row: 1, col: 1 },
+  var_X2:           { hotKey: 'hotVarSd',  classKey: 'hotVarSdCellClasses',  row: 0, col: 2 },
+  sd_X2:            { hotKey: 'hotVarSd',  classKey: 'hotVarSdCellClasses',  row: 1, col: 2 },
+  var_Y:            { hotKey: 'hotVarSd',  classKey: 'hotVarSdCellClasses',  row: 0, col: 3 },
+  sd_Y:             { hotKey: 'hotVarSd',  classKey: 'hotVarSdCellClasses',  row: 1, col: 3 },
+  cov_x1y:          { hotKey: 'hotCov',    classKey: 'hotCovCellClasses',    row: 0, col: 1 },
+  cov_x2y:          { hotKey: 'hotCov',    classKey: 'hotCovCellClasses',    row: 1, col: 1 },
+  cov_x1x2:         { hotKey: 'hotCov',    classKey: 'hotCovCellClasses',    row: 2, col: 1 },
+  r_x1y:            { hotKey: 'hotCorr',   classKey: 'hotCorrCellClasses',   row: 0, col: 1 },
+  r_x2y:            { hotKey: 'hotCorr',   classKey: 'hotCorrCellClasses',   row: 1, col: 1 },
+  r_x1x2:           { hotKey: 'hotCorr',   classKey: 'hotCorrCellClasses',   row: 2, col: 1 },
+  multi_det:        { hotKey: 'hotCoef',   classKey: 'hotCoefCellClasses',   row: 0, col: 1 },
+  multi_b1:         { hotKey: 'hotCoef',   classKey: 'hotCoefCellClasses',   row: 1, col: 1 },
+  multi_b2:         { hotKey: 'hotCoef',   classKey: 'hotCoefCellClasses',   row: 2, col: 1 },
+  multi_intercept:  { hotKey: 'hotCoef',   classKey: 'hotCoefCellClasses',   row: 3, col: 1 },
+  multi_r_squared:  { hotKey: 'hotFit',    classKey: 'hotFitCellClasses',    row: 0, col: 1 },
+  multi_alienation: { hotKey: 'hotFit',    classKey: 'hotFitCellClasses',    row: 1, col: 1 },
+  multi_f_stat:     { hotKey: 'hotFit',    classKey: 'hotFitCellClasses',    row: 2, col: 1 },
+  multi_model_p:    { hotKey: 'hotFit',    classKey: 'hotFitCellClasses',    row: 3, col: 1 }
+};
+
+function getFieldValue(id) {
+  const m = FIELD_HOT_MAP[id];
+  if (!m) return NaN;
+  const hot = state[m.hotKey];
+  if (!hot) return NaN;
+  const data = hot.getData();
+  if (!data || !data[m.row]) return NaN;
+  return parseNum(data[m.row][m.col]);
+}
 
 function r2(v) { return Math.round(v * 100) / 100; }
 function r4(v) { return Math.round(v * 10000) / 10000; }
@@ -461,35 +515,297 @@ function betaCF(x, a, b) {
   return h;
 }
 
-function makeField(container, id, label) {
-  const w = document.createElement('div');
-  w.className = 'field';
-  const lab = document.createElement('label');
-  lab.setAttribute('for', id);
-  lab.textContent = label;
-  const inp = document.createElement('input');
-  inp.id = id;
-  inp.type = 'number';
-  inp.step = 'any';
-  inp.placeholder = '0.0000';
-  inp.addEventListener('input', evaluateAll);
-  const msg = document.createElement('div');
-  msg.id = `${id}_msg`;
-  msg.className = 'msg';
-  w.appendChild(lab);
-  w.appendChild(inp);
-  w.appendChild(msg);
-  container.appendChild(w);
+function renderHotMeans() {
+  const container = document.getElementById('hot-means-container');
+  if (!container) return;
+  if (state.hotMeans) { state.hotMeans.destroy(); state.hotMeans = null; }
+  state.hotMeansCellClasses = {};
+  container.innerHTML = '';
+  const { x1, x2, y } = state.names;
+  const tableData = [
+    [`Gemiddelde x1 (${x1})`, null],
+    [`Gemiddelde x2 (${x2})`, null],
+    [`Gemiddelde Y (${y})`, null]
+  ];
+  const longest = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Grootheid');
+  const w0 = Math.max(160, Math.ceil(longest.length * 7) + 16);
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotMeans = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [w0, 150],
+    rowHeaders: false,
+    width: w0 + 150,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      const cls = state.hotMeansCellClasses[`${row}-${col}`];
+      if (cls === 'correct') classes.push('htCorrect');
+      else if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
+  });
 }
 
-function buildFields() {
-  FIELD_GROUPS.means.forEach(([id, label]) => makeField(document.getElementById('means-grid'), id, label));
-  FIELD_GROUPS.totals.forEach(([id, label]) => makeField(document.getElementById('totals-grid'), id, label));
-  FIELD_GROUPS.varsd.forEach(([id, label]) => makeField(document.getElementById('varsd-grid'), id, label));
-  FIELD_GROUPS.cov.forEach(([id, label]) => makeField(document.getElementById('cov-grid'), id, label));
-  FIELD_GROUPS.corr.forEach(([id, label]) => makeField(document.getElementById('corr-grid'), id, label));
-  FIELD_GROUPS.coef.forEach(([id, label]) => makeField(document.getElementById('coef-grid'), id, label));
-  FIELD_GROUPS.fit.forEach(([id, label]) => makeField(document.getElementById('fit-grid'), id, label));
+function renderHotTotals() {
+  const container = document.getElementById('hot-totals-container');
+  if (!container) return;
+  if (state.hotTotals) { state.hotTotals.destroy(); state.hotTotals = null; }
+  state.hotTotalsCellClasses = {};
+  container.innerHTML = '';
+  const { x1, x2, y } = state.names;
+  const tableData = [
+    [`S\u2081\u2081 = \u03a3(${x1}\u2212x\u0305\u2081)\u00b2`, null],
+    [`S\u2082\u2082 = \u03a3(${x2}\u2212x\u0305\u2082)\u00b2`, null],
+    [`S\u2081\u2082 = \u03a3(${x1}\u2212x\u0305\u2081)(${x2}\u2212x\u0305\u2082)`, null],
+    [`S\u2081y = \u03a3(${x1}\u2212x\u0305\u2081)(${y}\u2212\u0232)`, null],
+    [`S\u2082y = \u03a3(${x2}\u2212x\u0305\u2082)(${y}\u2212\u0232)`, null],
+    [`SST = \u03a3(${y}\u2212\u0232)\u00b2`, null]
+  ];
+  const longest = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Grootheid');
+  const w0 = Math.max(200, Math.ceil(longest.length * 7) + 16);
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotTotals = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [w0, 150],
+    rowHeaders: false,
+    width: w0 + 150,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      const cls = state.hotTotalsCellClasses[`${row}-${col}`];
+      if (cls === 'correct') classes.push('htCorrect');
+      else if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
+  });
+}
+
+function renderHotVarSd() {
+  const container = document.getElementById('hot-varsd-container');
+  if (!container) return;
+  if (state.hotVarSd) { state.hotVarSd.destroy(); state.hotVarSd = null; }
+  state.hotVarSdCellClasses = {};
+  container.innerHTML = '';
+  const { x1, x2, y } = state.names;
+  const tableData = [
+    ['Var', null, null, null],
+    ['SD', null, null, null]
+  ];
+  const colWidths = [80, 160, 160, 160];
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotVarSd = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['', x1, x2, y],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths,
+    rowHeaders: false,
+    width: colWidths.reduce((s, w) => s + w, 0),
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      const cls = state.hotVarSdCellClasses[`${row}-${col}`];
+      if (cls === 'correct') classes.push('htCorrect');
+      else if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
+  });
+}
+
+function renderHotCov() {
+  const container = document.getElementById('hot-cov-container');
+  if (!container) return;
+  if (state.hotCov) { state.hotCov.destroy(); state.hotCov = null; }
+  state.hotCovCellClasses = {};
+  container.innerHTML = '';
+  const { x1, x2, y } = state.names;
+  const tableData = [
+    [`Cov(${x1}, ${y})`, null],
+    [`Cov(${x2}, ${y})`, null],
+    [`Cov(${x1}, ${x2})`, null]
+  ];
+  const longest = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Paar');
+  const w0 = Math.max(160, Math.ceil(longest.length * 7) + 16);
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotCov = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Paar', 'Covariantie'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [w0, 150],
+    rowHeaders: false,
+    width: w0 + 150,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      const cls = state.hotCovCellClasses[`${row}-${col}`];
+      if (cls === 'correct') classes.push('htCorrect');
+      else if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
+  });
+}
+
+function renderHotCorr() {
+  const container = document.getElementById('hot-corr-container');
+  if (!container) return;
+  if (state.hotCorr) { state.hotCorr.destroy(); state.hotCorr = null; }
+  state.hotCorrCellClasses = {};
+  container.innerHTML = '';
+  const { x1, x2, y } = state.names;
+  const tableData = [
+    [`r(${x1}, ${y})`, null],
+    [`r(${x2}, ${y})`, null],
+    [`r(${x1}, ${x2})`, null]
+  ];
+  const longest = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Paar');
+  const w0 = Math.max(160, Math.ceil(longest.length * 7) + 16);
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotCorr = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Paar', 'Correlatieco\u00ebffici\u00ebnt r'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [w0, 150],
+    rowHeaders: false,
+    width: w0 + 150,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      const cls = state.hotCorrCellClasses[`${row}-${col}`];
+      if (cls === 'correct') classes.push('htCorrect');
+      else if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
+  });
+}
+
+function renderHotCoef() {
+  const container = document.getElementById('hot-coef-container');
+  if (!container) return;
+  if (state.hotCoef) { state.hotCoef.destroy(); state.hotCoef = null; }
+  state.hotCoefCellClasses = {};
+  container.innerHTML = '';
+  const tableData = [
+    ['Determinant', null],
+    ['Regressieco\u00ebffici\u00ebnt b\u2081', null],
+    ['Regressieco\u00ebffici\u00ebnt b\u2082', null],
+    ['Intercept a', null]
+  ];
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotCoef = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Co\u00ebffici\u00ebnt', 'Waarde'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [230, 150],
+    rowHeaders: false,
+    width: 380,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      const cls = state.hotCoefCellClasses[`${row}-${col}`];
+      if (cls === 'correct') classes.push('htCorrect');
+      else if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
+  });
+}
+
+function renderHotFit() {
+  const container = document.getElementById('hot-fit-container');
+  if (!container) return;
+  if (state.hotFit) { state.hotFit.destroy(); state.hotFit = null; }
+  state.hotFitCellClasses = {};
+  container.innerHTML = '';
+  const tableData = [
+    ['R\u00b2', null],
+    ['Vervreemdingsco\u00ebffici\u00ebnt (1 \u2212 R\u00b2)', null],
+    ['F-statistiek', null],
+    ['Model p-waarde', null]
+  ];
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotFit = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Waarde'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [250, 150],
+    rowHeaders: false,
+    width: 400,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      const cls = state.hotFitCellClasses[`${row}-${col}`];
+      if (cls === 'correct') classes.push('htCorrect');
+      else if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
+  });
 }
 
 function fillScenarioSelect() {
@@ -635,17 +951,17 @@ function initExcelPastePanel() {
 }
 
 function clearStatuses() {
-  REQUIRED_FIELDS.forEach(id => {
-    const inp = document.getElementById(id);
-    const msg = document.getElementById(`${id}_msg`);
-    if (inp) {
-      inp.value = '';
-      inp.classList.remove('valid', 'invalid');
-    }
-    if (msg) {
-      msg.textContent = '';
-      msg.className = 'msg';
-    }
+  const hotKeys = ['hotMeans', 'hotTotals', 'hotVarSd', 'hotCov', 'hotCorr', 'hotCoef', 'hotFit'];
+  hotKeys.forEach(key => {
+    if (state[key]) { state[key].destroy(); state[key] = null; }
+    state[key + 'CellClasses'] = {};
+    const containerId = {
+      hotMeans: 'hot-means-container', hotTotals: 'hot-totals-container',
+      hotVarSd: 'hot-varsd-container', hotCov: 'hot-cov-container',
+      hotCorr: 'hot-corr-container', hotCoef: 'hot-coef-container', hotFit: 'hot-fit-container'
+    }[key];
+    const el = document.getElementById(containerId);
+    if (el) el.innerHTML = '';
   });
 
   document.getElementById('pred-msg').textContent = '';
@@ -696,26 +1012,16 @@ const FIELD_HINTS = {
 };
 
 function markField(id, ok, attempted) {
-  const inp = document.getElementById(id);
-  const msg = document.getElementById(`${id}_msg`);
-  if (!inp || !msg) return;
-
-  inp.classList.remove('valid', 'invalid');
-  msg.textContent = '';
-  msg.className = 'msg';
-
-  if (!attempted) return;
-
-  if (ok) {
-    inp.classList.add('valid');
-    msg.classList.add('ok');
-    msg.textContent = 'OK';
+  const m = FIELD_HOT_MAP[id];
+  if (!m) return;
+  const key = `${m.row}-${m.col}`;
+  if (!attempted) {
+    delete state[m.classKey][key];
   } else {
-    inp.classList.add('invalid');
-    msg.classList.add('err');
-    const hint = FIELD_HINTS[id];
-    msg.textContent = hint ? `Fout — formule: ${hint}` : `${id} is onjuist.`;
+    state[m.classKey][key] = ok ? 'correct' : 'incorrect';
   }
+  const hot = state[m.hotKey];
+  if (hot) hot.render();
 }
 
 function evaluatePredictions() {
@@ -882,9 +1188,8 @@ function evaluateAll() {
   REQUIRED_FIELDS.forEach(id => {
     const isCore = CORE_REQUIRED_SET.has(id);
     if (isCore) totalCount += 1;
-    const inp = document.getElementById(id);
-    const attempted = Number.isFinite(parseNum(inp.value));
-    const val = parseNum(inp.value);
+    const val = getFieldValue(id);
+    const attempted = Number.isFinite(val);
     const key = FIELD_TRUTH_KEY[id];
     const ref = state.truth[key];
     const ok = attempted && check4(val, ref);
@@ -912,9 +1217,7 @@ function evaluateAll() {
   SECTION_GROUPS.forEach(sg => {
     let sc = 0;
     sg.fields.forEach(fid => {
-      const inp = document.getElementById(fid);
-      if (!inp) return;
-      const val = parseNum(inp.value);
+      const val = getFieldValue(fid);
       const ok = Number.isFinite(val) && check4(val, state.truth[FIELD_TRUTH_KEY[fid]]);
       if (ok) sc++;
     });
@@ -1052,6 +1355,14 @@ function generate(random = false) {
   renderDatasetTable();
   renderPredictionTable();
   clearStatuses();
+  renderHotMeans();
+  renderHotTotals();
+  renderHotVarSd();
+  renderHotCov();
+  renderHotCorr();
+  renderHotCoef();
+  renderHotFit();
+  evaluateAll();
   updateExcelPasteHint();
 }
 
@@ -1072,7 +1383,6 @@ function bindEvents() {
 
 function init() {
   fillScenarioSelect();
-  buildFields();
   setupNav();
   setupSidebarChrome();
   bindEvents();

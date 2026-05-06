@@ -514,20 +514,6 @@ td .pred-input {
   overflow: auto;
 }
 
-#means-grid,
-#partial-grid {
-  width: min(100%, 460px);
-}
-
-#varsd-table-wrap,
-#covr-table-wrap {
-  width: min(100%, 640px);
-}
-
-#dev-table-wrap {
-  width: 100%;
-}
-
 #means-grid .handsontable td,
 #dev-table-wrap .handsontable td,
 #varsd-table-wrap .handsontable td,

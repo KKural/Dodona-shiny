@@ -611,7 +611,7 @@ function renderVarSdTable() {
   state.hotVarSd = new Handsontable(wrap, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['', 'X', 'Y', 'Z'],
+    colHeaders: ['', state.names.x, state.names.y, state.names.z],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } },
@@ -658,7 +658,7 @@ function renderCovRTable() {
   state.hotCovR = new Handsontable(wrap, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['', 'XY', 'XZ', 'YZ'],
+    colHeaders: ['', `${state.names.x}–${state.names.y}`, `${state.names.x}–${state.names.z}`, `${state.names.y}–${state.names.z}`],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } },

@@ -94,8 +94,8 @@
             </div>
             <div class="sidebar-divider"></div>
             <div class="section-nav" id="section-nav">
-                <div class="nav-item active" data-target="deel1">I. Dataset</div>
                 <div class="nav-item" data-target="deel-taak">Scenario &amp; opdracht</div>
+                <div class="nav-item active" data-target="deel1">I. Dataset</div>
                 <div class="nav-item" data-target="deel2">II. Gemiddelden</div>
                 <div class="nav-item" data-target="deel3">III. Afwijkingtabel</div>
                 <div class="nav-item" data-target="deel4">IV. SS-waarden</div>
@@ -123,19 +123,6 @@
                 </div>
             </section>
 
-            <!-- DEEL I -->
-            <section class="card" id="deel1">
-                <div class="card-header">Deel I &mdash; Dataset bekijken</div>
-                <div class="card-body">
-                    <p id="dataset-info" class="muted">Klik op <strong>Genereer dataset</strong> om een dataset te
-                        laden.</p>
-                    <p class="dataset-meta" id="seed-display" style="display:none"><strong>Datasetcode (seed):</strong>
-                        <span id="seed-used">&ndash;</span>
-                    </p>
-                    <div id="dataset-table-wrap"></div>
-                </div>
-            </section>
-
             <!-- Scenario & Opdracht -->
             <section class="card" id="deel-taak">
                 <div class="card-header">Scenario &amp; opdracht</div>
@@ -146,6 +133,19 @@
                     <p class="scenario-task-note"><strong>Opdracht:</strong> Voltooi Deel II t/m V stap voor stap.
                         Wanneer alle antwoorden correct zijn, verschijnen de visualisaties en BI-intervallen automatisch
                         in Deel VI&ndash;VII.</p>
+                </div>
+            </section>
+
+            <!-- DEEL I -->
+            <section class="card" id="deel1">
+                <div class="card-header">Deel I &mdash; Dataset bekijken</div>
+                <div class="card-body">
+                    <p id="dataset-info" class="muted">Klik op <strong>Genereer dataset</strong> om een dataset te
+                        laden.</p>
+                    <p class="dataset-meta" id="seed-display" style="display:none"><strong>Datasetcode (seed):</strong>
+                        <span id="seed-used">&ndash;</span>
+                    </p>
+                    <div id="dataset-table-wrap"></div>
                 </div>
             </section>
 
