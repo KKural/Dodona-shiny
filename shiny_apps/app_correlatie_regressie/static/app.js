@@ -1434,6 +1434,7 @@
     document.getElementById('mode').addEventListener('change', (e) => {
       state.mode = e.target.value === 'Correlation' ? 'Correlation' : 'Bivariate';
       applyModeUI();
+      if (state.truth) buildFields();
       clearStatuses();
       evaluateAll();
     });
