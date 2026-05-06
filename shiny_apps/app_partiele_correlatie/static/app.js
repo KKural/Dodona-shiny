@@ -411,7 +411,7 @@ function renderMeansHot() {
     hotKey: 'hotMeans',
     classKey: 'hotMeansCellClasses',
     fields: FIELD_GROUPS.means,
-    firstColWidth: 150
+    firstColWidth: 220
   });
 }
 
@@ -421,7 +421,7 @@ function renderPartialHot() {
     hotKey: 'hotPartial',
     classKey: 'hotPartialCellClasses',
     fields: FIELD_GROUPS.partial,
-    firstColWidth: 130
+    firstColWidth: 200
   });
 }
 
@@ -436,7 +436,7 @@ function renderFixedHotTable(cfg) {
   container.innerHTML = '';
 
   const tableData = cfg.fields.map(([, label]) => [label, null]);
-  const colWidths = [cfg.firstColWidth, 145];
+  const colWidths = [Math.max(cfg.firstColWidth, 180), 170];
   const hotValidate = debounce(evaluateAll, 250);
 
   state[cfg.hotKey] = new Handsontable(container, {
@@ -479,7 +479,23 @@ function fillScenarioSelect() {
 
 function setScenarioText(sc, names) {
   const el = document.getElementById('scenario-text');
-  el.innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br>X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
+  if (el) {
+    el.innerHTML = `<b>${sc.title}</b><br>${sc.vignette}<br><br>X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
+  }
+
+  const placeholder = document.getElementById('scenario-placeholder');
+  const detailBox = document.getElementById('scenario-detail-box');
+  const detailTitle = document.getElementById('scenario-detail-title');
+  const detailText = document.getElementById('scenario-detail-text');
+  const detailMeta = document.getElementById('scenario-detail-meta');
+
+  if (placeholder) placeholder.classList.add('hidden');
+  if (detailBox) detailBox.classList.remove('hidden');
+  if (detailTitle) detailTitle.textContent = sc.title;
+  if (detailText) detailText.textContent = sc.vignette;
+  if (detailMeta) {
+    detailMeta.innerHTML = `X = <b>${names.x}</b> | Y = <b>${names.y}</b> | Z = <b>${names.z}</b>`;
+  }
 }
 
 function renderDatasetTable() {
@@ -519,8 +535,8 @@ function renderDeviationTable() {
   ]);
   const entityLong = ['Eenheid', ...state.rows.map(row => row.entity)].reduce((a, b) => a.length >= b.length ? a : b);
   const w0 = Math.max(90, Math.ceil(entityLong.length * 7) + 22);
-  const wVar = Math.max(72, Math.ceil(Math.max(x.length, y.length, z.length) * 7) + 16);
-  const formulaWidths = DEV_COLUMNS.map(c => Math.max(105, Math.ceil(c.label.length * 6.5) + 18));
+  const wVar = Math.max(110, Math.ceil(Math.max(x.length, y.length, z.length) * 7) + 20);
+  const formulaWidths = DEV_COLUMNS.map(c => Math.max(120, Math.ceil(c.label.length * 6.5) + 20));
   const colWidths = [w0, wVar, wVar, wVar, ...formulaWidths];
   const hotValidate = debounce(evaluateAll, 250);
 
@@ -569,7 +585,7 @@ function renderVarSdTable() {
     { label: 'SD', cells: ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
-  const colWidths = [85, 125, 125, 125];
+  const colWidths = [120, 160, 160, 160];
   const hotValidate = debounce(evaluateAll, 250);
 
   state.hotVarSd = new Handsontable(wrap, {
@@ -616,7 +632,7 @@ function renderCovRTable() {
     { label: 'r', cells: ['cv_r_XY', 'cv_r_XZ', 'cv_r_YZ'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
-  const colWidths = [85, 125, 125, 125];
+  const colWidths = [120, 160, 160, 160];
   const hotValidate = debounce(evaluateAll, 250);
 
   state.hotCovR = new Handsontable(wrap, {
