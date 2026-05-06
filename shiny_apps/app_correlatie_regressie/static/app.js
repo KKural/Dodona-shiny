@@ -367,7 +367,7 @@ function calcTruth(rows, names) {
   const sd_Y = r4(Math.sqrt(var_Y));
 
   const covariance = r4(cross_product_sum / (n - 1));
-  const sd_product = r4(Math.sqrt(var_X) * Math.sqrt(var_Y));
+  const sd_product = r4(sd_X * sd_Y);
 
   const correlation = r4(covariance / sd_product);
   const slope = r4(covariance / var_X);
@@ -518,7 +518,6 @@ function renderHotDev() {
     r2(Number(row[y])),
     null, null, null, null, null
   ]);
-  tableData.push(['Kolomsommen', null, null, null, null, null, null, null]);
   const longestEntity = state.rows.map(r => r.entity).reduce((a, b) => a.length >= b.length ? a : b, 'Eenheid');
   const w0 = Math.max(70, Math.ceil(longestEntity.length * 7) + 16);
   const w1 = Math.max(55, Math.ceil((x || 'X').length * 7) + 16);
@@ -552,13 +551,7 @@ function renderHotDev() {
     cells(row, col) {
       const key = `${row}-${col}`;
       const cls = state.hotDevCellClasses[key];
-      const isLastRow = row === n;
       const classes = [col === 0 ? 'htLeft' : 'htCenter'];
-      if (isLastRow && col < 5) {
-        classes.push('hot-sum-label-cell');
-        return { readOnly: true, type: 'text', className: classes.join(' ') };
-      }
-      if (isLastRow) classes.push('hot-sum-value-cell');
       if (cls === 'correct') classes.push('htCorrect');
       if (cls === 'incorrect') classes.push('htIncorrect');
       return { className: classes.join(' ') };
@@ -577,15 +570,18 @@ function renderHotStats() {
   state.hotStatsCellClasses = {};
   container.innerHTML = '';
   const tableData = [
-    ['s²(X)', null],
-    ['s(X)', null],
-    ['s²(Y)', null],
-    ['s(Y)', null],
-    ['Cov(X,Y)', null],
-    ['s(X) × s(Y)', null],
-    ['r(X,Y)', null]
+    ['Kolomsom kwadratische afwijkingen X — Σ(x−x̄)²', null],
+    ['Kolomsom kwadratische afwijkingen Y — Σ(y−ȳ)²', null],
+    ['Kolomsom kruisproducten — Σ(x−x̄)(y−ȳ)', null],
+    ['Variantie X — s²(X)', null],
+    ['Standaardafwijking X — s(X)', null],
+    ['Variantie Y — s²(Y)', null],
+    ['Standaardafwijking Y — s(Y)', null],
+    ['Covariantie — Cov(X,Y)', null],
+    ['SD-product — s(X) × s(Y)', null],
+    ['Correlatiecoëfficiënt — r(X,Y)', null]
   ];
-  const w0 = 160;
+  const w0 = 340;
   const hotValidate = debounce(evaluateAll, 250);
   state.hotStats = new Handsontable(container, {
     data: tableData,
@@ -603,7 +599,9 @@ function renderHotStats() {
     cells(row, col) {
       const key = `${row}-${col}`;
       const cls = state.hotStatsCellClasses[key];
+      const isSumRow = row < 3;
       const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      if (isSumRow) classes.push('hot-sum-value-cell');
       if (cls === 'correct') classes.push('htCorrect');
       if (cls === 'incorrect') classes.push('htIncorrect');
       return { className: classes.join(' ') };
@@ -622,10 +620,10 @@ function renderHotReg() {
   state.hotRegCellClasses = {};
   container.innerHTML = '';
   const tableData = [
-    ['Regressiecoëfficiënt b', null],
-    ['Intercept a', null]
+    ['Helling (regressiecoëfficiënt) \u2014 b', null],
+    ['Snijpunt (intercept) \u2014 a', null]
   ];
-  const w0 = 130;
+  const w0 = 260;
   const hotValidate = debounce(evaluateAll, 250);
   state.hotReg = new Handsontable(container, {
     data: tableData,
@@ -842,6 +840,7 @@ function clearStatuses() {
   });
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('viz-card').classList.add('locked');
+  document.getElementById('viz-card').classList.add('hidden');
   document.getElementById('interpretation').innerHTML = '';
   state.unlocked = false;
   destroyCharts();
@@ -1027,12 +1026,7 @@ function evaluateAll() {
     { col: 6, expected: t.sum_dY2, id: 'tot_Y2', label: '\u03a3(y\u2212\u0233)\u00b2', hint: FIELD_HINTS.tot_Y2 },
     { col: 7, expected: t.cross_product_sum, id: 'cross_product_sum', label: '\u03a3(x\u2212x\u0304)(y\u2212\u0233)', hint: FIELD_HINTS.cross_product_sum }
   ];
-  sumFields.forEach(sf => {
-    const raw = d3data[n] ? d3data[n][sf.col] : null;
-    const st = chkHot(newDevCls, n, sf.col, sf.expected, raw, sf.id, sf.hint);
-    d3total++; totalCount++;
-    if (st === 'correct') { d3c++; totalCorrect++; }
-  });
+  // column sums (Σ) validated in Deel IV; skip here
   state.hotDevCellClasses = newDevCls;
   if (state.hotDev) state.hotDev.render();
   updateSectionSummary('feedback-deel3', d3c, d3total, 'Afwijkingtabel correct', 'controleer afwijkingen en kolomsommen');
@@ -1043,13 +1037,16 @@ function evaluateAll() {
   const newStatsCls = {};
   let d4c = 0;
   const statsFields = [
-    { row: 0, expected: t.var_X, id: 'var_X', label: 's²(X)', hint: FIELD_HINTS.var_X },
-    { row: 1, expected: t.sd_X, id: 'sd_X', label: 's(X)', hint: FIELD_HINTS.sd_X },
-    { row: 2, expected: t.var_Y, id: 'var_Y', label: 's²(Y)', hint: FIELD_HINTS.var_Y },
-    { row: 3, expected: t.sd_Y, id: 'sd_Y', label: 's(Y)', hint: FIELD_HINTS.sd_Y },
-    { row: 4, expected: t.covariance, id: 'covariance', label: 'Cov(X,Y)', hint: FIELD_HINTS.covariance },
-    { row: 5, expected: t.sd_product, id: 'sd_product', label: 's(X)·s(Y)', hint: FIELD_HINTS.sd_product },
-    { row: 6, expected: t.correlation, id: 'correlation', label: 'r(X,Y)', hint: FIELD_HINTS.correlation }
+    { row: 0, expected: t.sum_dX2, id: 'tot_X1_2', label: 'Σ(x−x̄)²', hint: FIELD_HINTS.tot_X1_2 },
+    { row: 1, expected: t.sum_dY2, id: 'tot_Y2', label: 'Σ(y−ȳ)²', hint: FIELD_HINTS.tot_Y2 },
+    { row: 2, expected: t.cross_product_sum, id: 'cross_product_sum', label: 'Σ(x−x̄)(y−ȳ)', hint: FIELD_HINTS.cross_product_sum },
+    { row: 3, expected: t.var_X, id: 'var_X', label: 's²(X)', hint: FIELD_HINTS.var_X },
+    { row: 4, expected: t.sd_X, id: 'sd_X', label: 's(X)', hint: FIELD_HINTS.sd_X },
+    { row: 5, expected: t.var_Y, id: 'var_Y', label: 's²(Y)', hint: FIELD_HINTS.var_Y },
+    { row: 6, expected: t.sd_Y, id: 'sd_Y', label: 's(Y)', hint: FIELD_HINTS.sd_Y },
+    { row: 7, expected: t.covariance, id: 'covariance', label: 'Cov(X,Y)', hint: FIELD_HINTS.covariance },
+    { row: 8, expected: t.sd_product, id: 'sd_product', label: 's(X)×s(Y)', hint: FIELD_HINTS.sd_product },
+    { row: 9, expected: t.correlation, id: 'correlation', label: 'r(X,Y)', hint: FIELD_HINTS.correlation }
   ];
   statsFields.forEach(f => {
     const raw = d4data[f.row] ? d4data[f.row][1] : null;
@@ -1070,8 +1067,8 @@ function evaluateAll() {
     const newRegCls = {};
     let d5c = 0;
     const regFields = [
-      { row: 0, expected: t.slope, id: 'slope', label: 'Regressiecoëfficiënt b', hint: FIELD_HINTS.slope },
-      { row: 1, expected: t.intercept, id: 'intercept', label: 'Intercept a', hint: FIELD_HINTS.intercept }
+      { row: 0, expected: t.slope, id: 'slope', label: 'Helling (regressiecoëfficiënt) — b', hint: FIELD_HINTS.slope },
+      { row: 1, expected: t.intercept, id: 'intercept', label: 'Snijpunt (intercept) — a', hint: FIELD_HINTS.intercept }
     ];
     regFields.forEach(f => {
       const raw = d5data[f.row] ? d5data[f.row][1] : null;
@@ -1128,10 +1125,12 @@ function evaluateAll() {
     if (allDone) {
       document.getElementById('success-card').classList.remove('hidden');
       document.getElementById('viz-card').classList.remove('locked');
+      document.getElementById('viz-card').classList.remove('hidden');
       renderCharts();
     } else {
       document.getElementById('success-card').classList.add('hidden');
       document.getElementById('viz-card').classList.add('locked');
+      document.getElementById('viz-card').classList.add('hidden');
       document.getElementById('interpretation').innerHTML = '';
       destroyCharts();
     }

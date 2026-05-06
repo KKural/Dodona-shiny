@@ -738,6 +738,7 @@ function clearFixedStatuses() {
 
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('viz-card').classList.add('locked');
+  document.getElementById('viz-card').classList.add('hidden');
   document.getElementById('interpretation').innerHTML = '';
   state.unlocked = false;
   destroyChart();
@@ -1130,10 +1131,12 @@ function evaluateAll() {
     if (unlock) {
       document.getElementById('success-card').classList.remove('hidden');
       document.getElementById('viz-card').classList.remove('locked');
+      document.getElementById('viz-card').classList.remove('hidden');
       renderChart();
     } else {
       document.getElementById('success-card').classList.add('hidden');
       document.getElementById('viz-card').classList.add('locked');
+      document.getElementById('viz-card').classList.add('hidden');
       document.getElementById('interpretation').innerHTML = '';
       destroyChart();
     }

@@ -923,6 +923,7 @@ function clearStatuses() {
   });
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('viz-card').classList.add('locked');
+  document.getElementById('viz-card').classList.add('hidden');
   document.getElementById('viz-lock').classList.remove('hidden');
   document.getElementById('viz-content').classList.add('hidden');
   document.getElementById('interpretation').innerHTML = '';
@@ -1167,12 +1168,14 @@ function evaluateAll() {
     if (unlock) {
       document.getElementById('success-card').classList.remove('hidden');
       document.getElementById('viz-card').classList.remove('locked');
+      document.getElementById('viz-card').classList.remove('hidden');
       document.getElementById('viz-lock').classList.add('hidden');
       document.getElementById('viz-content').classList.remove('hidden');
       renderCharts();
     } else {
       document.getElementById('success-card').classList.add('hidden');
       document.getElementById('viz-card').classList.add('locked');
+      document.getElementById('viz-card').classList.add('hidden');
       document.getElementById('viz-lock').classList.remove('hidden');
       document.getElementById('viz-content').classList.add('hidden');
       document.getElementById('interpretation').innerHTML = '';

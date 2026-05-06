@@ -8,7 +8,7 @@ const SCENARIOS = [
     title: 'Programma-intensiteit x collectieve effectiviteit',
     vignette: 'Een stad implementeerde een criminaliteitspreventie-programma in buurten met uiteenlopende niveaus van collectieve effectiviteit. Onderzocht wordt of het effect van programma-intensiteit op inbraakcijfers groter is in buurten met hogere collectieve effectiviteit. Onderzoeksvraag: is er een significant interactie-effect tussen programma-intensiteit (x1) en collectieve effectiviteit (x2) bij de verklaring van inbraakcijfer (Y)? Gebruik α = 0,05.',
     entity: 'Buurt',
-    vars: { x1: 'ProgrammaIntensiteit', x2: 'CollectieveEffectiviteit', y: 'InbraakCijfer' },
+    vars: { x1: 'Programma-intensiteit', x2: 'Collectieve effectiviteit', y: 'Inbraakcijfer' },
     design: { x1_center: 50, x1_scale: 14, x1_bounds: [0, 100], x2_center: 5.2, x2_scale: 2.0, x2_bounds: [0, 10], y_base: 26, b1: -0.20, b2: -1.05, b3: -0.10, rho: 0.30, noise: 3.4, y_bounds: [0, 100] }
   },
   {
@@ -16,7 +16,7 @@ const SCENARIOS = [
     title: 'Politie-aanwezigheid x buurtwanorde',
     vignette: 'In stedelijke straten met uiteenlopende wanordeniveaus wordt de effectiviteit van politie-aanwezigheid onderzocht. De verwachting is dat verhoogde politie-aanwezigheid sterker samenhangt met een daling van het aantal meldingen in straten met hogere wanorde. Onderzoeksvraag: is er een significant interactie-effect tussen politie-aanwezigheid (x1) en wanorde-index (x2) bij de verklaring van meldingen aan de politie (Y)? Gebruik α = 0,05.',
     entity: 'Straat',
-    vars: { x1: 'PolitieAanwezigheid', x2: 'WanordeIndex', y: 'MeldingenAanPolitie' },
+    vars: { x1: 'Politie-aanwezigheid', x2: 'Wanorde-index', y: 'Meldingen' },
     design: { x1_center: 22, x1_scale: 7, x1_bounds: [0, 40], x2_center: 5.5, x2_scale: 2.2, x2_bounds: [0, 10], y_base: 58, b1: -0.55, b2: 2.20, b3: -0.09, rho: 0.20, noise: 5.5, y_bounds: [0, 120] }
   },
   {
@@ -24,7 +24,7 @@ const SCENARIOS = [
     title: 'Schoolbinding x delinquente peers',
     vignette: 'Bij middelbare scholieren met variabele schoolbinding en blootstelling aan delinquente leeftijdsgenoten wordt onderzocht of schoolbinding als beschermende factor sterker werkt wanneer het contact met delinquente peers lager is. Onderzoeksvraag: is er een significant interactie-effect tussen schoolbinding (x1) en delinquente peers (x2) bij de verklaring van delictscore (Y)? Gebruik α = 0,05.',
     entity: 'Student',
-    vars: { x1: 'SchoolBinding', x2: 'DelinquentePeers', y: 'DelictScore' },
+    vars: { x1: 'Schoolbinding', x2: 'Delinquente peers', y: 'Delictscore' },
     design: { x1_center: 4.2, x1_scale: 1.1, x1_bounds: [1, 7], x2_center: 4.8, x2_scale: 2.1, x2_bounds: [0, 10], y_base: 46, b1: -3.60, b2: 2.10, b3: 0.45, rho: -0.15, noise: 6.0, y_bounds: [0, 100] }
   },
   {
@@ -32,7 +32,7 @@ const SCENARIOS = [
     title: 'Nazorg x werkhervatting',
     vignette: 'Ex-gedetineerden ontvangen variabele hoeveelheden nazorgondersteuning en bereiken uiteenlopende niveaus van werkhervatting. Onderzocht wordt of nazorgbegeleiding meer bijdraagt aan recidivevermindering wanneer de persoon erin slaagt opnieuw aan het werk te gaan. Onderzoeksvraag: is er een significant interactie-effect tussen nazorguren (x1) en werkhervatting (x2) bij de verklaring van recidiverisico (Y)? Gebruik α = 0,05.',
     entity: 'Deelnemer',
-    vars: { x1: 'NazorgUren', x2: 'WerkHervatting', y: 'RecidiveRisico' },
+    vars: { x1: 'Nazorguren', x2: 'Werkhervatting', y: 'Recidiverisico' },
     design: { x1_center: 16, x1_scale: 5.5, x1_bounds: [0, 35], x2_center: 5.1, x2_scale: 2.0, x2_bounds: [0, 10], y_base: 54, b1: -0.85, b2: -1.50, b3: -0.12, rho: 0.25, noise: 5.2, y_bounds: [0, 100] }
   }
 ];
@@ -592,6 +592,7 @@ function resetInputs() {
   });
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('viz-card').classList.add('locked');
+  document.getElementById('viz-card').classList.add('hidden');
   state.unlocked = false;
   setVizNavLock(false);
   updateProgress(0, REQUIRED_FIELDS.length);
@@ -958,10 +959,12 @@ function evaluateAll() {
     if (unlock) {
       successCard.classList.remove('hidden');
       vizCard.classList.remove('locked');
+      vizCard.classList.remove('hidden');
       renderUnlockedViews();
     } else {
       successCard.classList.add('hidden');
       vizCard.classList.add('locked');
+      vizCard.classList.add('hidden');
       destroyCharts();
       document.getElementById('interpretation').innerHTML = '';
     }

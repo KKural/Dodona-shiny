@@ -773,7 +773,7 @@ function renderSSTable() {
         },
         afterChange(changes, source) {
             if (source === 'loadData') return;
-            hotValidate();
+            hotValidate(changes);
         }
     });
 }
@@ -1150,6 +1150,7 @@ function destroyCharts() {
 function lockVisualSections() {
     ['deel6', 'deel7'].forEach(id => {
         const sec = document.getElementById(id);
+        sec.classList.add('hidden');
         sec.querySelector('.lock-notice').classList.remove('hidden');
         const content = sec.querySelector('.viz-content') || sec.querySelector('.ci-content');
         if (content) content.classList.add('hidden');
@@ -1161,8 +1162,10 @@ function lockVisualSections() {
 }
 
 function unlockVisualSections() {
+    document.getElementById('deel6').classList.remove('hidden');
     document.getElementById('deel6').querySelector('.lock-notice').classList.add('hidden');
     document.getElementById('deel6').querySelector('.viz-content').classList.remove('hidden');
+    document.getElementById('deel7').classList.remove('hidden');
     document.getElementById('deel7').querySelector('.lock-notice').classList.add('hidden');
     document.getElementById('deel7').querySelector('.ci-content').classList.remove('hidden');
     document.querySelectorAll('.nav-item[data-target="deel6"], .nav-item[data-target="deel7"]')
