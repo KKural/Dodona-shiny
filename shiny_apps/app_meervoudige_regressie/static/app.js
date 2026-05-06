@@ -167,7 +167,6 @@ const state = {
   rows: [],
   names: { x1: '', x2: '', y: '' },
   truth: null,
-  predInputs: [],
   unlocked: false,
   charts: { calibration: null, residual: null, predictor: null },
   hotMeans: null, hotMeansCellClasses: {},
@@ -176,7 +175,8 @@ const state = {
   hotCov: null, hotCovCellClasses: {},
   hotCorr: null, hotCorrCellClasses: {},
   hotCoef: null, hotCoefCellClasses: {},
-  hotFit: null, hotFitCellClasses: {}
+  hotFit: null, hotFitCellClasses: {},
+  hotPred: null, hotPredCellClasses: {}
 };
 
 const FIELD_HOT_MAP = {
@@ -627,7 +627,7 @@ function renderHotVarSd() {
     ],
     colWidths,
     rowHeaders: false,
-    width: colWidths.reduce((s, w) => s + w, 0),
+    width: colWidths.reduce((s, w) => s + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
     cells(row, col) {
@@ -850,37 +850,53 @@ function renderDatasetTable() {
   tbl.appendChild(tbody);
 }
 
-function renderPredictionTable() {
-  const tbl = document.getElementById('pred-table');
-  tbl.innerHTML = '';
-  state.predInputs = [];
-
-  if (!state.truth) return;
-
+function renderHotPred() {
+  const container = document.getElementById('pred-table-container');
+  if (!container) return;
+  if (state.hotPred) { state.hotPred.destroy(); state.hotPred = null; }
+  state.hotPredCellClasses = {};
+  container.innerHTML = '';
+  if (!state.truth || !state.rows.length) return;
   const { x1, x2, y } = state.names;
-  const thead = document.createElement('thead');
-  thead.innerHTML = `<tr><th>Eenheid</th><th>${x1}</th><th>${x2}</th><th>${y}</th><th>Yhat = a + b1*X1 + b2*X2</th></tr>`;
-  tbl.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-  state.rows.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.entity}</td><td>${r2(Number(r[x1])).toFixed(2)}</td><td>${r2(Number(r[x2])).toFixed(2)}</td><td>${r2(Number(r[y])).toFixed(2)}</td>`;
-    const td = document.createElement('td');
-    const inp = document.createElement('input');
-    inp.className = 'pred-input';
-    inp.type = 'number';
-    inp.step = 'any';
-    inp.placeholder = '0.0000';
-    inp.dataset.i = String(i);
-    inp.addEventListener('input', evaluateAll);
-    td.appendChild(inp);
-    tr.appendChild(td);
-    tbody.appendChild(tr);
-    state.predInputs.push(inp);
+  const tableData = state.rows.map(r => [
+    r.entity,
+    r2(Number(r[x1])),
+    r2(Number(r[x2])),
+    r2(Number(r[y])),
+    null
+  ]);
+  const longestEntity = state.rows.map(r => r.entity).reduce((a, b) => a.length >= b.length ? a : b, 'Eenheid');
+  const w0 = Math.max(100, Math.ceil(longestEntity.length * 7) + 16);
+  const colWidths = [w0, 80, 80, 80, 130];
+  const hotValidate = debounce(evaluateAll, 250);
+  state.hotPred = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Eenheid', x1, x2, y, 'Y\u0302 (voorspeld)'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths,
+    rowHeaders: false,
+    width: colWidths.reduce((s, w) => s + w, 0) + colWidths.length + 1,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      const cls = state.hotPredCellClasses[`${row}-${col}`];
+      if (cls === 'correct') classes.push('htCorrect');
+      else if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) {
+      if (source === 'loadData') return;
+      hotValidate();
+    }
   });
-
-  tbl.appendChild(tbody);
 }
 
 function parseExcelPasteValues(raw) {
@@ -894,7 +910,6 @@ function parseExcelPasteValues(raw) {
 function getExcelPasteFieldOrder() {
   const labelMap = new Map(Object.values(FIELD_GROUPS).flat());
   const fields = REQUIRED_FIELDS.map(id => ({ label: labelMap.get(id) || id, target: id }));
-  state.predInputs.forEach((input, i) => fields.push({ label: `Yhat rij ${i + 1}`, target: input }));
   return fields;
 }
 
@@ -958,27 +973,26 @@ function initExcelPastePanel() {
 }
 
 function clearStatuses() {
-  const hotKeys = ['hotMeans', 'hotTotals', 'hotVarSd', 'hotCov', 'hotCorr', 'hotCoef', 'hotFit'];
+  const hotKeys = ['hotMeans', 'hotTotals', 'hotVarSd', 'hotCov', 'hotCorr', 'hotCoef', 'hotFit', 'hotPred'];
   hotKeys.forEach(key => {
     if (state[key]) { state[key].destroy(); state[key] = null; }
     state[key + 'CellClasses'] = {};
     const containerId = {
       hotMeans: 'hot-means-container', hotTotals: 'hot-totals-container',
       hotVarSd: 'hot-varsd-container', hotCov: 'hot-cov-container',
-      hotCorr: 'hot-corr-container', hotCoef: 'hot-coef-container', hotFit: 'hot-fit-container'
+      hotCorr: 'hot-corr-container', hotCoef: 'hot-coef-container', hotFit: 'hot-fit-container',
+      hotPred: 'pred-table-container'
     }[key];
     const el = document.getElementById(containerId);
     if (el) el.innerHTML = '';
   });
 
-  document.getElementById('pred-msg').textContent = '';
-  document.getElementById('pred-msg').className = 'status';
-  ['fb-deel2', 'fb-deel3', 'fb-deel4', 'fb-deel4a', 'fb-deel4b', 'fb-deel5', 'fb-deel7'].forEach(id => {
+  ['fb-deel2', 'fb-deel3', 'fb-deel4', 'fb-deel4a', 'fb-deel4b', 'fb-deel5', 'fb-deel6', 'fb-deel7'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.innerHTML = ''; el.className = 'section-summary'; }
   });
   document.getElementById('success-card').classList.add('hidden');
-  document.getElementById('viz-card').classList.add('locked');
+  document.getElementById('viz-card').classList.add('hidden');
   document.getElementById('interpretation').innerHTML = '';
   state.unlocked = false;
   destroyCharts();
@@ -1032,51 +1046,32 @@ function markField(id, ok, attempted) {
 }
 
 function evaluatePredictions() {
-  const msg = document.getElementById('pred-msg');
-  if (!state.truth || !state.predInputs.length) {
-    msg.textContent = '';
-    msg.className = 'status';
-    return { allEntered: false, allCorrect: false, correctCount: 0, totalCount: state.predInputs.length };
+  if (!state.hotPred || !state.truth) {
+    updateSectionSummary('fb-deel6', 0, 0, '', '');
+    return { allEntered: false, allCorrect: false, correctCount: 0, totalCount: 0 };
   }
-
+  const data = state.hotPred.getData();
+  const n = data.length;
   let allEntered = true;
   let allCorrect = true;
   let correctCount = 0;
-  let totalCount = 0;
-
-  state.predInputs.forEach((inp, i) => {
-    totalCount += 1;
-    inp.classList.remove('valid', 'invalid');
-    const v = parseNum(inp.value);
-    if (!Number.isFinite(v)) {
+  state.hotPredCellClasses = {};
+  for (let i = 0; i < n; i++) {
+    const v = data[i][4];
+    const parsed = typeof v === 'number' ? v : parseNum(String(v ?? ''));
+    if (!Number.isFinite(parsed)) {
       allEntered = false;
       allCorrect = false;
-      return;
+    } else {
+      const ok = check4(parsed, state.truth.predictions[i]);
+      state.hotPredCellClasses[`${i}-4`] = ok ? 'correct' : 'incorrect';
+      if (ok) correctCount++;
+      else allCorrect = false;
     }
-
-    const ok = check4(v, state.truth.predictions[i]);
-    if (ok) {
-      inp.classList.add('valid');
-      correctCount += 1;
-    }
-    else {
-      inp.classList.add('invalid');
-      allCorrect = false;
-    }
-  });
-
-  if (!allEntered) {
-    msg.textContent = '';
-    msg.className = 'status';
-  } else if (allCorrect) {
-    msg.textContent = 'Voorspellingen OK';
-    msg.className = 'status ok';
-  } else {
-    msg.textContent = 'Sommige voorspellingen zijn fout.';
-    msg.className = 'status err';
   }
-
-  return { allEntered, allCorrect, correctCount, totalCount };
+  state.hotPred.render();
+  updateSectionSummary('fb-deel6', correctCount, n, 'Voorspellingen correct', 'controleer voorspellingen');
+  return { allEntered, allCorrect, correctCount, totalCount: n };
 }
 
 function simpleLine(points) {
@@ -1210,7 +1205,7 @@ function evaluateAll() {
     markField(id, ok, attempted);
   });
 
-  evaluatePredictions();
+  const predResult = evaluatePredictions();
 
   const SECTION_GROUPS = [
     { id: 'fb-deel2', fields: ['mean_X1', 'mean_X2', 'mean_Y'], ok: 'Gemiddelden correct', partial: 'controleer gemiddelden' },
@@ -1233,17 +1228,17 @@ function evaluateAll() {
 
   updateProgress(correctCount, totalCount);
 
-  const unlock = allEntered && allCorrect;
+  const unlock = allEntered && allCorrect && predResult.allEntered && predResult.allCorrect;
   if (unlock !== state.unlocked) {
     state.unlocked = unlock;
     setVizNavLock(unlock);
     if (unlock) {
       document.getElementById('success-card').classList.remove('hidden');
-      document.getElementById('viz-card').classList.remove('locked');
+      document.getElementById('viz-card').classList.remove('hidden');
       renderCharts();
     } else {
       document.getElementById('success-card').classList.add('hidden');
-      document.getElementById('viz-card').classList.add('locked');
+      document.getElementById('viz-card').classList.add('hidden');
       document.getElementById('interpretation').innerHTML = '';
       destroyCharts();
     }
@@ -1360,7 +1355,7 @@ function generate(random = false) {
 
   setScenarioText(sc, state.names);
   renderDatasetTable();
-  renderPredictionTable();
+  renderHotPred();
   clearStatuses();
   renderHotMeans();
   renderHotTotals();
