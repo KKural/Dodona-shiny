@@ -273,8 +273,10 @@ body {
 }
 
 .main-content {
+  min-width: 0;
   padding: 14px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
   overflow-x: hidden;
 }
