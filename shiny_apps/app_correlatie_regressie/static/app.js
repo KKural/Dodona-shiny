@@ -93,15 +93,15 @@ function normalizeScenarioLabels() {
 normalizeScenarioLabels();
 
 const FIELD_GROUPS = {
-  means: [['mean_X', 'Gemiddelde X'], ['mean_Y', 'Gemiddelde Y']],
-  totals: [['tot_X1_2', 'Sum (X-Xbar)^2'], ['tot_Y2', 'Sum (Y-Ybar)^2']],
+  means: [['mean_X', 'Gemiddelde X (x̄)'], ['mean_Y', 'Gemiddelde Y (ȳ)']],
+  totals: [['tot_X1_2', 'Σ(x−x̄)²'], ['tot_Y2', 'Σ(y−ȳ)²']],
   stats: [
-    ['var_X', 'Var(X)'], ['sd_X', 'SD(X)'], ['var_Y', 'Var(Y)'], ['sd_Y', 'SD(Y)'],
-    ['cross_product_sum', 'Kruisproductsom'], ['covariance', 'Cov(X,Y)'], ['sd_product', 'SD(X)*SD(Y)'],
-    ['correlation', 'Correlatie r']
+    ['var_X', 's²(X)'], ['sd_X', 's(X)'], ['var_Y', 's²(Y)'], ['sd_Y', 's(Y)'],
+    ['cross_product_sum', 'Σ(x−x̄)(y−ȳ)'], ['covariance', 'Cov(X,Y)'], ['sd_product', 's(X)·s(Y)'],
+    ['correlation', 'r(X,Y)']
   ],
-  reg: [['slope', 'Helling b'], ['intercept', 'Intercept a']],
-  fit: [['r_squared', 'R2'], ['alienation', 'Vervreemdingscoefficient'], ['f_stat', 'F-statistiek'], ['model_p_value', 'Model p-waarde']]
+  reg: [['slope', 'Regressiecoëfficiënt b'], ['intercept', 'Intercept a']],
+  fit: [['r_squared', 'R²'], ['alienation', '1 − R²'], ['f_stat', 'F'], ['model_p_value', 'p']]
 };
 
 const FIELD_TRUTH_KEY = {
@@ -469,8 +469,8 @@ function renderHotMeans() {
   container.innerHTML = '';
   const { x, y } = state.names;
   const tableData = [
-    [`Gemiddelde X (${x || 'X'})`, null],
-    [`Gemiddelde Y (${y || 'Y'})`, null]
+    [`Gemiddelde X (x̄) — ${x || 'X'}`, null],
+    [`Gemiddelde Y (ȳ) — ${y || 'Y'}`, null]
   ];
   const longestLabel = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Grootheid');
   const w0 = Math.max(130, Math.ceil(longestLabel.length * 7) + 16);
@@ -577,13 +577,13 @@ function renderHotStats() {
   state.hotStatsCellClasses = {};
   container.innerHTML = '';
   const tableData = [
-    ['Var(X)', null],
-    ['SD(X)', null],
-    ['Var(Y)', null],
-    ['SD(Y)', null],
+    ['s²(X)', null],
+    ['s(X)', null],
+    ['s²(Y)', null],
+    ['s(Y)', null],
     ['Cov(X,Y)', null],
-    ['SD(X) \u00d7 SD(Y)', null],
-    ['Correlatie r', null]
+    ['s(X) × s(Y)', null],
+    ['r(X,Y)', null]
   ];
   const w0 = 160;
   const hotValidate = debounce(evaluateAll, 250);
@@ -622,7 +622,7 @@ function renderHotReg() {
   state.hotRegCellClasses = {};
   container.innerHTML = '';
   const tableData = [
-    ['Helling b', null],
+    ['Regressiecoëfficiënt b', null],
     ['Intercept a', null]
   ];
   const w0 = 130;
@@ -663,9 +663,9 @@ function renderHotFit() {
   container.innerHTML = '';
   const tableData = [
     ['R\u00b2', null],
-    ['Vervreemdingsco\u00ebffici\u00ebnt (1 \u2212 R\u00b2)', null],
-    ['F-statistiek', null],
-    ['Model p-waarde', null]
+    ['1 \u2212 R\u00b2', null],
+    ['F', null],
+    ['p-waarde', null]
   ];
   const w0 = 230;
   const hotValidate = debounce(evaluateAll, 250);
@@ -719,7 +719,7 @@ function renderHotPred() {
   state.hotPred = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Eenheid', x || 'X', y || 'Y', 'Y\u0302 = a + b\u00d7X'],
+    colHeaders: ['Eenheid', x || 'X', y || 'Y', 'Ŷ = a + b×X'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
@@ -850,24 +850,24 @@ function clearStatuses() {
 }
 
 const FIELD_HINTS = {
-  mean_X: 'gem(X) = som(X) / n',
-  mean_Y: 'gem(Y) = som(Y) / n',
-  tot_X1_2: 'Variatie X = som((Xi - Xbar)^2)',
-  tot_Y2: 'Variatie Y = som((Yi - Ybar)^2)',
-  var_X: 'Var(X) = Variatie(X) / (n - 1)',
-  sd_X: 'SD(X) = sqrt(Var(X))',
-  var_Y: 'Var(Y) = Variatie(Y) / (n - 1)',
-  sd_Y: 'SD(Y) = sqrt(Var(Y))',
-  cross_product_sum: 'KPS = som((Xi - Xbar)(Yi - Ybar))',
+  mean_X: 'x̄ = ΣX / n',
+  mean_Y: 'ȳ = ΣY / n',
+  tot_X1_2: 'Σ(x−x̄)²',
+  tot_Y2: 'Σ(y−ȳ)²',
+  var_X: 's²(X) = Σ(x−x̄)² / (n−1)',
+  sd_X: 's(X) = √s²(X)',
+  var_Y: 's²(Y) = Σ(y−ȳ)² / (n−1)',
+  sd_Y: 's(Y) = √s²(Y)',
+  cross_product_sum: 'KPS = Σ(x−x̄)(y−ȳ)',
   covariance: 'Cov = KPS / (n - 1)',
-  sd_product: 'SD(X) * SD(Y)',
-  correlation: 'r = Cov(X,Y) / (SD(X) * SD(Y))',
-  slope: 'b = Cov(X,Y) / Var(X)',
-  intercept: 'a = Ybar - b * Xbar',
-  r_squared: 'R2 = r^2',
-  alienation: 'Vervreemding = 1 - R2',
-  f_stat: 'F = (R2 / k) / ((1 - R2) / (n - k - 1))',
-  model_p_value: 'p = P(F = f-waarde)',
+  sd_product: 's(X) · s(Y)',
+  correlation: 'r = Cov(X,Y) / (s(X) · s(Y))',
+  slope: 'b = Cov(X,Y) / s²(X)',
+  intercept: 'a = ȳ − b·x̄',
+  r_squared: 'R² = r²',
+  alienation: '1 − R²',
+  f_stat: 'F = (R² / k) / ((1 − R²) / (n − k − 1))',
+  model_p_value: 'p = P(F ≥ f-waarde)',
 };
 
 function simpleLine(points) {
@@ -971,7 +971,7 @@ function renderCharts() {
     <b>Interpretatie</b>
     <ul>
       <li>r = ${t.correlation.toFixed(4)}, b = ${t.slope.toFixed(4)}, a = ${t.intercept.toFixed(4)}</li>
-      <li>R2 = ${t.r_squared.toFixed(4)}; onverklaard = ${t.alienation.toFixed(4)}</li>
+      <li>R² = ${t.r_squared.toFixed(4)}; onverklaard = ${t.alienation.toFixed(4)}</li>
       <li>F(1, ${t.n - 2}) = ${t.f_stat.toFixed(4)}, p = ${pText}</li>
       <li>${sig ? 'Model is statistisch significant op 5%-niveau.' : 'Model is niet statistisch significant op 5%-niveau.'}</li>
     </ul>
@@ -989,8 +989,8 @@ function evaluateAll() {
   const newMeansCls = {};
   let d2c = 0;
   const meansFields = [
-    { row: 0, expected: t.mean_X, id: 'mean_X', label: 'Gemiddelde X', hint: FIELD_HINTS.mean_X },
-    { row: 1, expected: t.mean_Y, id: 'mean_Y', label: 'Gemiddelde Y', hint: FIELD_HINTS.mean_Y }
+    { row: 0, expected: t.mean_X, id: 'mean_X', label: 'Gemiddelde X (x̄)', hint: FIELD_HINTS.mean_X },
+    { row: 1, expected: t.mean_Y, id: 'mean_Y', label: 'Gemiddelde Y (ȳ)', hint: FIELD_HINTS.mean_Y }
   ];
   meansFields.forEach(f => {
     const raw = d2data[f.row] ? d2data[f.row][1] : null;
@@ -1043,13 +1043,13 @@ function evaluateAll() {
   const newStatsCls = {};
   let d4c = 0;
   const statsFields = [
-    { row: 0, expected: t.var_X, id: 'var_X', label: 'Var(X)', hint: FIELD_HINTS.var_X },
-    { row: 1, expected: t.sd_X, id: 'sd_X', label: 'SD(X)', hint: FIELD_HINTS.sd_X },
-    { row: 2, expected: t.var_Y, id: 'var_Y', label: 'Var(Y)', hint: FIELD_HINTS.var_Y },
-    { row: 3, expected: t.sd_Y, id: 'sd_Y', label: 'SD(Y)', hint: FIELD_HINTS.sd_Y },
+    { row: 0, expected: t.var_X, id: 'var_X', label: 's²(X)', hint: FIELD_HINTS.var_X },
+    { row: 1, expected: t.sd_X, id: 'sd_X', label: 's(X)', hint: FIELD_HINTS.sd_X },
+    { row: 2, expected: t.var_Y, id: 'var_Y', label: 's²(Y)', hint: FIELD_HINTS.var_Y },
+    { row: 3, expected: t.sd_Y, id: 'sd_Y', label: 's(Y)', hint: FIELD_HINTS.sd_Y },
     { row: 4, expected: t.covariance, id: 'covariance', label: 'Cov(X,Y)', hint: FIELD_HINTS.covariance },
-    { row: 5, expected: t.sd_product, id: 'sd_product', label: 'SD(X)\u00d7SD(Y)', hint: FIELD_HINTS.sd_product },
-    { row: 6, expected: t.correlation, id: 'correlation', label: 'Correlatie r', hint: FIELD_HINTS.correlation }
+    { row: 5, expected: t.sd_product, id: 'sd_product', label: 's(X)·s(Y)', hint: FIELD_HINTS.sd_product },
+    { row: 6, expected: t.correlation, id: 'correlation', label: 'r(X,Y)', hint: FIELD_HINTS.correlation }
   ];
   statsFields.forEach(f => {
     const raw = d4data[f.row] ? d4data[f.row][1] : null;
@@ -1059,7 +1059,7 @@ function evaluateAll() {
   });
   state.hotStatsCellClasses = newStatsCls;
   if (state.hotStats) state.hotStats.render();
-  updateSectionSummary('feedback-deel4', d4c, statsFields.length, 'Statistieken correct', 'controleer variantie, SD, covariantie en r');
+  updateSectionSummary('feedback-deel4', d4c, statsFields.length, 'Statistieken correct', 'controleer s², s, covariantie en r');
   renderFeedbackPanel('feedback-detail-deel4', Object.fromEntries(statsFields.map(f => [f.label, f.id])));
 
   // -- Deel V-VIII: Bivariate only -------------------------------
@@ -1070,7 +1070,7 @@ function evaluateAll() {
     const newRegCls = {};
     let d5c = 0;
     const regFields = [
-      { row: 0, expected: t.slope, id: 'slope', label: 'Helling b', hint: FIELD_HINTS.slope },
+      { row: 0, expected: t.slope, id: 'slope', label: 'Regressiecoëfficiënt b', hint: FIELD_HINTS.slope },
       { row: 1, expected: t.intercept, id: 'intercept', label: 'Intercept a', hint: FIELD_HINTS.intercept }
     ];
     regFields.forEach(f => {
@@ -1081,7 +1081,7 @@ function evaluateAll() {
     });
     state.hotRegCellClasses = newRegCls;
     if (state.hotReg) state.hotReg.render();
-    updateSectionSummary('feedback-deel5', d5c, regFields.length, 'Regressiecoefficienten correct', 'controleer helling en intercept');
+    updateSectionSummary('feedback-deel5', d5c, regFields.length, 'Regressiecoëfficiënten correct', 'controleer b en a');
     renderFeedbackPanel('feedback-detail-deel5', Object.fromEntries(regFields.map(f => [f.label, f.id])));
 
     // Deel VI: Predictions
@@ -1104,9 +1104,9 @@ function evaluateAll() {
     let d7c = 0;
     const fitFields = [
       { row: 0, expected: t.r_squared, id: 'r_squared', label: 'R\u00b2', hint: FIELD_HINTS.r_squared },
-      { row: 1, expected: t.alienation, id: 'alienation', label: 'Vervreemdingsco\u00ebffici\u00ebnt', hint: FIELD_HINTS.alienation },
-      { row: 2, expected: t.f_stat, id: 'f_stat', label: 'F-statistiek', hint: FIELD_HINTS.f_stat },
-      { row: 3, expected: t.model_p, id: 'model_p_value', label: 'Model p-waarde', hint: FIELD_HINTS.model_p_value }
+      { row: 1, expected: t.alienation, id: 'alienation', label: '1 − R²', hint: FIELD_HINTS.alienation },
+      { row: 2, expected: t.f_stat, id: 'f_stat', label: 'F', hint: FIELD_HINTS.f_stat },
+      { row: 3, expected: t.model_p, id: 'model_p_value', label: 'p', hint: FIELD_HINTS.model_p_value }
     ];
     fitFields.forEach(f => {
       const raw = d7data[f.row] ? d7data[f.row][1] : null;
@@ -1164,7 +1164,7 @@ function applyModeUI() {
           <li><b>Deel I:</b> Dataset bekijken</li>
           <li><b>Deel II:</b> Rekenkundige gemiddelden (X&#772; en Y&#772;)</li>
           <li><b>Deel III:</b> Afwijkingen, kwadraten en kruisproducten</li>
-          <li><b>Deel IV:</b> Variantie, SD, covariantie en correlatie r</li>
+          <li><b>Deel IV:</b> Variantie s², standaardafwijking s, covariantie en correlatie r</li>
         </ul>
       </li>
       <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij fout.</li>
@@ -1177,7 +1177,7 @@ function applyModeUI() {
           <li><b>Deel I:</b> Dataset bekijken</li>
           <li><b>Deel II:</b> Rekenkundige gemiddelden (X&#772; en Y&#772;)</li>
           <li><b>Deel III:</b> Afwijkingen, kwadraten en kruisproducten</li>
-          <li><b>Deel IV:</b> Variantie, SD, covariantie en correlatie r</li>
+          <li><b>Deel IV:</b> Variantie s², standaardafwijking s, covariantie en correlatie r</li>
           <li><b>Deel V&ndash;VI:</b> Helling b en intercept a</li>
           <li><b>Deel VII:</b> Voorspelde waarden Y&#770;</li>
           <li><b>Deel VIII:</b> R&#178;, vervreemding, F en model p</li>
@@ -1193,12 +1193,12 @@ function applyModeUI() {
       ? `
       <li>Bereken X&#772; en Y&#772; (Deel II).</li>
       <li>Bereken (x&minus;x&#772;), (y&minus;y&#772;), kwadraten en kruisproducten per rij (Deel III).</li>
-      <li>Bereken Var, SD, Cov(X,Y) en r (Deel IV).</li>
+      <li>Bereken s², s, Cov(X,Y) en r (Deel IV).</li>
       `
       : `
       <li>Bereken X&#772; en Y&#772; (Deel II).</li>
       <li>Bereken (x&minus;x&#772;), (y&minus;y&#772;), kwadraten en kruisproducten per rij (Deel III).</li>
-      <li>Bereken Var, SD, Cov(X,Y) en r (Deel IV).</li>
+      <li>Bereken s², s, Cov(X,Y) en r (Deel IV).</li>
       <li>Bereken helling b en intercept a (Deel V&ndash;VI).</li>
       <li>Bereken voorspellingen Y&#770; = a + b&#183;X (Deel VII).</li>
       <li>Bereken R&#178;, vervreemding, F en model p (Deel VIII).</li>
@@ -1207,8 +1207,8 @@ function applyModeUI() {
 
   if (nav4) nav4.textContent = 'IV. Stappen 5-9';
   if (hdr4) hdr4.textContent = 'Deel IV - Stappen 5-9: Covariatie en Voorbereiding';
-  if (hdr5) hdr5.textContent = 'Deel VI - Stappen 10-12: Correlatie en regressiecoefficienten';
-  if (hdr6) hdr6.textContent = 'Deel VII - Stap 13: Voorspellingen Yhat';
+  if (hdr5) hdr5.textContent = 'Deel VI - Stappen 10-12: Correlatie en regressiecoëfficiënten';
+  if (hdr6) hdr6.textContent = 'Deel VII - Stap 13: Voorspellingen Ŷ';
   if (hdr7) hdr7.textContent = 'Deel VIII - Stappen 14-17: Model Fit en F-toets';
 
   [nav5, nav6, nav7, sec5, sec6, sec7].forEach(el => {

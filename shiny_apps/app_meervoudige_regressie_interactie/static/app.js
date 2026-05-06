@@ -62,9 +62,9 @@ function normalizeScenarioLabels() {
 normalizeScenarioLabels();
 
 const FIELD_MAP = {
-  mean_X1: { label: 'Gemiddelde X1', truth: 'x1_bar' },
-  mean_X2: { label: 'Gemiddelde X2', truth: 'x2_bar' },
-  mean_Y: { label: 'Gemiddelde Y', truth: 'y_bar' },
+  mean_X1: { label: 'Gemiddelde X₁ (x̄₁)', truth: 'x1_bar' },
+  mean_X2: { label: 'Gemiddelde X₂ (x̄₂)', truth: 'x2_bar' },
+  mean_Y: { label: 'Gemiddelde Y (ȳ)', truth: 'y_bar' },
 
   tot_S11: { label: 'S11', truth: 'S11' },
   tot_S22: { label: 'S22', truth: 'S22' },
@@ -78,13 +78,13 @@ const FIELD_MAP = {
   tot_SST: { label: 'SST', truth: 'SST' },
 
   coef_a: { label: 'Intercept a', truth: 'a' },
-  coef_b1: { label: 'b1', truth: 'b1' },
-  coef_b2: { label: 'b2', truth: 'b2' },
-  coef_b3: { label: 'b3', truth: 'b3' },
+  coef_b1: { label: 'b₁', truth: 'b1' },
+  coef_b2: { label: 'b₂', truth: 'b2' },
+  coef_b3: { label: 'b₃', truth: 'b3' },
 
-  fit_R2: { label: 'R2', truth: 'R2' },
-  fit_delta_R2: { label: 'Delta R2', truth: 'delta_R2' },
-  fit_alienation: { label: 'Vervreemdingscoefficient', truth: 'alienation' }
+  fit_R2: { label: 'R²', truth: 'R2' },
+  fit_delta_R2: { label: 'ΔR²', truth: 'delta_R2' },
+  fit_alienation: { label: '1 − R²', truth: 'alienation' }
 };
 
 const STEP_GROUPS = {
@@ -443,10 +443,10 @@ function renderPredTable() {
 
   if (!truth) return;
 
-  const predName = 'Yhat = a + b1*X1c + b2*X2c + b3*INT';
+  const predName = 'Ŷ = a + b₁X₁c + b₂X₂c + b₃INT';
 
   const thead = document.createElement('thead');
-  thead.innerHTML = `<tr><th>Eenheid</th><th>X1c</th><th>X2c</th><th>INT</th><th>${sc.vars.y}</th><th>${predName}</th></tr>`;
+  thead.innerHTML = `<tr><th>Eenheid</th><th>X₁c</th><th>X₂c</th><th>INT</th><th>${sc.vars.y}</th><th>${predName}</th></tr>`;
   tbl.appendChild(thead);
 
   const tbody = document.createElement('tbody');
@@ -506,7 +506,7 @@ function parseExcelPasteValues(raw) {
 
 function getExcelPasteFieldOrder() {
   const fields = REQUIRED_FIELDS.map(id => ({ label: FIELD_MAP[id]?.label || id, target: id }));
-  state.predInputs.forEach((input, i) => fields.push({ label: `Yhat rij ${i + 1}`, target: input }));
+  state.predInputs.forEach((input, i) => fields.push({ label: `Ŷ rij ${i + 1}`, target: input }));
   return fields;
 }
 
@@ -705,9 +705,9 @@ function renderInteractionChart() {
   const seq = Array.from({ length: 80 }, (_, i) => minX + (i * (maxX - minX) / 79));
 
   const lines = [
-    { label: 'Lage X2 (-1 SD)', x2c: -t.x2_sd, color: '#2563eb' },
-    { label: 'Gemiddelde X2', x2c: 0, color: '#16a34a' },
-    { label: 'Hoge X2 (+1 SD)', x2c: t.x2_sd, color: '#dc2626' }
+    { label: 'Lage X₂ (-1 s)', x2c: -t.x2_sd, color: '#2563eb' },
+    { label: 'Gemiddelde X₂', x2c: 0, color: '#16a34a' },
+    { label: 'Hoge X₂ (+1 s)', x2c: t.x2_sd, color: '#dc2626' }
   ];
 
   const datasets = [
@@ -867,13 +867,13 @@ function renderInterpretation() {
   el.innerHTML = `
     <b>Interpretatie</b>
     <ul>
-      <li>Model: ${sc.vars.y} ~ X1c + X2c + INT</li>
-      <li>b1 = ${t.b1.toFixed(4)}, b2 = ${t.b2.toFixed(4)}, b3 = ${t.b3.toFixed(4)}</li>
+      <li>Model: ${sc.vars.y} ~ X₁c + X₂c + INT</li>
+      <li>b₁ = ${t.b1.toFixed(4)}, b₂ = ${t.b2.toFixed(4)}, b₃ = ${t.b3.toFixed(4)}</li>
       <li>De interactie is <b>${direction}</b>.</li>
-      <li>Simple slope bij lage X2: ${t.slope_low.toFixed(4)}</li>
-      <li>Simple slope bij gemiddelde X2: ${t.slope_mean.toFixed(4)}</li>
-      <li>Simple slope bij hoge X2: ${t.slope_high.toFixed(4)}</li>
-      <li>R2 = ${t.R2.toFixed(4)}, Delta R2 = ${t.delta_R2.toFixed(4)}, Vervreemdingscoefficient = ${t.alienation.toFixed(4)}</li>
+      <li>Simple slope bij lage X₂: ${t.slope_low.toFixed(4)}</li>
+      <li>Simple slope bij gemiddelde X₂: ${t.slope_mean.toFixed(4)}</li>
+      <li>Simple slope bij hoge X₂: ${t.slope_high.toFixed(4)}</li>
+      <li>R² = ${t.R2.toFixed(4)}, ΔR² = ${t.delta_R2.toFixed(4)}, 1 − R² = ${t.alienation.toFixed(4)}</li>
     </ul>
   `;
 }
@@ -929,7 +929,7 @@ function evaluateAll() {
     { id: 'fb-deel2', fields: STEP_GROUPS.step1, ok: 'Gemiddelden correct', partial: 'controleer gemiddelden' },
     { id: 'fb-deel3', fields: STEP_GROUPS.step2, ok: 'Totalen correct', partial: 'controleer S-waarden' },
     { id: 'fb-deel4', fields: STEP_GROUPS.step3, ok: 'Co\u00ebffici\u00ebnten correct', partial: 'controleer co\u00ebffici\u00ebnten' },
-    { id: 'fb-deel6', fields: STEP_GROUPS.step5, ok: 'Model fit correct', partial: 'controleer R\u00b2 en delta R\u00b2' },
+    { id: 'fb-deel6', fields: STEP_GROUPS.step5, ok: 'Model fit correct', partial: 'controleer R\u00b2 en ΔR\u00b2' },
   ];
   SECTION_GROUPS.forEach(sg => {
     let sc = 0;

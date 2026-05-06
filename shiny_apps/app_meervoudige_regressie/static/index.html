@@ -31,7 +31,7 @@
               <li><b>Deel III:</b> Afwijkingen, kwadraten en kruisproducten</li>
               <li><b>Deel IV:</b> Varianties en standaardafwijkingen</li>
               <li><b>Deel IV-A/B:</b> Covarianties en correlaties</li>
-              <li><b>Deel V:</b> Regressiecoëfficiënten a, b1 en b2</li>
+              <li><b>Deel V:</b> Regressiecoëfficiënten a, b₁ en b₂</li>
               <li><b>Deel VI:</b> Voorspelde waarden Y&#770;</li>
               <li><b>Deel VII:</b> R², F-statistiek en model p-waarde</li>
               <li><b>Deel IX:</b> Visualisaties &#128274;</li>
@@ -93,7 +93,7 @@
         <div class="nav-item active" data-target="deel1">I. Dataset</div>
         <div class="nav-item" data-target="deel2">II. Gemiddelden</div>
         <div class="nav-item" data-target="deel3">III. Totalen</div>
-        <div class="nav-item" data-target="deel4">IV. Var/SD</div>
+        <div class="nav-item" data-target="deel4">IV. s² en s</div>
         <div class="nav-item" data-target="deel4a">IV-A. Cov</div>
         <div class="nav-item" data-target="deel4b">IV-B. r</div>
         <div class="nav-item" data-target="deel5">V. Coefficiënten</div>
@@ -212,14 +212,16 @@
         <div class="card-header">Volledig model correct uitgewerkt</div>
       </section>
 
-      <section class="card hidden" id="viz-card">
+      <section class="card locked" id="viz-card">
         <div class="card-header">Deel IX &mdash; Visualisaties &#128274;</div>
         <div class="card-body">
-
-          <div class="chart-wrap"><canvas id="calibration-chart"></canvas></div>
-          <div class="chart-wrap"><canvas id="residual-chart"></canvas></div>
-          <div class="chart-wrap"><canvas id="predictor-chart"></canvas></div>
-          <div id="interpretation" class="interpretation"></div>
+          <div class="lock-notice" id="viz-lock">Voltooi Deel II t/m VII correct om de visualisaties te ontgrendelen.</div>
+          <div class="viz-content hidden" id="viz-content">
+            <div class="chart-wrap"><canvas id="calibration-chart"></canvas></div>
+            <div class="chart-wrap"><canvas id="residual-chart"></canvas></div>
+            <div class="chart-wrap"><canvas id="predictor-chart"></canvas></div>
+            <div id="interpretation" class="interpretation"></div>
+          </div>
         </div>
       </section>
     </main>

@@ -1033,6 +1033,13 @@ details.test-panel[open]>summary::before {
     overflow: auto;
 }
 
+.card-body > #hot-container:first-child,
+.card-body > #hot2-container:first-child,
+.card-body > #hot4-container:first-child,
+.card-body > #hot5-container:first-child {
+    margin-top: 0;
+}
+
 /* HOT2/3/4/5: fixed width, centered in section */
 #hot-container,
 #hot2-container,

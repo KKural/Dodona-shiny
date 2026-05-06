@@ -24,16 +24,16 @@
           <li>Voltooi <b>7 delen</b> om handmatig een interactiemodel uit te voeren:
             <ul>
               <li><b>Deel I:</b> Dataset bekijken</li>
-              <li><b>Deel II:</b> Rekenkundige gemiddelden voor X1, X2 en Y</li>
+              <li><b>Deel II:</b> Rekenkundige gemiddelden voor X₁, X₂ en Y</li>
               <li><b>Deel III:</b> Gecentreerde predictors en interactieterm</li>
-              <li><b>Deel IV:</b> Regressiecoëfficiënten a, b1, b2 en b3</li>
+              <li><b>Deel IV:</b> Regressiecoëfficiënten a, b₁, b₂ en b₃</li>
               <li><b>Deel V:</b> Voorspelde waarden Y&#770;</li>
               <li><b>Deel VI:</b> R², Delta R² en vervreemdingscoëfficiënt</li>
               <li><b>Deel VII:</b> Visualisaties &#128274;</li>
             </ul>
           </li>
-          <li><b>Gecentreerde predictors:</b> X1c = X1 &minus; X&#773;<sub>1</sub> en X2c = X2 &minus;
-            X&#773;<sub>2</sub>. De interactieterm is INT = X1c &times; X2c.</li>
+          <li><b>Gecentreerde predictors:</b> X₁c = X₁ &minus; x&#772;₁ en X₂c = X₂ &minus;
+            x&#772;₂. De interactieterm is INT = X₁c &times; X₂c.</li>
           <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij
             fout. Read-only kolommen worden automatisch ingevuld.</li>
           <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> automatisch.</li>
@@ -67,9 +67,9 @@
       <div class="sidebar-card">
         <div class="sidebar-card-title">Stappen</div>
         <ol class="sidebar-steps-list">
-          <li>Stap I: Bereken X1-, X2- en Y-gemiddelden.</li>
+          <li>Stap I: Bereken X₁-, X₂- en Y-gemiddelden.</li>
           <li>Stap II: Bereken centred predictors en de interactieterm.</li>
-          <li>Stap III: Bereken a, b1, b2 en b3.</li>
+          <li>Stap III: Bereken a, b₁, b₂ en b₃.</li>
           <li>Stap IV: Bereken voorspellingen Y&#770;.</li>
           <li>Stap V: Bereken R², Delta R² en vervreemdingscoëfficiënt.</li>
         </ol>
@@ -166,8 +166,8 @@
       <section class="card" id="deel5">
         <div class="card-header">Deel V &mdash; Stap IV: Voorspellingen</div>
         <div class="card-body">
-          <p class="instruction">Gebruik de read-only kolommen X1c (X1 gecentreerd), X2c (X2 gecentreerd) en INT (X1c
-            &times; X2c) om Y&#770; te berekenen.</p>
+          <p class="instruction">Gebruik de read-only kolommen X₁c (X₁ gecentreerd), X₂c (X₂ gecentreerd) en INT (X₁c
+            &times; X₂c) om Ŷ te berekenen.</p>
           <div class="table-wrap">
             <table id="pred-table"></table>
           </div>

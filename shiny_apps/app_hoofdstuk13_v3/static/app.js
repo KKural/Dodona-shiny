@@ -1095,7 +1095,7 @@ function buildGeneralMcqs(rng) {
     [
       'Correct: β is uitgedrukt in standaarddeviaties, waardoor predictoren met verschillende schalen vergelijkbaar worden.',
       'Fout: dit is de definitie van de ongestandaardiseerde b, niet van β.',
-      'Fout: β heeft geen vaste grootteverhouding tot b; de waarde hangt af van de verhouding SD(X)/SD(Y).'
+      'Fout: β heeft geen vaste grootteverhouding tot b; de waarde hangt af van de verhouding s(X)/s(Y).'
     ]
   );
 
@@ -1309,7 +1309,7 @@ function updatePredictionQuestion() {
     el.textContent = 'Genereer eerst een dataset om de voorspellingsvraag te zien.';
     return;
   }
-  el.textContent = `Bereken Yhat voor X1 = ${state.predCase.x1} en X2 = ${state.predCase.x2}`;
+  el.textContent = `Bereken Ŷ voor X1 = ${state.predCase.x1} en X2 = ${state.predCase.x2}`;
 }
 
 function ensureOpenFeedbackSlots() {
@@ -1539,7 +1539,7 @@ function checkOpenAnswers(recordAttempts = false) {
   const checks = [];
   checks.push({
     id: 'ans-bivar-r',
-    result: numericFeedback(document.getElementById('ans-bivar-r').value, st.bivar.r, 'gebruik r = cov(X1,Y) / (SD(X1)*SD(Y)).')
+    result: numericFeedback(document.getElementById('ans-bivar-r').value, st.bivar.r, 'gebruik r = Cov(X1,Y) / (s(X1)*s(Y)).')
   });
   checks.push({
     id: 'ans-bivar-r2',
@@ -1547,7 +1547,7 @@ function checkOpenAnswers(recordAttempts = false) {
   });
   checks.push({
     id: 'ans-bivar-b',
-    result: numericFeedback(document.getElementById('ans-bivar-b').value, st.bivar.b, 'gebruik b = cov(X1,Y) / var(X1).')
+    result: numericFeedback(document.getElementById('ans-bivar-b').value, st.bivar.b, 'gebruik b = Cov(X1,Y) / s²(X1).')
   });
   checks.push({
     id: 'ans-bivar-a',
@@ -1555,15 +1555,15 @@ function checkOpenAnswers(recordAttempts = false) {
   });
   checks.push({
     id: 'ans-multi-b1',
-    result: numericFeedback(document.getElementById('ans-multi-b1').value, st.multi.b1, 'gebruik de meervoudige regressieoplossing voor b1.')
+    result: numericFeedback(document.getElementById('ans-multi-b1').value, st.multi.b1, 'gebruik de meervoudige regressieoplossing voor b₁.')
   });
   checks.push({
     id: 'ans-multi-b2',
-    result: numericFeedback(document.getElementById('ans-multi-b2').value, st.multi.b2, 'gebruik de meervoudige regressieoplossing voor b2.')
+    result: numericFeedback(document.getElementById('ans-multi-b2').value, st.multi.b2, 'gebruik de meervoudige regressieoplossing voor b₂.')
   });
   checks.push({
     id: 'ans-multi-a',
-    result: numericFeedback(document.getElementById('ans-multi-a').value, st.multi.a, 'gebruik a = Ygem - b1*X1gem - b2*X2gem.')
+    result: numericFeedback(document.getElementById('ans-multi-a').value, st.multi.a, 'gebruik a = ȳ - b₁*x̄₁ - b₂*x̄₂.')
   });
   checks.push({
     id: 'ans-multi-r2',
@@ -1583,7 +1583,7 @@ function checkOpenAnswers(recordAttempts = false) {
   });
   checks.push({
     id: 'ans-pred',
-    result: numericFeedback(document.getElementById('ans-pred').value, st.pred, 'substitueer X1 en X2 in Yhat = a + b1*X1 + b2*X2.')
+    result: numericFeedback(document.getElementById('ans-pred').value, st.pred, 'substitueer X1 en X2 in Ŷ = a + b₁*X1 + b₂*X2.')
   });
 
   // ans-bivar-b-int: direction of bivariate b
@@ -1611,12 +1611,12 @@ function checkOpenAnswers(recordAttempts = false) {
     const dir = selectBlankFeedback(
       'ans-multi-b1-dir',
       st.multi.b1 >= 0 ? 'stijgt' : 'daalt',
-      `Fout: b1 = ${fmt2(st.multi.b1)} is ${st.multi.b1 >= 0 ? 'positief' : 'negatief'}, dus de verwachte Y ${st.multi.b1 >= 0 ? 'stijgt' : 'daalt'}.`
+      `Fout: b₁ = ${fmt2(st.multi.b1)} is ${st.multi.b1 >= 0 ? 'positief' : 'negatief'}, dus de verwachte Y ${st.multi.b1 >= 0 ? 'stijgt' : 'daalt'}.`
     );
     const ctrl = selectBlankFeedback(
       'ans-multi-b1-ctrl',
       'x2',
-      `Fout: bij b1 controleer je voor ${sc.vars.x2.name} (de andere predictor), niet voor iets anders.`
+      `Fout: bij b₁ controleer je voor ${sc.vars.x2.name} (de andere predictor), niet voor iets anders.`
     );
     const combined = (dir.state === 'pending' || ctrl.state === 'pending')
       ? { state: 'pending', msg: 'Nog niet alle keuzes gemaakt.' }
@@ -1631,12 +1631,12 @@ function checkOpenAnswers(recordAttempts = false) {
     const dir = selectBlankFeedback(
       'ans-multi-b2-dir',
       st.multi.b2 >= 0 ? 'stijgt' : 'daalt',
-      `Fout: b2 = ${fmt2(st.multi.b2)} is ${st.multi.b2 >= 0 ? 'positief' : 'negatief'}, dus de verwachte Y ${st.multi.b2 >= 0 ? 'stijgt' : 'daalt'}.`
+      `Fout: b₂ = ${fmt2(st.multi.b2)} is ${st.multi.b2 >= 0 ? 'positief' : 'negatief'}, dus de verwachte Y ${st.multi.b2 >= 0 ? 'stijgt' : 'daalt'}.`
     );
     const ctrl = selectBlankFeedback(
       'ans-multi-b2-ctrl',
       'x1',
-      `Fout: bij b2 controleer je voor ${sc.vars.x1.name} (de andere predictor), niet voor iets anders.`
+      `Fout: bij b₂ controleer je voor ${sc.vars.x1.name} (de andere predictor), niet voor iets anders.`
     );
     const combined = (dir.state === 'pending' || ctrl.state === 'pending')
       ? { state: 'pending', msg: 'Nog niet alle keuzes gemaakt.' }

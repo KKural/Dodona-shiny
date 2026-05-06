@@ -103,40 +103,40 @@ normalizeScenarioLabels();
 
 const FIELD_GROUPS = {
   means: [
-    ['mean_X1', 'Gemiddelde x1'],
-    ['mean_X2', 'Gemiddelde x2'],
-    ['mean_Y', 'Gemiddelde Y']
+    ['mean_X1', 'Gemiddelde X₁ (x̄₁)'],
+    ['mean_X2', 'Gemiddelde X₂ (x̄₂)'],
+    ['mean_Y', 'Gemiddelde Y (ȳ)']
   ],
   totals: [
-    ['tot_X1_2', 'Sum (x1-xbar1)^2'],
-    ['tot_X2_2', 'Sum (x2-xbar2)^2'],
-    ['tot_X1X2', 'Sum (x1-xbar1)(x2-xbar2)'],
-    ['tot_X1Y', 'Sum (x1-xbar1)(Y-Ybar)'],
-    ['tot_X2Y', 'Sum (x2-xbar2)(Y-Ybar)'],
-    ['tot_Y2', 'Sum (Y-Ybar)^2 (SST)']
+    ['tot_X1_2', 'S₁₁ = Σ(x₁−x̄₁)²'],
+    ['tot_X2_2', 'S₂₂ = Σ(x₂−x̄₂)²'],
+    ['tot_X1X2', 'S₁₂ = Σ(x₁−x̄₁)(x₂−x̄₂)'],
+    ['tot_X1Y', 'S₁y = Σ(x₁−x̄₁)(y−ȳ)'],
+    ['tot_X2Y', 'S₂y = Σ(x₂−x̄₂)(y−ȳ)'],
+    ['tot_Y2', 'SST = Σ(y−ȳ)²']
   ],
   varsd: [
-    ['var_X1', 'Var(x1)'], ['sd_X1', 'SD(x1)'],
-    ['var_X2', 'Var(x2)'], ['sd_X2', 'SD(x2)'],
-    ['var_Y', 'Var(Y)'], ['sd_Y', 'SD(Y)']
+    ['var_X1', 's²(X₁)'], ['sd_X1', 's(X₁)'],
+    ['var_X2', 's²(X₂)'], ['sd_X2', 's(X₂)'],
+    ['var_Y', 's²(Y)'], ['sd_Y', 's(Y)']
   ],
   cov: [
-    ['cov_x1y', 'Cov(x1,Y)'], ['cov_x2y', 'Cov(x2,Y)'], ['cov_x1x2', 'Cov(x1,x2)']
+    ['cov_x1y', 'Cov(X₁,Y)'], ['cov_x2y', 'Cov(X₂,Y)'], ['cov_x1x2', 'Cov(X₁,X₂)']
   ],
   corr: [
-    ['r_x1y', 'r_x1y'], ['r_x2y', 'r_x2y'], ['r_x1x2', 'r_x1x2']
+    ['r_x1y', 'r(X₁,Y)'], ['r_x2y', 'r(X₂,Y)'], ['r_x1x2', 'r(X₁,X₂)']
   ],
   coef: [
-    ['multi_det', 'det'],
-    ['multi_b1', 'b1'],
-    ['multi_b2', 'b2'],
+    ['multi_det', 'D'],
+    ['multi_b1', 'b₁'],
+    ['multi_b2', 'b₂'],
     ['multi_intercept', 'Intercept a']
   ],
   fit: [
-    ['multi_r_squared', 'R2'],
-    ['multi_alienation', 'Vervreemdingscoefficient'],
-    ['multi_f_stat', 'F-statistiek'],
-    ['multi_model_p', 'Model p-waarde']
+    ['multi_r_squared', 'R²'],
+    ['multi_alienation', '1 − R²'],
+    ['multi_f_stat', 'F'],
+    ['multi_model_p', 'p']
   ]
 };
 
@@ -526,9 +526,9 @@ function renderHotMeans() {
   container.innerHTML = '';
   const { x1, x2, y } = state.names;
   const tableData = [
-    [`Gemiddelde x1 (${x1})`, null],
-    [`Gemiddelde x2 (${x2})`, null],
-    [`Gemiddelde Y (${y})`, null]
+    [`Gemiddelde X₁ (x̄₁) — ${x1}`, null],
+    [`Gemiddelde X₂ (x̄₂) — ${x2}`, null],
+    [`Gemiddelde Y (ȳ) — ${y}`, null]
   ];
   const longest = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Grootheid');
   const w0 = Math.max(160, Math.ceil(longest.length * 7) + 16);
@@ -613,10 +613,10 @@ function renderHotVarSd() {
   container.innerHTML = '';
   const { x1, x2, y } = state.names;
   const tableData = [
-    ['Var (s²)', null, null, null],
-    ['SD (s)', null, null, null]
+    ['Variantie (s²)', null, null, null],
+    ['Standaardafwijking (s)', null, null, null]
   ];
-  const colWidths = [80, 160, 160, 160];
+  const colWidths = [170, 160, 160, 160];
   const hotValidate = debounce(evaluateAll, 250);
   state.hotVarSd = new Handsontable(container, {
     data: tableData,
@@ -665,7 +665,7 @@ function renderHotCov() {
   state.hotCov = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Paar', 'Covariantie'],
+    colHeaders: ['Paar', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -707,7 +707,7 @@ function renderHotCorr() {
   state.hotCorr = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Paar', 'Correlatieco\u00ebffici\u00ebnt r'],
+    colHeaders: ['Paar', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -738,7 +738,7 @@ function renderHotCoef() {
   state.hotCoefCellClasses = {};
   container.innerHTML = '';
   const tableData = [
-    ['Determinant', null],
+    ['Determinant D', null],
     ['Regressieco\u00ebffici\u00ebnt b\u2081', null],
     ['Regressieco\u00ebffici\u00ebnt b\u2082', null],
     ['Intercept a', null]
@@ -747,7 +747,7 @@ function renderHotCoef() {
   state.hotCoef = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Co\u00ebffici\u00ebnt', 'Jouw antwoord'],
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -779,9 +779,9 @@ function renderHotFit() {
   container.innerHTML = '';
   const tableData = [
     ['R\u00b2', null],
-    ['Vervreemdingsco\u00ebffici\u00ebnt (1 \u2212 R\u00b2)', null],
-    ['F-statistiek', null],
-    ['Model p-waarde', null]
+    ['1 \u2212 R\u00b2', null],
+    ['F', null],
+    ['p-waarde', null]
   ];
   const hotValidate = debounce(evaluateAll, 250);
   state.hotFit = new Handsontable(container, {
@@ -875,7 +875,7 @@ function renderHotPred() {
   state.hotPred = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Eenheid', x1, x2, y, 'Y\u0302 (voorspeld)'],
+    colHeaders: ['Eenheid', x1, x2, y, 'Ŷ = a + b₁X₁ + b₂X₂'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
@@ -922,7 +922,9 @@ function clearStatuses() {
     if (el) { el.innerHTML = ''; el.className = 'section-summary'; }
   });
   document.getElementById('success-card').classList.add('hidden');
-  document.getElementById('viz-card').classList.add('hidden');
+  document.getElementById('viz-card').classList.add('locked');
+  document.getElementById('viz-lock').classList.remove('hidden');
+  document.getElementById('viz-content').classList.add('hidden');
   document.getElementById('interpretation').innerHTML = '';
   state.unlocked = false;
   destroyCharts();
@@ -931,32 +933,32 @@ function clearStatuses() {
 }
 
 const FIELD_HINTS = {
-  mean_X1: 'gem(X1) = ΣX1 / n',
-  mean_X2: 'gem(X2) = ΣX2 / n',
-  mean_Y: 'gem(Y) = ΣY / n',
-  tot_X1_2: 'S11 = Σ(X1i − X̄₁)²',
-  tot_X2_2: 'S22 = Σ(X2i − X̄₂)²',
-  tot_X1X2: 'S12 = Σ(X1i−X̄₁)(X2i−X̄₂)',
-  tot_X1Y: 'S1y = Σ(X1i−X̄₁)(Yi−Y̅)',
-  tot_X2Y: 'S2y = Σ(X2i−X̄₂)(Yi−Y̅)',
-  tot_Y2: 'SST = Σ(Yi − Y̅)²',
-  var_X1: 's²(X1) = S11 / (n−1)',
-  sd_X1: 's(X1) = √Var(X1)',
-  var_X2: 's²(X2) = S22 / (n−1)',
-  sd_X2: 's(X2) = √Var(X2)',
+  mean_X1: 'x̄₁ = ΣX₁ / n',
+  mean_X2: 'x̄₂ = ΣX₂ / n',
+  mean_Y: 'ȳ = ΣY / n',
+  tot_X1_2: 'S₁₁ = Σ(X₁ᵢ − x̄₁)²',
+  tot_X2_2: 'S₂₂ = Σ(X₂ᵢ − x̄₂)²',
+  tot_X1X2: 'S₁₂ = Σ(X₁ᵢ−x̄₁)(X₂ᵢ−x̄₂)',
+  tot_X1Y: 'S₁y = Σ(X₁ᵢ−x̄₁)(Yᵢ−ȳ)',
+  tot_X2Y: 'S₂y = Σ(X₂ᵢ−x̄₂)(Yᵢ−ȳ)',
+  tot_Y2: 'SST = Σ(Yᵢ − ȳ)²',
+  var_X1: 's²(X₁) = S₁₁ / (n−1)',
+  sd_X1: 's(X₁) = √s²(X₁)',
+  var_X2: 's²(X₂) = S₂₂ / (n−1)',
+  sd_X2: 's(X₂) = √s²(X₂)',
   var_Y: 's²(Y) = SST / (n−1)',
-  sd_Y: 's(Y) = √Var(Y)',
-  cov_x1y: 'Cov(X1,Y) = S1y / (n−1)',
-  cov_x2y: 'Cov(X2,Y) = S2y / (n−1)',
-  cov_x1x2: 'Cov(X1,X2) = S12 / (n−1)',
-  r_x1y: 'r(X1,Y) = Cov(X1,Y) / (s(X1)·s(Y))',
-  r_x2y: 'r(X2,Y) = Cov(X2,Y) / (s(X2)·s(Y))',
-  r_x1x2: 'r(X1,X2) = Cov(X1,X2) / (s(X1)·s(X2))',
-  multi_det: 'det = S11·S22 − S12²',
-  multi_b1: 'b1 = (S1y·S22 − S2y·S12) / det',
-  multi_b2: 'b2 = (S2y·S11 − S1y·S12) / det',
-  multi_intercept: 'a = Y̅ − b1·X̄₁ − b2·X̄₂',
-  multi_r_squared: 'R² = (b1·S1y + b2·S2y) / SST',
+  sd_Y: 's(Y) = √s²(Y)',
+  cov_x1y: 'Cov(X₁,Y) = S₁y / (n−1)',
+  cov_x2y: 'Cov(X₂,Y) = S₂y / (n−1)',
+  cov_x1x2: 'Cov(X₁,X₂) = S₁₂ / (n−1)',
+  r_x1y: 'r(X₁,Y) = Cov(X₁,Y) / (s(X₁)·s(Y))',
+  r_x2y: 'r(X₂,Y) = Cov(X₂,Y) / (s(X₂)·s(Y))',
+  r_x1x2: 'r(X₁,X₂) = Cov(X₁,X₂) / (s(X₁)·s(X₂))',
+  multi_det: 'D = S₁₁·S₂₂ − S₁₂²',
+  multi_b1: 'b₁ = (S₁y·S₂₂ − S₂y·S₁₂) / D',
+  multi_b2: 'b₂ = (S₂y·S₁₁ − S₁y·S₁₂) / D',
+  multi_intercept: 'a = ȳ − b₁·x̄₁ − b₂·x̄₂',
+  multi_r_squared: 'R² = (b₁·S₁y + b₂·S₂y) / SST',
   multi_alienation: '1 − R²',
   multi_f_stat: 'F = (R²/k) / ((1−R²)/(n−k−1))',
   multi_model_p: 'p = P(F ≥ f-waarde)',
@@ -1087,9 +1089,9 @@ function renderCharts() {
   document.getElementById('interpretation').innerHTML = `
     <b>Interpretatie</b>
     <ul>
-      <li>b1 = ${t.b1.toFixed(4)} (effect van ${x1}, gecontroleerd voor ${x2})</li>
-      <li>b2 = ${t.b2.toFixed(4)} (effect van ${x2}, gecontroleerd voor ${x1})</li>
-      <li>R2 = ${t.R_squared.toFixed(4)}; onverklaard = ${t.alienation.toFixed(4)}</li>
+      <li>b₁ = ${t.b1.toFixed(4)} (effect van ${x1}, gecontroleerd voor ${x2})</li>
+      <li>b₂ = ${t.b2.toFixed(4)} (effect van ${x2}, gecontroleerd voor ${x1})</li>
+      <li>R² = ${t.R_squared.toFixed(4)}; onverklaard = ${t.alienation.toFixed(4)}</li>
       <li>F(${t.df_reg}, ${t.df_err}) = ${t.F_stat.toFixed(4)}, p = ${pText}</li>
       <li>${sig ? 'Model is statistisch significant op 5%-niveau.' : 'Model is niet statistisch significant op 5%-niveau.'}</li>
     </ul>
@@ -1140,7 +1142,7 @@ function evaluateAll() {
   const SECTION_GROUPS = [
     { id: 'fb-deel2', fields: ['mean_X1', 'mean_X2', 'mean_Y'], ok: 'Gemiddelden correct', partial: 'controleer gemiddelden' },
     { id: 'fb-deel3', fields: ['tot_X1_2', 'tot_X2_2', 'tot_X1X2', 'tot_X1Y', 'tot_X2Y', 'tot_Y2'], ok: 'Afwijkingen correct', partial: 'controleer kwadraten en kruisproducten' },
-    { id: 'fb-deel4', fields: ['var_X1', 'sd_X1', 'var_X2', 'sd_X2', 'var_Y', 'sd_Y'], ok: 'Varianties en SD correct', partial: 'controleer varianties en SD' },
+    { id: 'fb-deel4', fields: ['var_X1', 'sd_X1', 'var_X2', 'sd_X2', 'var_Y', 'sd_Y'], ok: 'Varianties en s correct', partial: 'controleer s² en s' },
     { id: 'fb-deel4a', fields: ['cov_x1y', 'cov_x2y', 'cov_x1x2'], ok: 'Covarianties correct', partial: 'controleer covarianties' },
     { id: 'fb-deel4b', fields: ['r_x1y', 'r_x2y', 'r_x1x2'], ok: 'Correlaties correct', partial: 'controleer correlatiecoëfficiënten' },
     { id: 'fb-deel5', fields: ['multi_det', 'multi_b1', 'multi_b2', 'multi_intercept'], ok: 'Regressiecoëfficiënten correct', partial: 'controleer determinant en coëfficiënten' },
@@ -1164,11 +1166,15 @@ function evaluateAll() {
     setVizNavLock(unlock);
     if (unlock) {
       document.getElementById('success-card').classList.remove('hidden');
-      document.getElementById('viz-card').classList.remove('hidden');
+      document.getElementById('viz-card').classList.remove('locked');
+      document.getElementById('viz-lock').classList.add('hidden');
+      document.getElementById('viz-content').classList.remove('hidden');
       renderCharts();
     } else {
       document.getElementById('success-card').classList.add('hidden');
-      document.getElementById('viz-card').classList.add('hidden');
+      document.getElementById('viz-card').classList.add('locked');
+      document.getElementById('viz-lock').classList.remove('hidden');
+      document.getElementById('viz-content').classList.add('hidden');
       document.getElementById('interpretation').innerHTML = '';
       destroyCharts();
     }
@@ -1286,15 +1292,15 @@ function generate(random = false) {
   state.truth = calcTruth(state.rows, state.names);
 
   setScenarioText(sc, state.names);
-  renderDatasetTable();
-  renderHotPred();
   clearStatuses();
+  renderDatasetTable();
   renderHotMeans();
   renderHotTotals();
   renderHotVarSd();
   renderHotCov();
   renderHotCorr();
   renderHotCoef();
+  renderHotPred();
   renderHotFit();
   evaluateAll();
 }
@@ -1329,4 +1335,3 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
-

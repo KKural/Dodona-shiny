@@ -708,7 +708,7 @@ function renderGroupMeansTable() {
     state.hot2 = new Handsontable(container, {
         data: tableData,
         licenseKey: 'non-commercial-and-evaluation',
-        colHeaders: ['Groep', 'Gemiddelde'],
+        colHeaders: ['Groep', 'Jouw antwoord'],
         columns: [
             { type: 'text', readOnly: true },
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -753,7 +753,7 @@ function renderSSTable() {
     state.hot4 = new Handsontable(container, {
         data: tableData,
         licenseKey: 'non-commercial-and-evaluation',
-        colHeaders: ['Bron van variatie', 'SS&nbsp;(4&nbsp;decimalen)'],
+        colHeaders: ['Bron van variatie', 'Jouw antwoord (SS)'],
         columns: [
             { type: 'text', readOnly: true },
             { type: 'numeric', numericFormat: { pattern: '0.0000' } }

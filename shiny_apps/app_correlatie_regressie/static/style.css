@@ -607,6 +607,10 @@ td .pred-input {
   overflow: auto;
 }
 
+.card-body > .hot-table-container:first-child {
+  margin-top: 0;
+}
+
 #hot-means-container .handsontable td,
 #hot-dev-container .handsontable td,
 #hot-stats-container .handsontable td,

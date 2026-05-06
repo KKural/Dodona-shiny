@@ -91,8 +91,8 @@
               <li><a href="#ans-bivar-r">Bivariate r</a></li>
               <li><a href="#ans-bivar-r2">Bivariate R²</a></li>
               <li><a href="#ans-bivar-b">Bivariate b</a></li>
-              <li><a href="#ans-multi-b1">Meervoudige b1</a></li>
-              <li><a href="#ans-multi-b2">Meervoudige b2</a></li>
+              <li><a href="#ans-multi-b1">Meervoudige b₁</a></li>
+              <li><a href="#ans-multi-b2">Meervoudige b₂</a></li>
               <li><a href="#ans-multi-r2">Meervoudige R²</a></li>
               <li><a href="#ans-rx1x2">Correlatie X1-X2</a></li>
               <li><a href="#ans-partial-1">Partiele r(X1,Y|X2)</a></li>
@@ -117,8 +117,8 @@
       <div class="panel">
         <h2>Formule-overzicht</h2>
         <ul class="formula-list">
-          <li><strong>r</strong> = cov(X,Y) / (SD(X) · SD(Y))</li>
-          <li><strong>Bivariate b</strong> = cov(X,Y) / var(X)</li>
+          <li><strong>r</strong> = Cov(X,Y) / (s(X) · s(Y))</li>
+          <li><strong>Bivariate b</strong> = Cov(X,Y) / s²(X)</li>
           <li><strong>Bivariate a</strong> = Ȳ - b·X̄</li>
           <li><strong>Ŷ bivariate</strong> = a + bX</li>
           <li><strong>Ŷ meervoudig</strong> = a + b₁X₁ + b₂X₂</li>
@@ -126,7 +126,7 @@
           <li><strong>R²</strong> = 1 - SSE/SST</li>
           <li><strong>Pad totaal effect</strong><br />direct effect + som van alle indirecte paden</li>
           <li><strong>Partiele r</strong><br />r₁₂.₃ = (r₁₂ - r₁₃·r₂₃) / √((1-r₁₃²)(1-r₂₃²))</li>
-          <li><strong>Gestand. beta</strong><br />β₁ = b₁ · SD(X₁) / SD(Y)</li>
+          <li><strong>Gestand. beta</strong><br />β₁ = b₁ · s(X₁) / s(Y)</li>
         </ul>
       </div>
     </aside>
@@ -339,11 +339,11 @@
                 </td>
               </tr>
               <tr class="divider-row">
-                <td><strong>Meervoudige regressie</strong>: b1 (voor <span class="var-x1-name">X1</span>)</td>
+                <td><strong>Meervoudige regressie</strong>: b₁ (voor <span class="var-x1-name">X1</span>)</td>
                 <td><input id="ans-multi-b1" type="text" placeholder="bijv. 0.8765" autocomplete="off" /></td>
               </tr>
               <tr>
-                <td>Interpretatie b1 (ceteris paribus)</td>
+                <td>Interpretatie b₁ (ceteris paribus)</td>
                 <td>
                   <div id="ans-multi-b1-int" class="sentence-blank">
                     Als <span class="var-x1-name">X1</span> met 1 stijgt,
@@ -365,11 +365,11 @@
                 </td>
               </tr>
               <tr>
-                <td>b2 (voor <span class="var-x2-name">X2</span>)</td>
+                <td>b₂ (voor <span class="var-x2-name">X2</span>)</td>
                 <td><input id="ans-multi-b2" type="text" placeholder="bijv. -0.1200" autocomplete="off" /></td>
               </tr>
               <tr>
-                <td>Interpretatie b2 (ceteris paribus)</td>
+                <td>Interpretatie b₂ (ceteris paribus)</td>
                 <td>
                   <div id="ans-multi-b2-int" class="sentence-blank">
                     Als <span class="var-x2-name">X2</span> met 1 stijgt,
@@ -451,7 +451,7 @@
                 <td><input id="ans-partial-2" type="text" placeholder="bijv. -0.2200" autocomplete="off" /></td>
               </tr>
               <tr class="divider-row">
-                <td><strong>Verwachte waarde</strong>: <span id="pred-question">Bereken Yhat voor X1 = ... en X2 =
+                <td><strong>Verwachte waarde</strong>: <span id="pred-question">Bereken Ŷ voor X1 = ... en X2 =
                     ...</span></td>
                 <td><input id="ans-pred" type="text" placeholder="bijv. 24.35" autocomplete="off" /></td>
               </tr>
