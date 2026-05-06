@@ -390,6 +390,26 @@ body {
   overflow: auto;
 }
 
+.dataset-table {
+  border-collapse: collapse;
+  font-size: 12.5px;
+  width: 100%;
+}
+.dataset-table th,
+.dataset-table td {
+  border: 1px solid #e2e8f0;
+  padding: 5px 10px;
+  text-align: center;
+}
+.dataset-table th {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #475569;
+}
+.dataset-table tr:nth-child(even) {
+  background: #f8fafd;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
