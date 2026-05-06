@@ -1528,6 +1528,7 @@ function attachGlobalListeners() {
     // â”€â”€â”€ Sidebar resize drag handle â”€â”€
     const resizeHandle = document.getElementById('sidebar-resize-handle');
     if (resizeHandle && sidebarEl) {
+        const layoutEl = sidebarEl.closest('.layout');
         let startX = 0, startWidth = 0;
         resizeHandle.addEventListener('mousedown', (e) => {
             startX = e.clientX;
@@ -1539,8 +1540,9 @@ function attachGlobalListeners() {
         });
         document.addEventListener('mousemove', (e) => {
             if (!resizeHandle.classList.contains('dragging')) return;
-            const newWidth = Math.min(480, Math.max(180, startWidth + (e.clientX - startX)));
+            const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
             sidebarEl.style.width = newWidth + 'px';
+            if (layoutEl) layoutEl.style.gridTemplateColumns = `${newWidth}px 6px 1fr`;
         });
         document.addEventListener('mouseup', () => {
             if (!resizeHandle.classList.contains('dragging')) return;

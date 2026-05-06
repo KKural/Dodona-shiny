@@ -2252,7 +2252,7 @@ function initResizeHandle() {
   handle.addEventListener('mousedown', (e) => {
     dragging = true;
     startX = e.clientX;
-    startWidth = parseInt(getComputedStyle(layout).getPropertyValue('--sidebar-width') || '320', 10);
+    startWidth = parseInt(getComputedStyle(layout).getPropertyValue('--sidebar-width') || '400', 10);
     handle.classList.add('dragging');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';

@@ -18,13 +18,14 @@ body {
     margin: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
 }
 
 .layout {
     min-height: 100vh;
     display: grid;
-    grid-template-columns: var(--sidebar-width, 320px) 6px 1fr;
+    grid-template-columns: var(--sidebar-width, 400px) 6px 1fr;
 }
 
 .sidebar {
@@ -548,7 +549,7 @@ select.blank-select {
     font-size: 0.86rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
     .layout {
         grid-template-columns: 1fr !important;
     }

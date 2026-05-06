@@ -1486,8 +1486,8 @@ function getExcelPasteFieldOrder() {
     ['Combinatie R²', 'ans-multi-r2-comb'],
     ['r(X1,X2)', 'ans-rx1x2'],
     ['Richting r(X1,X2)', 'ans-rx1x2-dir'],
-    ['Partiele r X1Y|X2', 'ans-partial-1'],
-    ['Partiele r X2Y|X1', 'ans-partial-2'],
+    ['Partiële r X1Y|X2', 'ans-partial-1'],
+    ['Partiële r X2Y|X1', 'ans-partial-2'],
     ['Verwachte waarde', 'ans-pred'],
     ['Assumptie', 'ans-assumption']
   ].map(([label, id]) => ({ label, id }));
@@ -2380,7 +2380,7 @@ function initResizeHandle() {
   handle.addEventListener('mousedown', (e) => {
     dragging = true;
     startX = e.clientX;
-    startWidth = parseInt(getComputedStyle(layout).getPropertyValue('--sidebar-width') || '320', 10);
+    startWidth = parseInt(getComputedStyle(layout).getPropertyValue('--sidebar-width') || '400', 10);
     handle.classList.add('dragging');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';

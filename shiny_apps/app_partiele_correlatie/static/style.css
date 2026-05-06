@@ -28,7 +28,8 @@ body {
 }
 
 .layout {
-  display: flex;
+  display: grid;
+  grid-template-columns: 400px 6px 1fr;
   min-height: 100vh;
 }
 
@@ -257,13 +258,11 @@ body {
 
 .sidebar-resize-handle {
   width: 6px;
-  flex-shrink: 0;
   cursor: col-resize;
   background: transparent;
   position: sticky;
   top: 0;
   height: 100vh;
-  align-self: flex-start;
   z-index: 20;
   transition: background 0.15s;
 }
@@ -274,7 +273,6 @@ body {
 }
 
 .main-content {
-  flex: 1;
   min-width: 0;
   padding: 24px 28px;
   display: flex;

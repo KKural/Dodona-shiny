@@ -24,7 +24,8 @@ body {
 
 /* LAYOUT */
 .layout {
-    display: flex;
+    display: grid;
+    grid-template-columns: 400px 6px 1fr;
     min-height: 100vh;
 }
 
@@ -47,13 +48,11 @@ body {
 
 .sidebar-resize-handle {
     width: 6px;
-    flex-shrink: 0;
     cursor: col-resize;
     background: transparent;
     position: sticky;
     top: 0;
     height: 100vh;
-    align-self: flex-start;
     z-index: 20;
     transition: background 0.15s;
 }
@@ -294,7 +293,7 @@ body {
 
 /* MAIN */
 .main-content {
-    flex: 1;
+    min-width: 0;
     padding: 24px 28px;
     display: flex;
     flex-direction: column;
@@ -985,12 +984,22 @@ details.test-panel[open]>summary::before {
 }
 
 /* responsive */
-@media (max-width: 700px) {
+@media (max-width: 1100px) {
+    .layout {
+        display: block;
+    }
+
+    .sidebar-resize-handle {
+        display: none;
+    }
+
     .sidebar {
         position: fixed;
-        left: -280px;
+        left: -360px;
         top: 0;
-        width: 270px;
+        bottom: 0;
+        width: 320px;
+        max-width: 90vw;
         height: 100vh;
         z-index: 200;
         transition: left 0.25s ease;

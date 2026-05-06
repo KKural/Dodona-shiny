@@ -1113,7 +1113,7 @@ function evaluateAll() {
     FIELD_GROUPS.partial,
     'partial-msg',
     'partial-detail',
-    'Partiele correlatie correct',
+    'Partiële correlatie correct',
     'controleer teller, noemer en r_xy.z'
   );
   totalCount += partialRes.totalCount;
@@ -1206,6 +1206,7 @@ function setupSidebarChrome() {
 
   const resizeHandle = document.getElementById('sidebar-resize-handle');
   if (resizeHandle && sidebarEl) {
+    const layoutEl = sidebarEl.closest('.layout');
     let startX = 0;
     let startWidth = 0;
     resizeHandle.addEventListener('mousedown', (e) => {
@@ -1220,6 +1221,7 @@ function setupSidebarChrome() {
       if (!resizeHandle.classList.contains('dragging')) return;
       const newWidth = Math.min(520, Math.max(220, startWidth + (e.clientX - startX)));
       sidebarEl.style.width = `${newWidth}px`;
+      if (layoutEl) layoutEl.style.gridTemplateColumns = `${newWidth}px 6px 1fr`;
     });
     document.addEventListener('mouseup', () => {
       if (!resizeHandle.classList.contains('dragging')) return;
