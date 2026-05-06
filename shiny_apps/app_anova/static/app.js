@@ -1412,9 +1412,6 @@ function doGenerate() {
     state.allCorrect = false;
     destroyCharts();
 
-    // update vignette banner
-    document.getElementById('vignette-text').textContent = sc.vignette;
-
     // update taak & vignette section
     const scenarioTextEl = document.getElementById('scenario-text');
     if (scenarioTextEl) {

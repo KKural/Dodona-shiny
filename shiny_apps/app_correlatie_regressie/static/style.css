@@ -29,15 +29,18 @@ body {
 }
 
 .sidebar {
-  background: var(--sidebar-bg);
-  color: #f8fafc;
-  padding: 16px;
+  background: #1e2a3a;
+  color: #cdd9e5;
+  padding: 20px 14px;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow: auto;
   min-width: 220px;
   max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .sidebar-title {
@@ -64,32 +67,33 @@ body {
 }
 
 .sidebar-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 12px;
+  background: #1a2f45;
+  border: 1px solid #2c4a66;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 6px 0;
 }
 
 .sidebar-card-title {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 13px;
+  color: #93c5fd;
   margin-bottom: 6px;
 }
 
 .sidebar-help {
   margin: 0 0 10px 0;
-  color: #dbeafe;
-  font-size: 0.84rem;
+  color: #94a3b8;
+  font-size: 11.5px;
   line-height: 1.4;
 }
 
 .sidebar-howto-list,
 .sidebar-steps-list {
   margin: 0;
-  padding-left: 18px;
-  color: #dbeafe;
-  font-size: 0.86rem;
+  padding-left: 16px;
+  color: #cdd9e5;
+  font-size: 12px;
 }
 
 .sidebar-howto-list li,
@@ -353,6 +357,32 @@ body {
 
 .table-wrap {
   overflow: auto;
+}
+
+.dataset-table {
+  border-collapse: collapse;
+  font-size: 12.5px;
+  width: 100%;
+}
+.dataset-table th,
+.dataset-table td {
+  border: 1px solid #e2e8f0;
+  padding: 5px 10px;
+  text-align: center;
+}
+.dataset-table th {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #475569;
+}
+.dataset-table tr:nth-child(even) {
+  background: #f8fafd;
+}
+
+.scenario-task-note {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #1e3a5f;
 }
 
 table {

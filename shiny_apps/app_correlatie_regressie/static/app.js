@@ -770,6 +770,7 @@ function setScenarioText(sc, names) {
 
 function renderDatasetTable() {
   const tbl = document.getElementById('dataset-table');
+  tbl.className = 'dataset-table';
   tbl.innerHTML = '';
 
   const { x, y } = state.names;
