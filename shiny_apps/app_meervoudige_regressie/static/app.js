@@ -840,7 +840,9 @@ function renderCharts() {
       <li>b\u2081\u00a0=\u00a0${t.b1.toFixed(4)}, b\u2082\u00a0=\u00a0${t.b2.toFixed(4)}, a\u00a0=\u00a0${t.intercept.toFixed(4)}</li>
       <li>R\u00b2\u00a0=\u00a0${t.R_squared.toFixed(4)}; onverklaard\u00a0=\u00a0${t.alienation.toFixed(4)}</li>
       <li>F(2,\u00a0${n - 3})\u00a0=\u00a0${t.F_stat.toFixed(4)}, p\u00a0=\u00a0${pText}</li>
-      <li>${sig ? 'Model is statistisch significant op 5%-niveau.' : 'Model is niet statistisch significant op 5%-niveau.'}</li>
+      <li>${sig
+      ? 'Model is <b>statistisch significant</b> (p\u00a0&lt;\u00a0.05): de combinatie van voorspellers verklaart een statistisch aantoonbaar deel van de variantie in Y\u00a0\u2014 de kans dat dit resultaat puur op toeval berust is kleiner dan 5%.'
+      : 'Model is <b>niet statistisch significant</b> (p\u00a0\u2265\u00a0.05): de combinatie van voorspellers verklaart geen statistisch aantoonbaar deel van de variantie in Y\u00a0\u2014 het resultaat kan op toeval berusten.'}</li>
     </ul>`;
 }
 

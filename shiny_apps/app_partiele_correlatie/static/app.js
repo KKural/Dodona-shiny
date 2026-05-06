@@ -146,6 +146,13 @@ const CONCLUSION_LABELS = {
   4: 'Direct effect blijft',
   5: 'Tekenwisseling'
 };
+const CONCLUSION_EXPLANATIONS = {
+  1: 'Het verband tussen X en Y verdwijnt na controle voor Z: Z verklaart het verband volledig (schijnverband).',
+  2: 'Het verband tussen X en Y loopt (deels) via Z: Z is een tussenvariabele (mediator) of gemeenschappelijke oorzaak.',
+  3: 'Het verband tussen X en Y wordt sterker na controle voor Z: Z onderdrukte het ware verband (suppressie).',
+  4: 'Het verband tussen X en Y blijft bestaan na controle voor Z: Z heeft geen doorslaggevende invloed op dit verband.',
+  5: 'Het teken van de correlatie keert om na controle voor Z: Z maskeerde de ware richting van het verband.'
+};
 
 const state = {
   scenario: null,
@@ -1053,7 +1060,8 @@ function renderChart() {
     <ul>
       <li>r_xy = ${t.r_xy.toFixed(4)}, r_xz = ${t.r_xz.toFixed(4)}, r_yz = ${t.r_yz.toFixed(4)}</li>
       <li>r_xy.z = ${Number.isFinite(t.r_xy_z) ? t.r_xy_z.toFixed(4) : 'n.v.t.'}</li>
-      <li>Classificatie: ${Number.isFinite(t.conclusie_type) ? t.conclusie_type : '-'} - ${typeLabel}</li>
+      <li>Classificatie: ${Number.isFinite(t.conclusie_type) ? t.conclusie_type : '-'} \u2014 <b>${typeLabel}</b></li>
+      <li>${Number.isFinite(t.conclusie_type) ? CONCLUSION_EXPLANATIONS[t.conclusie_type] : ''}</li>
     </ul>
   `;
 }

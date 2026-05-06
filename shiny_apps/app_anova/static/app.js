@@ -1236,8 +1236,8 @@ function renderInterpretation() {
     <strong>Interpretatie</strong><br>
     F(${truth.dfBetween}, ${truth.dfWithin}) = ${truth.Fratio.toFixed(4)}, p = ${pStr}.<br>
     ${sig
-            ? `Er is een statistisch significant effect van groep op ${sc.yName} (p < .05).`
-            : `Er is <em>geen</em> statistisch significant effect van groep op ${sc.yName} (p \u2265 .05).`
+            ? `Er is een <b>statistisch significant</b> effect van groep op ${sc.yName} (p < .05): de gemiddelden van de groepen verschillen meer dan op basis van toeval verwacht wordt.`
+            : `Er is <em>geen</em> <b>statistisch significant</b> effect van groep op ${sc.yName} (p \u2265 .05): de gevonden verschillen tussen de groepsgemiddelden kunnen op toeval berusten.`
         }<br>
     \u03b7\u00b2 = ${truth.etaSq.toFixed(4)} (${etaPct}% verklaarde variantie \u2014 ${effectSize} effect).<br>
     De hoogste gemiddelde score is gevonden in ${highGrp} (M = ${truth.grpMeans[highGrp].toFixed(4)}),

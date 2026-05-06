@@ -870,11 +870,10 @@ function renderInterpretation() {
     <ul>
       <li>Model: ${sc.vars.y} ~ X₁c + X₂c + INT</li>
       <li>b₁ = ${t.b1.toFixed(4)}, b₂ = ${t.b2.toFixed(4)}, b₃ = ${t.b3.toFixed(4)}</li>
-      <li>De interactie is <b>${direction}</b>.</li>
-      <li>Simple slope bij lage X₂: ${t.slope_low.toFixed(4)}</li>
-      <li>Simple slope bij gemiddelde X₂: ${t.slope_mean.toFixed(4)}</li>
-      <li>Simple slope bij hoge X₂: ${t.slope_high.toFixed(4)}</li>
-      <li>R² = ${t.R2.toFixed(4)}, ΔR² = ${t.delta_R2.toFixed(4)}, 1 − R² = ${t.alienation.toFixed(4)}</li>
+      <li>De interactie is <b>${direction}</b>: het effect van X\u2081 op Y verandert naargelang het niveau van X\u2082.</li>
+      <li>Simple slopes tonen het effect van X\u2081 bij drie niveaus van X\u2082:</li>
+      <li style="padding-left:1.2em">Laag X\u2082: ${t.slope_low.toFixed(4)} &nbsp;|&nbsp; Gemiddeld X\u2082: ${t.slope_mean.toFixed(4)} &nbsp;|&nbsp; Hoog X\u2082: ${t.slope_high.toFixed(4)}</li>
+      <li>R\u00b2 = ${t.R2.toFixed(4)}, \u0394R\u00b2 = ${t.delta_R2.toFixed(4)} (extra verklaarde variantie door de interactieterm), 1 \u2212 R\u00b2 = ${t.alienation.toFixed(4)}</li>
     </ul>
   `;
 }

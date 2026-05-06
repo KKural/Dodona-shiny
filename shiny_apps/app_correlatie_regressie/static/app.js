@@ -911,11 +911,14 @@ function renderCharts() {
   if (corrMode) {
     if (calWrap) calWrap.classList.add('hidden');
     if (resWrap) resWrap.classList.add('hidden');
+    const rDir = t.correlation > 0 ? 'positief' : (t.correlation < 0 ? 'negatief' : 'nagenoeg nul');
+    const rAbs = Math.abs(t.correlation);
+    const rStr = rAbs < 0.10 ? 'verwaarloosbaar' : rAbs < 0.30 ? 'zwak' : rAbs < 0.50 ? 'matig' : rAbs < 0.70 ? 'sterk' : 'zeer sterk';
     document.getElementById('interpretation').innerHTML = `
       <b>Interpretatie</b>
       <ul>
-        <li>r = ${t.correlation.toFixed(4)}</li>
-        <li>Sterkte en richting van de lineaire samenhang tussen X en Y.</li>
+        <li>r = ${t.correlation.toFixed(4)} — <b>${rStr} ${rDir}</b> lineair verband.</li>
+        <li>Naarmate X toeneemt, ${t.correlation > 0 ? 'neemt Y toe' : (t.correlation < 0 ? 'neemt Y af' : 'verandert Y nauwelijks')}.</li>
       </ul>
     `;
     return;
@@ -966,7 +969,9 @@ function renderCharts() {
       <li>r = ${t.correlation.toFixed(4)}, b = ${t.slope.toFixed(4)}, a = ${t.intercept.toFixed(4)}</li>
       <li>R² = ${t.r_squared.toFixed(4)}; onverklaard = ${t.alienation.toFixed(4)}</li>
       <li>F(1, ${t.n - 2}) = ${t.f_stat.toFixed(4)}, p = ${pText}</li>
-      <li>${sig ? 'Model is statistisch significant op 5%-niveau.' : 'Model is niet statistisch significant op 5%-niveau.'}</li>
+      <li>${sig
+      ? 'Model is <b>statistisch significant</b> (p\u00a0&lt;\u00a0.05): het lineaire verband tussen X en Y is statistisch aantoonbaar\u00a0\u2014 de kans dat dit resultaat puur op toeval berust is kleiner dan 5%.'
+      : 'Model is <b>niet statistisch significant</b> (p\u00a0\u2265\u00a0.05): op basis van deze steekproef kan geen statistisch aantoonbaar verband worden vastgesteld\u00a0\u2014 het resultaat kan op toeval berusten.'}</li>
     </ul>
   `;
 }
