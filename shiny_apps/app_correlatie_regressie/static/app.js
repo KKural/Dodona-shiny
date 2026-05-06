@@ -570,16 +570,16 @@ function renderHotStats() {
   state.hotStatsCellClasses = {};
   container.innerHTML = '';
   const tableData = [
-    ['Kolomsom kwadratische afwijkingen X — Σ(x−x̄)²', null],
-    ['Kolomsom kwadratische afwijkingen Y — Σ(y−ȳ)²', null],
-    ['Kolomsom kruisproducten — Σ(x−x̄)(y−ȳ)', null],
-    ['Variantie X — s²(X)', null],
-    ['Standaardafwijking X — s(X)', null],
-    ['Variantie Y — s²(Y)', null],
-    ['Standaardafwijking Y — s(Y)', null],
-    ['Covariantie — Cov(X,Y)', null],
-    ['SD-product — s(X) × s(Y)', null],
-    ['Correlatiecoëfficiënt — r(X,Y)', null]
+    ['Kolomsom kwadratische afwijkingen X &mdash; <b>\u03a3(x\u2212x\u0304)\u00b2</b>', null],
+    ['Kolomsom kwadratische afwijkingen Y &mdash; <b>\u03a3(y\u2212\u0233)\u00b2</b>', null],
+    ['Kolomsom kruisproducten &mdash; <b>\u03a3(x\u2212x\u0304)(y\u2212\u0233)</b>', null],
+    ['Variantie X &mdash; <b>s\u00b2(X)</b>', null],
+    ['Standaardafwijking X &mdash; <b>s(X)</b>', null],
+    ['Variantie Y &mdash; <b>s\u00b2(Y)</b>', null],
+    ['Standaardafwijking Y &mdash; <b>s(Y)</b>', null],
+    ['Covariantie &mdash; <b>Cov(X,Y)</b>', null],
+    ['SD-product &mdash; <b>s(X) \u00d7 s(Y)</b>', null],
+    ['Correlatieco\u00ebffici\u00ebnt &mdash; <b>r(X,Y)</b>', null]
   ];
   const w0 = 340;
   const hotValidate = debounce(evaluateAll, 250);
@@ -588,7 +588,7 @@ function renderHotStats() {
     licenseKey: 'non-commercial-and-evaluation',
     colHeaders: ['Grootheid', 'Jouw antwoord'],
     columns: [
-      { type: 'text', readOnly: true },
+      { type: 'text', readOnly: true, renderer: 'html' },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, 140],
@@ -620,8 +620,8 @@ function renderHotReg() {
   state.hotRegCellClasses = {};
   container.innerHTML = '';
   const tableData = [
-    ['Helling (regressiecoëfficiënt) \u2014 b', null],
-    ['Snijpunt (intercept) \u2014 a', null]
+    ['Helling (regressiecoëfficiënt) &mdash; <b>b</b>', null],
+    ['Snijpunt (intercept) &mdash; <b>a</b>', null]
   ];
   const w0 = 260;
   const hotValidate = debounce(evaluateAll, 250);
@@ -630,7 +630,7 @@ function renderHotReg() {
     licenseKey: 'non-commercial-and-evaluation',
     colHeaders: ['Grootheid', 'Jouw antwoord'],
     columns: [
-      { type: 'text', readOnly: true },
+      { type: 'text', readOnly: true, renderer: 'html' },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
     ],
     colWidths: [w0, 140],

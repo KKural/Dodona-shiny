@@ -773,6 +773,7 @@ function renderSSTable() {
         },
         afterChange(changes, source) {
             if (source === 'loadData') return;
+            hotValidate();
             hotValidate(changes);
         }
     });
