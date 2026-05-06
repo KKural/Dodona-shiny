@@ -309,13 +309,37 @@ function tCritical(p, df) {
 
 // \u2500\u2500\u2500 FIELD FEEDBACK MESSAGES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Returns an HTML diagnostic string or null for each field
-function getFeedbackMsg(fieldKey, use// pValueFromF, incompleteBeta, logBeta, logGamma, betaCF — imported from ../../shared/js/stats-utils.js
+function getFeedbackMsg(fieldKey, userVal, t) {
+    const v = parseFloat(userVal);
+    if (isNaN(v)) return null;
+    const tol = (ref) => Math.max(0.005, 0.01 * Math.abs(ref));
+    const bigTol = (ref) => Math.max(0.5, 0.01 * Math.abs(ref));
 
-ub>${g}</sub> = \u03a3Y / n<sub>${g}</sub> \u2014 deel de som door n<sub>${g}</sub> = ${nj}.`;
+    if (fieldKey === 'grandMean') {
+        const unweighted = r4(t.groups.reduce((s, g) => s + t.grpMeans[g], 0) / t.groups.length);
+        if (Math.abs(v - unweighted) <= tol(unweighted) && Math.abs(v - t.grandMean) > 0.005)
+            return `<b>Waarom fout:</b> U berekende het ongewogen gemiddelde van de groepsgemiddelden (= ${unweighted.toFixed(4)}) in plaats van het grootgemiddelde.<br><b>Oorzaak:</b> Bij ongelijke groepsgrootten is het gemiddelde van groepsgemiddelden \u2260 \u03a3Y/N.<br><b>Correctie:</b> Tel alle N = ${t.N} Y-waarden op en deel door N.`;
+        for (const g of t.groups) {
+            if (Math.abs(v - t.grpMeans[g]) <= tol(t.grpMeans[g]))
+                return `<b>Waarom fout:</b> U vulde het groepsgemiddelde van groep '${g}' (= ${t.grpMeans[g].toFixed(4)}) in.<br><b>Correctie:</b> Het grootgemiddelde is het gemiddelde van ALLE N = ${t.N} Y-waarden \u2014 Y&#x0305;.. = \u03a3Y / N.`;
+        }
+        return `Grootgemiddelde onjuist. Y&#x0305;.. = \u03a3(alle Y-waarden) / N. Gebruik alle N = ${t.N} waarnemingen.`;
+    }
+
+    if (fieldKey.startsWith('grp_')) {
+        const gi = parseInt(fieldKey.split('_')[1], 10);
+        const g = t.groups[gi];
+        if (!g) return null;
+        const nj = t.nGroups ? t.nGroups[g] : t.grpCounts[g];
+        const grpSum = t.grpMeans[g] * nj;
+        if (Math.abs(v - t.grandMean) <= tol(t.grandMean))
+            return `<b>Waarom fout:</b> U vulde het grootgemiddelde in als groepsgemiddelde van '${g}'.<br><b>Correctie:</b> Gebruik alleen de Y-waarden binnen groep '${g}'.`;
+        if (nj > 1 && Math.abs(v - grpSum) <= Math.max(0.5, tol(grpSum)))
+            return `<b>Waarom fout:</b> U vulde de groepssom in zonder te delen door n.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3Y / n<sub>${g}</sub> \u2014 deel de som door n<sub>${g}</sub> = ${nj}.`;
         return `Groepsgemiddelde onjuist. Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub> (n<sub>${g}</sub> = ${nj}).`;
     }
 
-    if (fieldKey === 'ssw') {
+        if (fieldKey === 'ssw') {
         if (Math.abs(v - t.SSB) <= bigTol(t.SSB))
             return `<b>Verwisseld:</b> U vulde SSB (${t.SSB.toFixed(4)}) in bij SSW \u2014 deze zijn verwisseld.<br><b>Oorzaak:</b> SSW = <em>binnengroepse</em> variatie \u03a3(Y\u2212Y&#x0305;<sub>j</sub>)\u00b2; SSB = <em>tussengroepse</em> variatie.<br><b>Correctie:</b> Gebruik de juiste kolomsom uit de afwijkingtabel.`;
         if (Math.abs(v - t.SST) <= bigTol(t.SST))
