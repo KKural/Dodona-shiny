@@ -579,7 +579,10 @@ function resetInputs() {
   const predMsg = document.getElementById('pred-msg');
   predMsg.textContent = '';
   predMsg.className = 'status';
-
+  ['fb-deel2', 'fb-deel3', 'fb-deel4', 'fb-deel6'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.innerHTML = ''; el.className = 'section-summary'; }
+  });
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('viz-card').classList.add('locked');
   state.unlocked = false;
@@ -876,6 +879,19 @@ function renderUnlockedViews() {
   renderInterpretation();
 }
 
+function updateSectionSummary(divId, correct, total, labelOk, labelPartial) {
+  const el = document.getElementById(divId);
+  if (!el) return;
+  if (total === 0) { el.innerHTML = ''; el.className = 'section-summary'; return; }
+  if (correct === total) {
+    el.innerHTML = `\u2705 ${labelOk} (${correct}/${total})`;
+    el.className = 'section-summary ok';
+  } else {
+    el.innerHTML = `${correct}/${total} correct \u2014 ${labelPartial}`;
+    el.className = 'section-summary partial';
+  }
+}
+
 function evaluateAll() {
   if (!state.truth) return;
 
@@ -901,6 +917,27 @@ function evaluateAll() {
   });
 
   evaluatePredictions();
+
+  const SECTION_GROUPS = [
+    { id: 'fb-deel2', fields: STEP_GROUPS.step1, ok: 'Gemiddelden correct', partial: 'controleer gemiddelden' },
+    { id: 'fb-deel3', fields: STEP_GROUPS.step2, ok: 'Totalen correct', partial: 'controleer S-waarden' },
+    { id: 'fb-deel4', fields: STEP_GROUPS.step3, ok: 'Co\u00ebffici\u00ebnten correct', partial: 'controleer co\u00ebffici\u00ebnten' },
+    { id: 'fb-deel6', fields: STEP_GROUPS.step5, ok: 'Model fit correct', partial: 'controleer R\u00b2 en delta R\u00b2' },
+  ];
+  SECTION_GROUPS.forEach(sg => {
+    let sc = 0;
+    sg.fields.forEach(fid => {
+      const el = document.getElementById(fid);
+      if (!el) return;
+      const attempted = hasAttempted(el);
+      const val = parseNum(el.value);
+      const truthKey = FIELD_MAP[fid].truth;
+      const ok = attempted && checkDecimals(val, state.truth[truthKey], 4);
+      if (ok) sc++;
+    });
+    updateSectionSummary(sg.id, sc, sg.fields.length, sg.ok, sg.partial);
+  });
+
   updateProgress(correctCount, totalCount);
 
   const unlock = allAttempted && allCorrect;

@@ -650,6 +650,10 @@ function clearStatuses() {
 
   document.getElementById('pred-msg').textContent = '';
   document.getElementById('pred-msg').className = 'status';
+  ['fb-deel2', 'fb-deel3', 'fb-deel4', 'fb-deel4a', 'fb-deel4b', 'fb-deel5', 'fb-deel7'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.innerHTML = ''; el.className = 'section-summary'; }
+  });
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('viz-card').classList.add('locked');
   document.getElementById('interpretation').innerHTML = '';
@@ -854,6 +858,19 @@ function renderCharts() {
   `;
 }
 
+function updateSectionSummary(divId, correct, total, labelOk, labelPartial) {
+  const el = document.getElementById(divId);
+  if (!el) return;
+  if (total === 0) { el.innerHTML = ''; el.className = 'section-summary'; return; }
+  if (correct === total) {
+    el.innerHTML = `\u2705 ${labelOk} (${correct}/${total})`;
+    el.className = 'section-summary ok';
+  } else {
+    el.innerHTML = `${correct}/${total} correct \u2014 ${labelPartial}`;
+    el.className = 'section-summary partial';
+  }
+}
+
 function evaluateAll() {
   if (!state.truth) return;
 
@@ -882,6 +899,28 @@ function evaluateAll() {
   });
 
   evaluatePredictions();
+
+  const SECTION_GROUPS = [
+    { id: 'fb-deel2', fields: ['mean_X1', 'mean_X2', 'mean_Y'], ok: 'Gemiddelden correct', partial: 'controleer gemiddelden' },
+    { id: 'fb-deel3', fields: ['tot_X1_2', 'tot_X2_2', 'tot_X1X2', 'tot_X1Y', 'tot_X2Y', 'tot_Y2'], ok: 'Afwijkingen correct', partial: 'controleer kwadraten en kruisproducten' },
+    { id: 'fb-deel4', fields: ['var_X1', 'sd_X1', 'var_X2', 'sd_X2', 'var_Y', 'sd_Y'], ok: 'Varianties en SD correct', partial: 'controleer varianties en SD' },
+    { id: 'fb-deel4a', fields: ['cov_x1y', 'cov_x2y', 'cov_x1x2'], ok: 'Covarianties correct', partial: 'controleer covarianties' },
+    { id: 'fb-deel4b', fields: ['r_x1y', 'r_x2y', 'r_x1x2'], ok: 'Correlaties correct', partial: 'controleer correlatiecoëfficiënten' },
+    { id: 'fb-deel5', fields: ['multi_det', 'multi_b1', 'multi_b2', 'multi_intercept'], ok: 'Regressiecoëfficiënten correct', partial: 'controleer determinant en coëfficiënten' },
+    { id: 'fb-deel7', fields: ['multi_r_squared', 'multi_alienation', 'multi_f_stat', 'multi_model_p'], ok: 'Model fit correct', partial: 'controleer R\u00b2, F en p' },
+  ];
+  SECTION_GROUPS.forEach(sg => {
+    let sc = 0;
+    sg.fields.forEach(fid => {
+      const inp = document.getElementById(fid);
+      if (!inp) return;
+      const val = parseNum(inp.value);
+      const ok = Number.isFinite(val) && check4(val, state.truth[FIELD_TRUTH_KEY[fid]]);
+      if (ok) sc++;
+    });
+    updateSectionSummary(sg.id, sc, sg.fields.length, sg.ok, sg.partial);
+  });
+
   updateProgress(correctCount, totalCount);
 
   const unlock = allEntered && allCorrect;
