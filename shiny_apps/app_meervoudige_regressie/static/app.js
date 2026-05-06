@@ -253,9 +253,126 @@ function nextRandomSeed() {
   return Math.floor(Math.random() * 1000000000) + 1;
 }
 
-// mulberry32 — imported from ../../shared/js/stats-utils.js
+// mulberry32, randN — loaded globally from stats-utils.js
 
-// randN (randNormal alias) — imported from ../../shared/js/stats-utils.js
+function unitParams(unit, axis) {
+  if (/1-7|1–7/.test(unit)) return [4, 1.2];
+  if (/%|score|Score|Risico|Ratio|Cijfer|klikratio/i.test(unit)) return [50, 15];
+  if (/uren\/week|per week|uren/i.test(unit)) return [40, 12];
+  if (/per 1\.000|per maand|per jaar/i.test(unit)) return [30, 10];
+  if (/z-score/i.test(unit)) return [0, 1];
+  if (/schoolmeldingen/i.test(unit)) return [5, 3];
+  return [50, 15];
+}
+
+function scaleByUnit(Zvals, center, scale) {
+  return Zvals.map(z => Math.round((center + z * scale) * 100) / 100);
+}
+
+function makeScenarioData(sc, nRaw, seedRaw) {
+  const n = Math.max(5, Math.min(MAX_SAMPLE_SIZE,
+    Number.isFinite(Number(nRaw)) ? Math.floor(Number(nRaw)) : 10));
+  const ss = safeSeed(seedRaw);
+  const rng = mulberry32(ss == null ? Math.floor(Math.random() * 1e9) : ss);
+
+  const extras = sc.extras || [];
+  const x2Name = extras[Math.floor(rng() * extras.length)] || 'Extra variabele';
+  const x1Name = sc.vars.x.name;
+  const yName = sc.vars.y.name;
+
+  const rho = 0.3 + rng() * 0.3;
+  const z1 = Array.from({ length: n }, () => randN(rng));
+  const z2 = z1.map(v => rho * v + Math.sqrt(Math.max(0, 1 - rho * rho)) * randN(rng));
+  const eps = Array.from({ length: n }, () => randN(rng));
+
+  const [x1c, x1s] = unitParams(sc.vars.x.unit, 'x1');
+  const [x2c, x2s] = unitParams('', 'x2');
+  const [yc, ys] = unitParams(sc.vars.y.unit, 'y');
+
+  const x1jitter = (rng() * 0.4 - 0.2);
+  const x2jitter = (rng() * 0.4 - 0.2);
+  const yjitter = (rng() * 0.4 - 0.2);
+
+  const X1 = scaleByUnit(z1, x1c * (1 + x1jitter), x1s * (0.8 + rng() * 0.4));
+  const X2 = scaleByUnit(z2, x2c * (1 + x2jitter), x2s * (0.8 + rng() * 0.4));
+  const Y = scaleByUnit(z1.map((v, i) => 0.5 * v + 0.4 * z2[i] + 0.3 * eps[i]),
+    yc * (1 + yjitter), ys * (0.8 + rng() * 0.4));
+
+  const entity = sc.entity || 'Eenheid';
+  const rows = X1.map((x1v, i) => ({
+    entity: `${entity} ${i + 1}`,
+    [x1Name]: x1v,
+    [x2Name]: X2[i],
+    [yName]: Y[i]
+  }));
+
+  return { rows, names: { x1: x1Name, x2: x2Name, y: yName } };
+}
+
+function mean(arr) { return arr.reduce((s, v) => s + v, 0) / arr.length; }
+
+function calcTruth(rows, names) {
+  if (!rows || !rows.length) return null;
+  const n = rows.length;
+  if (n < 3) return null;
+
+  const X1 = rows.map(r => r2(Number(r[names.x1])));
+  const X2 = rows.map(r => r2(Number(r[names.x2])));
+  const Y = rows.map(r => r2(Number(r[names.y])));
+
+  const x1_bar = r4(mean(X1));
+  const x2_bar = r4(mean(X2));
+  const y_bar = r4(mean(Y));
+
+  const dx1 = X1.map(v => v - x1_bar);
+  const dx2 = X2.map(v => v - x2_bar);
+  const dy = Y.map(v => v - y_bar);
+
+  const S11 = r4(dx1.reduce((s, v) => s + v * v, 0));
+  const S22 = r4(dx2.reduce((s, v) => s + v * v, 0));
+  const S12 = r4(dx1.reduce((s, v, i) => s + v * dx2[i], 0));
+  const S1y = r4(dx1.reduce((s, v, i) => s + v * dy[i], 0));
+  const S2y = r4(dx2.reduce((s, v, i) => s + v * dy[i], 0));
+  const SST = r4(dy.reduce((s, v) => s + v * v, 0));
+
+  const var_X1 = r4(S11 / (n - 1));
+  const var_X2 = r4(S22 / (n - 1));
+  const var_Y = r4(SST / (n - 1));
+  const sd_X1 = r4(Math.sqrt(var_X1));
+  const sd_X2 = r4(Math.sqrt(var_X2));
+  const sd_Y = r4(Math.sqrt(var_Y));
+
+  const cov_x1y = r4(S1y / (n - 1));
+  const cov_x2y = r4(S2y / (n - 1));
+  const cov_x1x2 = r4(S12 / (n - 1));
+
+  const r_x1y = r4(sd_X1 * sd_Y > 0 ? cov_x1y / (sd_X1 * sd_Y) : 0);
+  const r_x2y = r4(sd_X2 * sd_Y > 0 ? cov_x2y / (sd_X2 * sd_Y) : 0);
+  const r_x1x2 = r4(sd_X1 * sd_X2 > 0 ? cov_x1x2 / (sd_X1 * sd_X2) : 0);
+
+  // Regression coefficients via Cramer's rule
+  const det = r4(S11 * S22 - S12 * S12);
+  const b1 = det !== 0 ? r4((S1y * S22 - S2y * S12) / det) : 0;
+  const b2 = det !== 0 ? r4((S2y * S11 - S1y * S12) / det) : 0;
+  const intercept = r4(y_bar - b1 * x1_bar - b2 * x2_bar);
+
+  const Y_hat = X1.map((x1v, i) => intercept + b1 * x1v + b2 * X2[i]);
+  const SSR = Y_hat.reduce((s, yh, i) => s + (yh - y_bar) ** 2, 0);
+  const R_squared = r4(SST > 0 ? SSR / SST : 0);
+  const alienation = r4(1 - R_squared);
+  const F_stat = r4((SSR / 2) / ((SST - SSR) / (n - 3)));
+  const model_p = r4(pValueFromF(F_stat, 2, n - 3));
+
+  return {
+    x1_bar, x2_bar, y_bar,
+    S11, S22, S12, S1y, S2y, SST,
+    var_X1, var_X2, var_Y, sd_X1, sd_X2, sd_Y,
+    cov_x1y, cov_x2y, cov_x1x2,
+    r_x1y, r_x2y, r_x1x2,
+    det, b1, b2, intercept,
+    R_squared, alienation, F_stat, model_p
+  };
+}
 
 function evaluateAll() {
   if (!state.truth) return;

@@ -599,9 +599,7 @@ function renderHotStats() {
     cells(row, col) {
       const key = `${row}-${col}`;
       const cls = state.hotStatsCellClasses[key];
-      const isSumRow = row < 3;
       const classes = [col === 0 ? 'htLeft' : 'htCenter'];
-      if (isSumRow) classes.push('hot-sum-value-cell');
       if (cls === 'correct') classes.push('htCorrect');
       if (cls === 'incorrect') classes.push('htIncorrect');
       return { className: classes.join(' ') };
