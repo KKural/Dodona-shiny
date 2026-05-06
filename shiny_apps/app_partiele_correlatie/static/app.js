@@ -607,8 +607,8 @@ function renderVarSdTable() {
   const { x, y, z } = state.names;
   const rows = [
     { label: 'SS', cells: ['vs_SS_X', 'vs_SS_Y', 'vs_SS_Z'] },
-    { label: 'Var', cells: ['vs_Var_X', 'vs_Var_Y', 'vs_Var_Z'] },
-    { label: 'SD', cells: ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z'] }
+    { label: 'Var (s²)', cells: ['vs_Var_X', 'vs_Var_Y', 'vs_Var_Z'] },
+    { label: 'SD (s)', cells: ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
   const ww = s => Math.max(...s.split(/\s+/).filter(Boolean).map(w => Math.ceil(w.length * 7))) + 16;

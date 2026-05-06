@@ -306,6 +306,9 @@ body {
 /* HOT table containers */
 .hot-table-container {
   margin-top: 10px;
+  display: flex;
+  justify-content: safe center;
+  overflow-x: auto;
 }
 
 .hot-table-container .handsontable th {
@@ -321,13 +324,12 @@ body {
 .hot-table-container .handsontable td {
   font-size: 0.86rem;
   vertical-align: middle;
-  text-align: center;
+  text-align: left;
 }
 
 .hot-table-container .handsontable td[class*='htReadOnly'] {
   background: #f8fafd !important;
   color: #334155;
-  text-align: left !important;
 }
 
 .htCorrect {

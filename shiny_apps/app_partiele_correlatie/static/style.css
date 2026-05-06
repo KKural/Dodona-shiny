@@ -426,7 +426,6 @@ body {
 table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 760px;
   font-size: 0.88rem;
 }
 
@@ -516,6 +515,8 @@ td .pred-input {
 .hot-table-container {
   margin-top: 10px;
   overflow-x: auto;
+  display: flex;
+  justify-content: safe center;
 }
 
 #means-grid .handsontable td,
@@ -525,7 +526,7 @@ td .pred-input {
 #partial-grid .handsontable td {
   font-size: 0.86rem;
   vertical-align: middle;
-  text-align: center;
+  text-align: left;
 }
 
 #means-grid .handsontable th,

@@ -610,8 +610,8 @@ function renderHotVarSd() {
   container.innerHTML = '';
   const { x1, x2, y } = state.names;
   const tableData = [
-    ['Var', null, null, null],
-    ['SD', null, null, null]
+    ['Var (s²)', null, null, null],
+    ['SD (s)', null, null, null]
   ];
   const colWidths = [80, 160, 160, 160];
   const hotValidate = debounce(evaluateAll, 250);
