@@ -4,7 +4,7 @@
    Dutch language, criminological scenarios
    ============================================================= */
 
-'use strict';
+import { mulberry32, randNormal, pValueFromF, incompleteBeta, logBeta, logGamma, betaCF } from '../../shared/js/stats-utils.js';
 
 // \u2500\u2500\u2500 SCENARIOS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const SCENARIOS = [
@@ -126,23 +126,10 @@ function normalizeScenarioLabels() {
 
 normalizeScenarioLabels();
 
-// \u2500\u2500\u2500 SEEDED PRNG (Mulberry32) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function mulberry32(seed) {
-    return function () {
-        let t = (seed += 0x6d2b79f5);
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-}
+// mulberry32, randNormal — imported from ../../shared/js/stats-utils.js
 
-function randNormal(rng) {
-    // Box-Muller
-    let u = 0, v = 0;
-    while (u === 0) u = rng();
-    while (v === 0) v = rng();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-}
+* ====================================================// mulberry32, randNormal — imported from ../../shared/js/stats-utils.js
+
 
 // \u2500\u2500\u2500 CLAMP \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function clampVal(v, unit) {
@@ -319,103 +306,14 @@ function tCritical(p, df) {
     return Math.sqrt(fCriticalVal(1, df, alpha));
 }
 
-// \u2500\u2500\u2500 p-value from F (incomplete beta approx) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function pValueFromF(F, d1, d2) {
-    if (!isFinite(F) || F < 0) return NaN;
-    // Use regularized incomplete beta I_x(a,b) where x = d2/(d2+d1*F)
-    const x = d2 / (d2 + d1 * F);
-    return incompleteBeta(x, d2 / 2, d1 / 2);
-}
+// pValueFromF, incompleteBeta, logBeta, logGamma, betaCF — imported from ../../shared/js/stats-utils.js
 
-function incompleteBeta(x, a, b) {
-    if (x < 0 || x > 1) return NaN;
-    if (x === 0) return 0;
-    if (x === 1) return 1;
-    // Use continued fraction (Lentz's method) for regularised incomplete beta
-    const lbeta = logBeta(a, b);
-    const front = Math.exp(Math.log(x) * a + Math.log(1 - x) * b - lbeta) / a;
-    return front * betaCF(x, a, b);
-}
-
-function logBeta(a, b) {
-    return logGamma(a) + logGamma(b) - logGamma(a + b);
-}
-
-function logGamma(z) {
-    // Lanczos approximation
-    const g = 7;
-    const c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-        771.32342877765313, -176.61502916214059, 12.507343278686905,
-        -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
-    if (z < 0.5) return Math.log(Math.PI) - Math.log(Math.sin(Math.PI * z)) - logGamma(1 - z);
-    z -= 1;
-    let x = c[0];
-    for (let i = 1; i < g + 2; i++) x += c[i] / (z + i);
-    const t = z + g + 0.5;
-    return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
-}
-
-function betaCF(x, a, b) {
-    // Continued fraction for incomplete beta via Lentz's method
-    const MAXIT = 200, EPS = 3e-7, FPMIN = 1e-30;
-    const qab = a + b, qap = a + 1, qam = a - 1;
-    let c = 1.0, d = 1.0 - qab * x / qap;
-    if (Math.abs(d) < FPMIN) d = FPMIN;
-    d = 1.0 / d;
-    let h = d;
-    for (let m = 1; m <= MAXIT; m++) {
-        const m2 = 2 * m;
-        let aa = m * (b - m) * x / ((qam + m2) * (a + m2));
-        d = 1.0 + aa * d;
-        if (Math.abs(d) < FPMIN) d = FPMIN;
-        c = 1.0 + aa / c;
-        if (Math.abs(c) < FPMIN) c = FPMIN;
-        d = 1.0 / d;
-        h *= d * c;
-        aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
-        d = 1.0 + aa * d;
-        if (Math.abs(d) < FPMIN) d = FPMIN;
-        c = 1.0 + aa / c;
-        if (Math.abs(c) < FPMIN) c = FPMIN;
-        d = 1.0 / d;
-        const del = d * c;
-        h *= del;
-        if (Math.abs(del - 1.0) < EPS) break;
-    }
-    return h;
-}
 
 // \u2500\u2500\u2500 FIELD FEEDBACK MESSAGES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Returns an HTML diagnostic string or null for each field
-function getFeedbackMsg(fieldKey, userVal, t) {
-    const v = parseFloat(userVal);
-    if (isNaN(v)) return null;
-    const tol = (ref) => Math.max(0.005, 0.01 * Math.abs(ref));
-    const bigTol = (ref) => Math.max(0.5, 0.01 * Math.abs(ref));
+function getFeedbackMsg(fieldKey, use// pValueFromF, incompleteBeta, logBeta, logGamma, betaCF — imported from ../../shared/js/stats-utils.js
 
-    if (fieldKey === 'grandMean') {
-        const unweighted = r4(t.groups.reduce((s, g) => s + t.grpMeans[g], 0) / t.groups.length);
-        if (Math.abs(v - unweighted) <= tol(unweighted) && Math.abs(v - t.grandMean) > 0.005)
-            return `<b>Waarom fout:</b> U berekende het ongewogen gemiddelde van de groepsgemiddelden (= ${unweighted.toFixed(4)}) in plaats van het grootgemiddelde.<br><b>Oorzaak:</b> Bij ongelijke groepsgrootten is het gemiddelde van groepsgemiddelden \u2260 \u03a3Y/N.<br><b>Correctie:</b> Tel alle N = ${t.N} Y-waarden op en deel door N.`;
-        for (const g of t.groups) {
-            if (Math.abs(v - t.grpMeans[g]) <= tol(t.grpMeans[g]))
-                return `<b>Waarom fout:</b> U vulde het groepsgemiddelde van groep '${g}' (= ${t.grpMeans[g].toFixed(4)}) in.<br><b>Correctie:</b> Het grootgemiddelde is het gemiddelde van ALLE N = ${t.N} Y-waarden \u2014 Y&#x0305;.. = \u03a3Y / N.`;
-        }
-        return `Grootgemiddelde onjuist. Y&#x0305;.. = \u03a3(alle Y-waarden) / N. Gebruik alle N = ${t.N} waarnemingen.`;
-    }
-
-    if (fieldKey.startsWith('grp_')) {
-        const gi = parseInt(fieldKey.split('_')[1], 10);
-        const g = t.groups[gi];
-        if (!g) return null;
-        const nj = t.nGroups[g];
-        const grpSum = r4(t.grpMeans[g] * nj);
-        if (Math.abs(v - t.grandMean) <= tol(t.grandMean))
-            return `<b>Waarom fout:</b> U vulde het grootgemiddelde (Y&#x0305;.. = ${t.grandMean.toFixed(4)}) in als groepsgemiddelde van '${g}'.<br><b>Oorzaak:</b> Het groepsgemiddelde gebruikt alleen de waarden binnen groep '${g}', niet alle N = ${t.N} waarnemingen.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub>.`;
-        if (Math.abs(v - t.MSW) <= tol(t.MSW))
-            return `<b>Waarom fout:</b> U vulde MSW (${t.MSW.toFixed(4)}) in \u2014 dat is een gemiddeld kwadraat, geen rekenkundig gemiddelde.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub>.`;
-        if (nj > 1 && Math.abs(v - grpSum) <= Math.max(0.5, tol(grpSum)))
-            return `<b>Waarom fout:</b> U vulde de groepssom (${grpSum.toFixed(4)}) in zonder te delen door n.<br><b>Correctie:</b> Y&#x0305;<sub>${g}</sub> = \u03a3Y / n<sub>${g}</sub> \u2014 deel de som door n<sub>${g}</sub> = ${nj}.`;
+ub>${g}</sub> = \u03a3Y / n<sub>${g}</sub> \u2014 deel de som door n<sub>${g}</sub> = ${nj}.`;
         return `Groepsgemiddelde onjuist. Y&#x0305;<sub>${g}</sub> = \u03a3(Y voor groep ${g}) / n<sub>${g}</sub> (n<sub>${g}</sub> = ${nj}).`;
     }
 
@@ -879,7 +777,7 @@ function validateField(inputEl, lightEl, expected, value) {
         if (lightEl) { lightEl.classList.remove('green'); lightEl.classList.add('red'); }
         return { state: 'incorrect' };
     }
-    const correct = Math.abs(r4(num) - r4(expected)) < 0.0001;
+    const correct = Math.abs(num - expected) < 0.0005;
     if (correct) {
         inputEl.classList.add('correct'); inputEl.classList.remove('incorrect');
         if (lightEl) { lightEl.classList.add('green'); lightEl.classList.remove('red'); }
@@ -931,7 +829,7 @@ function validateAll() {
             feedbackStore[msgId] = 'Geen geldig getal.';
             return 'incorrect';
         }
-        if (Math.abs(r4(num) - r4(expected)) < 0.0001) {
+        if (Math.abs(num - expected) < 0.0005) {
             correctFields++;
             hotCellClasses[`${row}-${col}`] = 'correct';
             feedbackStore[msgId] = null;
@@ -974,7 +872,7 @@ function validateAll() {
         if (rawVal == null || rawVal === '') return 'empty';
         const num = typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal).replace(',', '.'));
         if (isNaN(num)) return 'incorrect';
-        return Math.abs(r4(num) - r4(expected)) < 0.0001 ? 'correct' : 'incorrect';
+        return Math.abs(num - expected) < 0.0005 ? 'correct' : 'incorrect';
     }
 
     const newHotClasses = {};
