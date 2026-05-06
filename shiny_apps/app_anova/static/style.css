@@ -11,7 +11,7 @@
 }
 
 html {
-    overflow-x: hidden;
+    /* overflow-x removed — was breaking position:sticky on sidebar */
 }
 
 body {
@@ -20,7 +20,6 @@ body {
     background: #f0f2f5;
     color: #222;
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
 /* LAYOUT */
@@ -301,6 +300,7 @@ body {
     flex-direction: column;
     gap: 20px;
     max-width: 960px;
+    overflow-x: hidden;
 }
 
 /* VIGNETTE */

@@ -16,12 +16,11 @@
 }
 
 html {
-  overflow-x: hidden;
+  /* overflow-x removed — was breaking position:sticky on sidebar */
 }
 
 body {
   margin: 0;
-  overflow-x: hidden;
   font-family: 'Segoe UI', Arial, sans-serif;
   font-size: 14px;
   color: #222;
@@ -268,6 +267,7 @@ body {
   padding: 14px;
   display: grid;
   gap: 14px;
+  overflow-x: hidden;
 }
 
 .mobile-header {
