@@ -541,7 +541,7 @@ td .pred-input {
   font-weight: 600;
   text-align: center;
   font-size: 0.82rem;
-  white-space: normal;
+  white-space: normal !important;
   line-height: 1.25;
 }
 

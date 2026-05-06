@@ -611,9 +611,10 @@ function renderVarSdTable() {
     { label: 'SD', cells: ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
-  const wX = Math.max(120, Math.ceil(x.length * 7) + 16);
-  const wY = Math.max(120, Math.ceil(y.length * 7) + 16);
-  const wZ = Math.max(120, Math.ceil(z.length * 7) + 16);
+  const ww = s => Math.max(...s.split(/\s+/).filter(Boolean).map(w => Math.ceil(w.length * 7))) + 16;
+  const wX = Math.max(110, ww(x));
+  const wY = Math.max(110, ww(y));
+  const wZ = Math.max(110, ww(z));
   const colWidths = [80, wX, wY, wZ];
   const hotValidate = debounce(evaluateAll, 250);
 
@@ -629,7 +630,7 @@ function renderVarSdTable() {
     ],
     colWidths,
     rowHeaders: false,
-    width: colWidths.reduce((sum, w) => sum + w, 0),
+    width: colWidths.reduce((sum, w) => sum + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
     cells(row, col) {
@@ -656,18 +657,19 @@ function renderCovRTable() {
   wrap.innerHTML = '';
 
   const { x, y, z } = state.names;
-  const hXY = `${x}–${y}`;
-  const hXZ = `${x}–${z}`;
-  const hYZ = `${y}–${z}`;
+  const hXY = `${x} – ${y}`;
+  const hXZ = `${x} – ${z}`;
+  const hYZ = `${y} – ${z}`;
   const rows = [
     { label: 'SCP', cells: ['cv_SCP_XY', 'cv_SCP_XZ', 'cv_SCP_YZ'] },
     { label: 'Cov', cells: ['cv_Cov_XY', 'cv_Cov_XZ', 'cv_Cov_YZ'] },
     { label: 'r', cells: ['cv_r_XY', 'cv_r_XZ', 'cv_r_YZ'] }
   ];
   const tableData = rows.map(row => [row.label, null, null, null]);
-  const wXY = Math.max(120, Math.ceil(hXY.length * 7) + 16);
-  const wXZ = Math.max(120, Math.ceil(hXZ.length * 7) + 16);
-  const wYZ = Math.max(120, Math.ceil(hYZ.length * 7) + 16);
+  const ww = s => Math.max(...s.split(/\s+/).filter(Boolean).map(w => Math.ceil(w.length * 7))) + 16;
+  const wXY = Math.max(110, ww(x), ww(y));
+  const wXZ = Math.max(110, ww(x), ww(z));
+  const wYZ = Math.max(110, ww(y), ww(z));
   const colWidths = [60, wXY, wXZ, wYZ];
   const hotValidate = debounce(evaluateAll, 250);
 
@@ -683,7 +685,7 @@ function renderCovRTable() {
     ],
     colWidths,
     rowHeaders: false,
-    width: colWidths.reduce((sum, w) => sum + w, 0),
+    width: colWidths.reduce((sum, w) => sum + w, 0) + colWidths.length + 1,
     height: 'auto',
     stretchH: 'none',
     cells(row, col) {
