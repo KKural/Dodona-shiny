@@ -106,38 +106,38 @@
 
   const FIELD_GROUPS = {
     means: [
-      ['mean_X1', 'Gemiddelde Xâ‚ (xÌ„â‚)'],
-      ['mean_X2', 'Gemiddelde Xâ‚‚ (xÌ„â‚‚)'],
-      ['mean_Y', 'Gemiddelde Y (È³)']
+      ['mean_X1', 'Gemiddelde X₁ (x̄₁)'],
+      ['mean_X2', 'Gemiddelde X₂ (x̄₂)'],
+      ['mean_Y', 'Gemiddelde Y (ȳ)']
     ],
     totals: [
-      ['tot_X1_2', 'Sâ‚â‚ = Î£(xâ‚âˆ’xÌ„â‚)Â²'],
-      ['tot_X2_2', 'Sâ‚‚â‚‚ = Î£(xâ‚‚âˆ’xÌ„â‚‚)Â²'],
-      ['tot_X1X2', 'Sâ‚â‚‚ = Î£(xâ‚âˆ’xÌ„â‚)(xâ‚‚âˆ’xÌ„â‚‚)'],
-      ['tot_X1Y', 'Sâ‚y = Î£(xâ‚âˆ’xÌ„â‚)(yâˆ’È³)'],
-      ['tot_X2Y', 'Sâ‚‚y = Î£(xâ‚‚âˆ’xÌ„â‚‚)(yâˆ’È³)'],
-      ['tot_Y2', 'SST = Î£(yâˆ’È³)Â²']
+      ['tot_X1_2', 'S₁₁ = Σ(x₁−x̄₁)²'],
+      ['tot_X2_2', 'S₂₂ = Σ(x₂−x̄₂)²'],
+      ['tot_X1X2', 'S₁₂ = Σ(x₁−x̄₁)(x₂−x̄₂)'],
+      ['tot_X1Y', 'S₁y = Σ(x₁−x̄₁)(y−ȳ)'],
+      ['tot_X2Y', 'S₂y = Σ(x₂−x̄₂)(y−ȳ)'],
+      ['tot_Y2', 'SST = Σ(y−ȳ)²']
     ],
     varsd: [
-      ['var_X1', 'sÂ²(Xâ‚)'], ['sd_X1', 's(Xâ‚)'],
-      ['var_X2', 'sÂ²(Xâ‚‚)'], ['sd_X2', 's(Xâ‚‚)'],
-      ['var_Y', 'sÂ²(Y)'], ['sd_Y', 's(Y)']
+      ['var_X1', 's²(X₁)'], ['sd_X1', 's(X₁)'],
+      ['var_X2', 's²(X₂)'], ['sd_X2', 's(X₂)'],
+      ['var_Y', 's²(Y)'], ['sd_Y', 's(Y)']
     ],
     cov: [
-      ['cov_x1y', 'Cov(Xâ‚,Y)'], ['cov_x2y', 'Cov(Xâ‚‚,Y)'], ['cov_x1x2', 'Cov(Xâ‚,Xâ‚‚)']
+      ['cov_x1y', 'Cov(X₁,Y)'], ['cov_x2y', 'Cov(X₂,Y)'], ['cov_x1x2', 'Cov(X₁,X₂)']
     ],
     corr: [
-      ['r_x1y', 'r(Xâ‚,Y)'], ['r_x2y', 'r(Xâ‚‚,Y)'], ['r_x1x2', 'r(Xâ‚,Xâ‚‚)']
+      ['r_x1y', 'r(X₁,Y)'], ['r_x2y', 'r(X₂,Y)'], ['r_x1x2', 'r(X₁,X₂)']
     ],
     coef: [
       ['multi_det', 'D'],
-      ['multi_b1', 'bâ‚'],
-      ['multi_b2', 'bâ‚‚'],
+      ['multi_b1', 'b₁'],
+      ['multi_b2', 'b₂'],
       ['multi_intercept', 'Intercept a']
     ],
     fit: [
-      ['multi_r_squared', 'RÂ²'],
-      ['multi_alienation', '1 âˆ’ RÂ²'],
+      ['multi_r_squared', 'R²'],
+      ['multi_alienation', '1 − R²'],
       ['multi_f_stat', 'F'],
       ['multi_model_p', 'p']
     ]
@@ -254,10 +254,10 @@
     return Math.floor(Math.random() * 1000000000) + 1;
   }
 
-  // mulberry32, randN â€” loaded globally from stats-utils.js
+  // mulberry32, randN — loaded globally from stats-utils.js
 
   function unitParams(unit, axis) {
-    if (/1-7|1â€“7/.test(unit)) return [4, 1.2];
+    if (/1-7|1–7/.test(unit)) return [4, 1.2];
     if (/%|score|Score|Risico|Ratio|Cijfer|klikratio/i.test(unit)) return [50, 15];
     if (/uren\/week|per week|uren/i.test(unit)) return [40, 12];
     if (/per 1\.000|per maand|per jaar/i.test(unit)) return [30, 10];
@@ -375,7 +375,7 @@
     };
   }
 
-  // â”€â”€â”€ Helper functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Helper functions ───────────────────────────────────────────────────────
 
   function fillScenarioSelect() {
     const sel = document.getElementById('scenario');
@@ -469,7 +469,7 @@
     updateProgress(0, 0);
   }
 
-  // â”€â”€â”€ Handsontable render functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Handsontable render functions ──────────────────────────────────────────
 
   function makeHotCells(classKey) {
     return function cells(row, col) {
@@ -640,8 +640,8 @@
     const hotValidate = debounce(evaluateAll, 250);
     const tableData = [
       ['D = S\u2081\u2081\u00b7S\u2082\u2082 \u2212 S\u2081\u2082\u00b2 \u2014 determinant', null],
-      ['b\u2081 \u2014 parti\u00eble regressiecoÃ«fficiÃ«nt X\u2081', null],
-      ['b\u2082 \u2014 parti\u00eble regressiecoÃ«fficiÃ«nt X\u2082', null],
+      ['b\u2081 \u2014 parti\u00eble regressiecoëfficiënt X\u2081', null],
+      ['b\u2082 \u2014 parti\u00eble regressiecoëfficiënt X\u2082', null],
       ['a \u2014 intercept', null]
     ];
     state.hotCoef = new Handsontable(container, {
@@ -668,7 +668,7 @@
     if (!state.rows.length) return;
     const hotValidate = debounce(evaluateAll, 250);
     const tableData = [
-      ['R\u00b2 \u2014 determinatiecoÃ«fficiÃ«nt', null],
+      ['R\u00b2 \u2014 determinatiecoëfficiënt', null],
       ['1 \u2212 R\u00b2 \u2014 vervreemding', null],
       ['F \u2014 F-statistiek (df\u2081\u00a0=\u00a02)', null],
       ['p \u2014 model p-waarde', null]
@@ -731,7 +731,7 @@
     });
   }
 
-  // â”€â”€â”€ Prediction evaluation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Prediction evaluation ───────────────────────────────────────────────────
 
   function evaluatePredictions() {
     if (!state.truth || !state.rows.length) return { allEntered: false, allCorrect: false };
@@ -764,7 +764,7 @@
     return { allEntered: entered === n, allCorrect: correct === n };
   }
 
-  // â”€â”€â”€ Charts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Charts ──────────────────────────────────────────────────────────────────
 
   function destroyCharts() {
     Object.values(state.charts).forEach(ch => { if (ch) ch.destroy(); });
@@ -781,7 +781,7 @@
     const Yhat = X1.map((v, i) => r4(t.intercept + t.b1 * v + t.b2 * X2[i]));
     const n = state.rows.length;
 
-    // Calibration: Å¶ vs Y
+    // Calibration: Ŷ vs Y
     const calPts = Yhat.map((yh, i) => ({ x: yh, y: Y[i] }));
     const calMin = Math.min(...calPts.map(p => Math.min(p.x, p.y)));
     const calMax = Math.max(...calPts.map(p => Math.max(p.x, p.y)));
@@ -799,7 +799,7 @@
       }
     });
 
-    // Residuals: Å¶ vs e
+    // Residuals: Ŷ vs e
     const resPts = Yhat.map((yh, i) => ({ x: yh, y: r4(Y[i] - yh) }));
     const resMin = Math.min(...resPts.map(p => p.x));
     const resMax = Math.max(...resPts.map(p => p.x));
@@ -841,19 +841,19 @@
     document.getElementById('interpretation').innerHTML = `
     <b>Interpretatie</b>
     <ul>
-      <li><b>PartiÃ«le regressiecoÃ«fficiÃ«nt bâ‚</b> = ${t.b1.toFixed(4)} â€” als <em>${x1N}</em> met 1 eenheid stijgt (met ${x2N} constant), ${t.b1 >= 0 ? 'stijgt' : 'daalt'} <em>${yN}</em> met ${Math.abs(t.b1).toFixed(4)} eenheden.</li>
-      <li><b>PartiÃ«le regressiecoÃ«fficiÃ«nt bâ‚‚</b> = ${t.b2.toFixed(4)} â€” als <em>${x2N}</em> met 1 eenheid stijgt (met ${x1N} constant), ${t.b2 >= 0 ? 'stijgt' : 'daalt'} <em>${yN}</em> met ${Math.abs(t.b2).toFixed(4)} eenheden.</li>
-      <li><b>Intercept a</b> = ${t.intercept.toFixed(4)} â€” voorspelde waarde van <em>${yN}</em> wanneer beide voorspellers = 0.</li>
-      <li><b>DeterminatiecoÃ«fficiÃ«nt RÂ²</b> = ${t.R_squared.toFixed(4)} â€” ${r2pct}% van de variantie in <em>${yN}</em> wordt verklaard door <em>${x1N}</em> en <em>${x2N}</em> samen.</li>
-      <li><b>VervreemdingscoÃ«fficiÃ«nt (1 âˆ’ RÂ²)</b> = ${t.alienation.toFixed(4)} â€” ${alPct}% blijft onverklaard.</li>
+      <li><b>Partiële regressiecoëfficiënt b₁</b> = ${t.b1.toFixed(4)} — als <em>${x1N}</em> met 1 eenheid stijgt (met ${x2N} constant), ${t.b1 >= 0 ? 'stijgt' : 'daalt'} <em>${yN}</em> met ${Math.abs(t.b1).toFixed(4)} eenheden.</li>
+      <li><b>Partiële regressiecoëfficiënt b₂</b> = ${t.b2.toFixed(4)} — als <em>${x2N}</em> met 1 eenheid stijgt (met ${x1N} constant), ${t.b2 >= 0 ? 'stijgt' : 'daalt'} <em>${yN}</em> met ${Math.abs(t.b2).toFixed(4)} eenheden.</li>
+      <li><b>Intercept a</b> = ${t.intercept.toFixed(4)} — voorspelde waarde van <em>${yN}</em> wanneer beide voorspellers = 0.</li>
+      <li><b>Determinatiecoëfficiënt R²</b> = ${t.R_squared.toFixed(4)} — ${r2pct}% van de variantie in <em>${yN}</em> wordt verklaard door <em>${x1N}</em> en <em>${x2N}</em> samen.</li>
+      <li><b>Vervreemdingscoëfficiënt (1 − R²)</b> = ${t.alienation.toFixed(4)} — ${alPct}% blijft onverklaard.</li>
       <li>F(2,\u00a0${n - 3})\u00a0=\u00a0${t.F_stat.toFixed(4)}, p\u00a0=\u00a0${pText}</li>
       <li>${sig
-        ? `Model is <b>statistisch significant</b> (p&nbsp;&lt;&nbsp;.05): de combinatie van <em>${x1N}</em> en <em>${x2N}</em> verklaart statistisch aantoonbaar variantie in <em>${yN}</em>. RÂ² en de b-coÃ«fficiÃ«nten zijn betrouwbare schattingen voor de populatie.`
-        : `Model is <b>niet statistisch significant</b> (p&nbsp;â‰¥&nbsp;.05): de combinatie van <em>${x1N}</em> en <em>${x2N}</em> verklaart geen statistisch aantoonbaar deel van de variantie in <em>${yN}</em>. RÂ² en de b-coÃ«fficiÃ«nten zijn <em>niet</em> betrouwbaar interpreteerbaar â€” het resultaat kan op toeval berusten.`}</li>
+        ? `Model is <b>statistisch significant</b> (p&nbsp;&lt;&nbsp;.05): de combinatie van <em>${x1N}</em> en <em>${x2N}</em> verklaart statistisch aantoonbaar variantie in <em>${yN}</em>. R² en de b-coëfficiënten zijn betrouwbare schattingen voor de populatie.`
+        : `Model is <b>niet statistisch significant</b> (p&nbsp;≥&nbsp;.05): de combinatie van <em>${x1N}</em> en <em>${x2N}</em> verklaart geen statistisch aantoonbaar deel van de variantie in <em>${yN}</em>. R² en de b-coëfficiënten zijn <em>niet</em> betrouwbaar interpreteerbaar — het resultaat kan op toeval berusten.`}</li>
     </ul>`;
   }
 
-  // â”€â”€â”€ Evaluation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Evaluation ──────────────────────────────────────────────────────────────
 
   function evaluateAll() {
 
@@ -890,10 +890,10 @@
     const SECTION_GROUPS = [
       { id: 'fb-deel2', fields: ['mean_X1', 'mean_X2', 'mean_Y'], ok: 'Gemiddelden correct', partial: 'controleer gemiddelden' },
       { id: 'fb-deel3', fields: ['tot_X1_2', 'tot_X2_2', 'tot_X1X2', 'tot_X1Y', 'tot_X2Y', 'tot_Y2'], ok: 'Afwijkingen correct', partial: 'controleer kwadraten en kruisproducten' },
-      { id: 'fb-deel4', fields: ['var_X1', 'sd_X1', 'var_X2', 'sd_X2', 'var_Y', 'sd_Y'], ok: 'Varianties en s correct', partial: 'controleer sÂ² en s' },
+      { id: 'fb-deel4', fields: ['var_X1', 'sd_X1', 'var_X2', 'sd_X2', 'var_Y', 'sd_Y'], ok: 'Varianties en s correct', partial: 'controleer s² en s' },
       { id: 'fb-deel4a', fields: ['cov_x1y', 'cov_x2y', 'cov_x1x2'], ok: 'Covarianties correct', partial: 'controleer covarianties' },
-      { id: 'fb-deel4b', fields: ['r_x1y', 'r_x2y', 'r_x1x2'], ok: 'Correlaties correct', partial: 'controleer correlatiecoÃ«fficiÃ«nten' },
-      { id: 'fb-deel5', fields: ['multi_det', 'multi_b1', 'multi_b2', 'multi_intercept'], ok: 'RegressiecoÃ«fficiÃ«nten correct', partial: 'controleer determinant en coÃ«fficiÃ«nten' },
+      { id: 'fb-deel4b', fields: ['r_x1y', 'r_x2y', 'r_x1x2'], ok: 'Correlaties correct', partial: 'controleer correlatiecoëfficiënten' },
+      { id: 'fb-deel5', fields: ['multi_det', 'multi_b1', 'multi_b2', 'multi_intercept'], ok: 'Regressiecoëfficiënten correct', partial: 'controleer determinant en coëfficiënten' },
       { id: 'fb-deel7', fields: ['multi_r_squared', 'multi_alienation', 'multi_f_stat', 'multi_model_p'], ok: 'Model fit correct', partial: 'controleer R\u00b2, F en p' },
     ];
     const sectionScores = {};

@@ -1577,7 +1577,7 @@
         if (btnClose) btnClose.addEventListener('click', closeSidebar);
         if (overlayEl) overlayEl.addEventListener('click', closeSidebar);
 
-        // â”€â”€â”€ Sidebar resize drag handle â”€â”€
+        // ─── Sidebar resize drag handle ──
         const resizeHandle = document.getElementById('sidebar-resize-handle');
         if (resizeHandle && sidebarEl) {
             const layoutEl = sidebarEl.closest('.layout');

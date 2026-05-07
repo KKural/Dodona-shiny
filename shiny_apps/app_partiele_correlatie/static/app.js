@@ -7,7 +7,7 @@
     {
       id: 'delinquency_age',
       title: 'Delictpleging, slachtofferschap en leeftijd',
-      vignette: 'In een slachtofferenqu\u00eate bij middelbare scholieren worden zelfgerapporteerde delicten en keren slachtofferschap gemeten. Leeftijd be\u00efnvloedt zowel de kans op betrokkenheid bij delicten als de kwetsbaarheid voor slachtofferschap. Onderzoeksvraag: is er een partieel verband tussen gepleegde delicten (X) en slachtofferschap (Y), nadat voor leeftijd (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoÃ«fficiÃ«nt.',
+      vignette: 'In een slachtofferenqu\u00eate bij middelbare scholieren worden zelfgerapporteerde delicten en keren slachtofferschap gemeten. Leeftijd be\u00efnvloedt zowel de kans op betrokkenheid bij delicten als de kwetsbaarheid voor slachtofferschap. Onderzoeksvraag: is er een partieel verband tussen gepleegde delicten (X) en slachtofferschap (Y), nadat voor leeftijd (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
       vars: { x: { name: 'DelictenGepleegd', unit: 'aantal' }, y: { name: 'DelictenSlachtoffer', unit: 'aantal' }, z: { name: 'Leeftijd', unit: 'jaar' } },
       entity: 'Scholier',
       r_xy_target: 0.65, r_xz_target: 0.60, r_yz_target: 0.55,
@@ -16,7 +16,7 @@
     {
       id: 'fitness_salary_service',
       title: 'Fysieke bekwaamheid, salaris en dienstjaren',
-      vignette: 'Bij politieagenten worden fysieke bekwaamheidsscores vergeleken met hun salarisindex. Dienstjaren zijn een mogelijke confound: ervaren agenten hebben doorgaans een hoger salaris maar ook een lagere fysieke score. Onderzoeksvraag: is er een partieel verband tussen fysieke bekwaamheid (X) en salaris (Y), nadat voor dienstjaren (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoÃ«fficiÃ«nt.',
+      vignette: 'Bij politieagenten worden fysieke bekwaamheidsscores vergeleken met hun salarisindex. Dienstjaren zijn een mogelijke confound: ervaren agenten hebben doorgaans een hoger salaris maar ook een lagere fysieke score. Onderzoeksvraag: is er een partieel verband tussen fysieke bekwaamheid (X) en salaris (Y), nadat voor dienstjaren (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
       vars: { x: { name: 'FysiekeBekwaamheid', unit: 'score' }, y: { name: 'Salaris', unit: 'index' }, z: { name: 'DienstJaren', unit: 'jaar' } },
       entity: 'Agent',
       r_xy_target: -0.44, r_xz_target: -0.68, r_yz_target: 0.82,
@@ -25,7 +25,7 @@
     {
       id: 'disorder_fear_income',
       title: 'Wanorde, angst en inkomensniveau',
-      vignette: 'Buurten worden gemeten op wanordeindex en de gemiddelde angst voor criminaliteit bij bewoners. Rijkere buurten vertonen doorgaans minder wanorde \u00e9n minder angst, waardoor inkomensniveau een mogelijke confound vormt. Onderzoeksvraag: is er een partieel verband tussen wanorde (X) en angst (Y), nadat voor inkomensniveau (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoÃ«fficiÃ«nt.',
+      vignette: 'Buurten worden gemeten op wanordeindex en de gemiddelde angst voor criminaliteit bij bewoners. Rijkere buurten vertonen doorgaans minder wanorde \u00e9n minder angst, waardoor inkomensniveau een mogelijke confound vormt. Onderzoeksvraag: is er een partieel verband tussen wanorde (X) en angst (Y), nadat voor inkomensniveau (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
       vars: { x: { name: 'WanordeIndex', unit: '0-10' }, y: { name: 'AngstScore', unit: '0-100' }, z: { name: 'InkomenNiveau', unit: 'index' } },
       entity: 'Buurt',
       r_xy_target: 0.65, r_xz_target: -0.55, r_yz_target: -0.50,
@@ -34,7 +34,7 @@
     {
       id: 'recidivism_support_age',
       title: 'Recidive, ondersteuning en leeftijd bij aanvang',
-      vignette: 'Ex-gedetineerden nemen deel aan een re-integratieprogramma met variabele ondersteuningsintensiteit. Leeftijd bij aanvang be\u00efnvloedt zowel de toegewezen ondersteuning als de basisrisicoscore voor recidive. Onderzoeksvraag: is er een partieel verband tussen ondersteuningsuren (X) en recidiverisico (Y), nadat voor leeftijd bij aanvang (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoÃ«fficiÃ«nt.',
+      vignette: 'Ex-gedetineerden nemen deel aan een re-integratieprogramma met variabele ondersteuningsintensiteit. Leeftijd bij aanvang be\u00efnvloedt zowel de toegewezen ondersteuning als de basisrisicoscore voor recidive. Onderzoeksvraag: is er een partieel verband tussen ondersteuningsuren (X) en recidiverisico (Y), nadat voor leeftijd bij aanvang (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
       vars: { x: { name: 'OndersteuningsUren', unit: 'per maand' }, y: { name: 'RecidiveRisico', unit: '0-100' }, z: { name: 'LeeftijdAanvang', unit: 'jaar' } },
       entity: 'Deelnemer',
       r_xy_target: -0.50, r_xz_target: 0.40, r_yz_target: -0.45,
@@ -43,7 +43,7 @@
     {
       id: 'training_clicks_experience',
       title: 'Cybertraining, klikratio en werkervaring',
-      vignette: 'Medewerkers in een overheidsorganisatie volgen cyberveiligheidstraining en worden getest via gesimuleerde phishing. Werkervaring kan samenhangen met zowel meer gevolgde training als een lagere basisgevoeligheid voor phishing. Onderzoeksvraag: is er een partieel verband tussen trainingsuren (X) en klikratio (Y), nadat voor werkervaring (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoÃ«fficiÃ«nt.',
+      vignette: 'Medewerkers in een overheidsorganisatie volgen cyberveiligheidstraining en worden getest via gesimuleerde phishing. Werkervaring kan samenhangen met zowel meer gevolgde training als een lagere basisgevoeligheid voor phishing. Onderzoeksvraag: is er een partieel verband tussen trainingsuren (X) en klikratio (Y), nadat voor werkervaring (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
       vars: { x: { name: 'TrainingsUren', unit: 'uren' }, y: { name: 'Klikratio', unit: '%' }, z: { name: 'WerkErvaring', unit: 'jaren' } },
       entity: 'Medewerker',
       r_xy_target: -0.55, r_xz_target: 0.45, r_yz_target: -0.40,
@@ -52,7 +52,7 @@
     {
       id: 'guardianship_victimization_density',
       title: 'Toezicht, slachtofferschap en bevolkingsdichtheid',
-      vignette: 'Buurten worden beoordeeld op toezichtsniveau en het aantal slachtofferschapincidenten. Bevolkingsdichtheid vergroot opportuniteiten voor misdaad maar vergroot ook de aanwezigheid van potentieel toezicht. Onderzoeksvraag: is er een partieel verband tussen toezicht (X) en slachtofferschap (Y), nadat voor bevolkingsdichtheid (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoÃ«fficiÃ«nt.',
+      vignette: 'Buurten worden beoordeeld op toezichtsniveau en het aantal slachtofferschapincidenten. Bevolkingsdichtheid vergroot opportuniteiten voor misdaad maar vergroot ook de aanwezigheid van potentieel toezicht. Onderzoeksvraag: is er een partieel verband tussen toezicht (X) en slachtofferschap (Y), nadat voor bevolkingsdichtheid (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
       vars: { x: { name: 'Toezicht', unit: '0-10' }, y: { name: 'Slachtofferschap', unit: 'aantal' }, z: { name: 'BevolkingsDichtheid', unit: 'per km2' } },
       entity: 'Buurt',
       r_xy_target: -0.45, r_xz_target: -0.35, r_yz_target: 0.50,
@@ -61,7 +61,7 @@
     {
       id: 'impulsivity_aggression_parental',
       title: 'Impulsiviteit, agressie en ouderlijk toezicht',
-      vignette: 'Jongeren op school worden gescoord op impulsiviteit en het aantal agressie-incidenten per trimester. Ouderlijk toezicht be\u00efnvloedt zowel de impulsiviteitsregulatie als het probleemgedrag op school. Onderzoeksvraag: is er een partieel verband tussen impulsiviteit (X) en agressie-incidenten (Y), nadat voor ouderlijk toezicht (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoÃ«fficiÃ«nt.',
+      vignette: 'Jongeren op school worden gescoord op impulsiviteit en het aantal agressie-incidenten per trimester. Ouderlijk toezicht be\u00efnvloedt zowel de impulsiviteitsregulatie als het probleemgedrag op school. Onderzoeksvraag: is er een partieel verband tussen impulsiviteit (X) en agressie-incidenten (Y), nadat voor ouderlijk toezicht (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
       vars: { x: { name: 'Impulsiviteit', unit: 'z-score' }, y: { name: 'AgressieIncidenten', unit: 'meldingen' }, z: { name: 'OuderlijkToezicht', unit: '0-10' } },
       entity: 'Student',
       r_xy_target: 0.55, r_xz_target: -0.50, r_yz_target: -0.45,
@@ -70,7 +70,7 @@
     {
       id: 'police_trust_contact_ethnicity',
       title: 'Politiecontact, vertrouwen en minderheidspositie',
-      vignette: 'Respondenten worden bevraagd over positieve ervaringen met de politie en hun vertrouwen daarin. Minderheidspositie gaat doorgaans samen met minder positief contact \u00e9n lager vertrouwen in de politie. Onderzoeksvraag: is er een partieel verband tussen positief politiecontact (X) en vertrouwen in de politie (Y), nadat voor minderheidspositie (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoÃ«fficiÃ«nt.',
+      vignette: 'Respondenten worden bevraagd over positieve ervaringen met de politie en hun vertrouwen daarin. Minderheidspositie gaat doorgaans samen met minder positief contact \u00e9n lager vertrouwen in de politie. Onderzoeksvraag: is er een partieel verband tussen positief politiecontact (X) en vertrouwen in de politie (Y), nadat voor minderheidspositie (Z) gecontroleerd is? Bereken de parti\u00eble correlatiecoëfficiënt.',
       vars: { x: { name: 'PositiefContact', unit: 'score' }, y: { name: 'VertrouwenInPolitie', unit: '1-7' }, z: { name: 'MinderheidsScore', unit: '0-1' } },
       entity: 'Respondent',
       r_xy_target: 0.60, r_xz_target: -0.40, r_yz_target: -0.35,
@@ -103,7 +103,7 @@
   normalizeScenarioLabels();
 
   const FIELD_GROUPS = {
-    means: [['x_bar', 'Gemiddelde X (xÌ„)'], ['y_bar', 'Gemiddelde Y (È³)'], ['z_bar', 'Gemiddelde Z (zÌ„)']],
+    means: [['x_bar', 'Gemiddelde X (x̄)'], ['y_bar', 'Gemiddelde Y (ȳ)'], ['z_bar', 'Gemiddelde Z (z̄)']],
     partial: [['partial_num', 'Teller'], ['partial_denom', 'Noemer'], ['r_xy_z', 'r(X,Y | Z)']]
   };
 
@@ -117,15 +117,15 @@
   };
 
   const DEV_COLUMNS = [
-    { key: 'dx', label: '(X-XÌ„)' },
-    { key: 'dy', label: '(Y-È²)' },
-    { key: 'dz', label: '(Z-ZÌ„)' },
-    { key: 'dx2', label: '(X-XÌ„)^2' },
-    { key: 'dy2', label: '(Y-È²)^2' },
-    { key: 'dz2', label: '(Z-ZÌ„)^2' },
-    { key: 'dxdy', label: '(X-XÌ„)(Y-È²)' },
-    { key: 'dxdz', label: '(X-XÌ„)(Z-ZÌ„)' },
-    { key: 'dydz', label: '(Y-È²)(Z-ZÌ„)' }
+    { key: 'dx', label: '(X-X̄)' },
+    { key: 'dy', label: '(Y-Ȳ)' },
+    { key: 'dz', label: '(Z-Z̄)' },
+    { key: 'dx2', label: '(X-X̄)^2' },
+    { key: 'dy2', label: '(Y-Ȳ)^2' },
+    { key: 'dz2', label: '(Z-Z̄)^2' },
+    { key: 'dxdy', label: '(X-X̄)(Y-Ȳ)' },
+    { key: 'dxdz', label: '(X-X̄)(Z-Z̄)' },
+    { key: 'dydz', label: '(Y-Ȳ)(Z-Z̄)' }
   ];
 
   const VARSD_FIELDS = [
@@ -424,9 +424,9 @@
     container.innerHTML = '';
     const { x, y, z } = state.names;
     const tableData = [
-      [`Gemiddelde X (xÌ„) â€” ${x || 'X'}`, null],
-      [`Gemiddelde Y (È³) â€” ${y || 'Y'}`, null],
-      [`Gemiddelde Z (zÌ„) â€” ${z || 'Z'}`, null]
+      [`Gemiddelde X (x̄) — ${x || 'X'}`, null],
+      [`Gemiddelde Y (ȳ) — ${y || 'Y'}`, null],
+      [`Gemiddelde Z (z̄) — ${z || 'Z'}`, null]
     ];
     const longestLabel = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Maat');
     const w0 = Math.max(130, Math.ceil(longestLabel.length * 7) + 16);
@@ -537,7 +537,7 @@
     const { x, y, z } = state.names;
 
     const info = document.getElementById('dataset-info');
-    if (info) info.innerHTML = `<strong>NÂ =Â ${state.rows.length}</strong> waarnemingen. XÂ = <strong>${x}</strong> | YÂ = <strong>${y}</strong> | ZÂ = <strong>${z}</strong>.`;
+    if (info) info.innerHTML = `<strong>N = ${state.rows.length}</strong> waarnemingen. X = <strong>${x}</strong> | Y = <strong>${y}</strong> | Z = <strong>${z}</strong>.`;
 
     const thead = document.createElement('thead');
     thead.innerHTML = `<tr><th>Eenheid</th><th>${x}</th><th>${y}</th><th>${z}</th></tr>`;
@@ -618,7 +618,7 @@
     const { x, y, z } = state.names;
     const rows = [
       { label: 'SS', cells: ['vs_SS_X', 'vs_SS_Y', 'vs_SS_Z'] },
-      { label: 'Variantie (sÂ²)', cells: ['vs_Var_X', 'vs_Var_Y', 'vs_Var_Z'] },
+      { label: 'Variantie (s²)', cells: ['vs_Var_X', 'vs_Var_Y', 'vs_Var_Z'] },
       { label: 'Standaardafwijking (s)', cells: ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z'] }
     ];
     const tableData = rows.map(row => [row.label, null, null, null]);
@@ -668,9 +668,9 @@
     wrap.innerHTML = '';
 
     const { x, y, z } = state.names;
-    const hXY = `${x} â€“ ${y}`;
-    const hXZ = `${x} â€“ ${z}`;
-    const hYZ = `${y} â€“ ${z}`;
+    const hXY = `${x} – ${y}`;
+    const hXZ = `${x} – ${z}`;
+    const hYZ = `${y} – ${z}`;
     const rows = [
       { label: 'SCP', cells: ['cv_SCP_XY', 'cv_SCP_XZ', 'cv_SCP_YZ'] },
       { label: 'Covariantie Cov', cells: ['cv_Cov_XY', 'cv_Cov_XZ', 'cv_Cov_YZ'] },
@@ -757,29 +757,29 @@
   }
 
   const FIELD_HINTS = {
-    x_bar: 'xÌ„ = Î£X / n',
-    y_bar: 'È³ = Î£Y / n',
-    z_bar: 'zÌ„ = Î£Z / n',
-    vs_SS_X: 'SS(X) = Î£(Xi âˆ’ XÌ„)Â²',
-    vs_SS_Y: 'SS(Y) = Î£(Yi âˆ’ YÌ…)Â²',
-    vs_SS_Z: 'SS(Z) = Î£(Zi âˆ’ ZÌ…)Â²',
-    vs_Var_X: 'sÂ²(X) = SS(X) / (nâˆ’1)',
-    vs_Var_Y: 'sÂ²(Y) = SS(Y) / (nâˆ’1)',
-    vs_Var_Z: 'sÂ²(Z) = SS(Z) / (nâˆ’1)',
-    vs_SD_X: 's(X) = âˆšsÂ²(X)',
-    vs_SD_Y: 's(Y) = âˆšsÂ²(Y)',
-    vs_SD_Z: 's(Z) = âˆšsÂ²(Z)',
-    cv_SCP_XY: 'SCP(X,Y) = Î£(Xiâˆ’XÌ„)(Yiâˆ’YÌ…)',
-    cv_SCP_XZ: 'SCP(X,Z) = Î£(Xiâˆ’XÌ„)(Ziâˆ’ZÌ…)',
-    cv_SCP_YZ: 'SCP(Y,Z) = Î£(Yiâˆ’YÌ…)(Ziâˆ’ZÌ…)',
-    cv_Cov_XY: 'Cov(X,Y) = SCP(X,Y) / (nâˆ’1)',
-    cv_Cov_XZ: 'Cov(X,Z) = SCP(X,Z) / (nâˆ’1)',
-    cv_Cov_YZ: 'Cov(Y,Z) = SCP(Y,Z) / (nâˆ’1)',
-    cv_r_XY: 'r(X,Y) = Cov(X,Y) / (s(X)Â·s(Y))',
-    cv_r_XZ: 'r(X,Z) = Cov(X,Z) / (s(X)Â·s(Z))',
-    cv_r_YZ: 'r(Y,Z) = Cov(Y,Z) / (s(Y)Â·s(Z))',
-    partial_num: 'teller = r_xy âˆ’ r_xzÂ·r_yz',
-    partial_denom: 'noemer = âˆš((1âˆ’r_xzÂ²)Â·(1âˆ’r_yzÂ²))',
+    x_bar: 'x̄ = ΣX / n',
+    y_bar: 'ȳ = ΣY / n',
+    z_bar: 'z̄ = ΣZ / n',
+    vs_SS_X: 'SS(X) = Σ(Xi − X̄)²',
+    vs_SS_Y: 'SS(Y) = Σ(Yi − Y̅)²',
+    vs_SS_Z: 'SS(Z) = Σ(Zi − Z̅)²',
+    vs_Var_X: 's²(X) = SS(X) / (n−1)',
+    vs_Var_Y: 's²(Y) = SS(Y) / (n−1)',
+    vs_Var_Z: 's²(Z) = SS(Z) / (n−1)',
+    vs_SD_X: 's(X) = √s²(X)',
+    vs_SD_Y: 's(Y) = √s²(Y)',
+    vs_SD_Z: 's(Z) = √s²(Z)',
+    cv_SCP_XY: 'SCP(X,Y) = Σ(Xi−X̄)(Yi−Y̅)',
+    cv_SCP_XZ: 'SCP(X,Z) = Σ(Xi−X̄)(Zi−Z̅)',
+    cv_SCP_YZ: 'SCP(Y,Z) = Σ(Yi−Y̅)(Zi−Z̅)',
+    cv_Cov_XY: 'Cov(X,Y) = SCP(X,Y) / (n−1)',
+    cv_Cov_XZ: 'Cov(X,Z) = SCP(X,Z) / (n−1)',
+    cv_Cov_YZ: 'Cov(Y,Z) = SCP(Y,Z) / (n−1)',
+    cv_r_XY: 'r(X,Y) = Cov(X,Y) / (s(X)·s(Y))',
+    cv_r_XZ: 'r(X,Z) = Cov(X,Z) / (s(X)·s(Z))',
+    cv_r_YZ: 'r(Y,Z) = Cov(Y,Z) / (s(Y)·s(Z))',
+    partial_num: 'teller = r_xy − r_xz·r_yz',
+    partial_denom: 'noemer = √((1−r_xz²)·(1−r_yz²))',
     r_xy_z: 'r(X,Y | Z) = teller / noemer',
   };
 
@@ -798,7 +798,7 @@
     } else {
       sel.classList.add('invalid');
       msg.classList.add('err');
-      msg.textContent = 'Type conclusie is onjuist â€” vergelijk r_xy en r_xy.z (richting en grootte).';
+      msg.textContent = 'Type conclusie is onjuist — vergelijk r_xy en r_xy.z (richting en grootte).';
     }
   }
 
@@ -941,7 +941,7 @@
   function evaluateVarSdHot() {
     const tableRows = [
       ['SS', ['vs_SS_X', 'vs_SS_Y', 'vs_SS_Z']],
-      ['sÂ²', ['vs_Var_X', 'vs_Var_Y', 'vs_Var_Z']],
+      ['s²', ['vs_Var_X', 'vs_Var_Y', 'vs_Var_Z']],
       ['s', ['vs_SD_X', 'vs_SD_Y', 'vs_SD_Z']]
     ];
     return evaluateSmallHotTable({
@@ -951,8 +951,8 @@
       fieldConfig: VARSD_FIELDS,
       sectionId: 'varsd-msg',
       detailId: 'varsd-detail',
-      okText: 'sÂ²/s tabel correct',
-      partialText: 'controleer SS, sÂ² en s'
+      okText: 's²/s tabel correct',
+      partialText: 'controleer SS, s² en s'
     });
   }
 
@@ -1061,7 +1061,7 @@
     <b>Interpretatie</b>
     <ul>
       <li><b>Bivariate correlaties:</b> r(<em>${xN}</em>, <em>${yN}</em>) = ${t.r_xy.toFixed(4)}, r(<em>${xN}</em>, <em>${zN}</em>) = ${t.r_xz.toFixed(4)}, r(<em>${yN}</em>, <em>${zN}</em>) = ${t.r_yz.toFixed(4)}</li>
-      <li><b>PartiÃ«le correlatie r(<em>${xN}</em>, <em>${yN}</em> Â· <em>${zN}</em>)</b> = ${Number.isFinite(t.r_xy_z) ? t.r_xy_z.toFixed(4) : 'n.v.t.'} â€” samenhang tussen <em>${xN}</em> en <em>${yN}</em> na uitpartialisering van <em>${zN}</em>.</li>
+      <li><b>Partiële correlatie r(<em>${xN}</em>, <em>${yN}</em> · <em>${zN}</em>)</b> = ${Number.isFinite(t.r_xy_z) ? t.r_xy_z.toFixed(4) : 'n.v.t.'} — samenhang tussen <em>${xN}</em> en <em>${yN}</em> na uitpartialisering van <em>${zN}</em>.</li>
       <li><b>Classificatie: ${typeLabel}</b></li>
       <li>${Number.isFinite(t.conclusie_type) ? CONCLUSION_EXPLANATIONS[t.conclusie_type] : ''}</li>
     </ul>
@@ -1113,7 +1113,7 @@
       FIELD_GROUPS.partial,
       'partial-msg',
       'partial-detail',
-      'PartiÃ«le correlatie correct',
+      'Partiële correlatie correct',
       'controleer teller, noemer en r_xy.z'
     );
     totalCount += partialRes.totalCount;
