@@ -1,0 +1,1178 @@
+/* ============================================================
+   ANOVA App – Style
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    /* overflow-x removed — was breaking position:sticky on sidebar */
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    background: #f0f2f5;
+    color: #222;
+    min-height: 100vh;
+}
+
+/* LAYOUT */
+.layout {
+    display: grid;
+    grid-template-columns: 400px 6px 1fr;
+    min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 400px;
+    min-width: 200px;
+    max-width: 560px;
+    background: #1e2a3a;
+    color: #cdd9e5;
+    padding: 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.sidebar-resize-handle {
+    width: 6px;
+    cursor: col-resize;
+    background: transparent;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 20;
+    transition: background 0.15s;
+}
+
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle.dragging {
+    background: rgba(147, 197, 253, 0.35);
+}
+
+.sidebar-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sidebar-section label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #8ba3bd;
+}
+
+.sidebar-section select,
+.sidebar-section input {
+    background: #2c3e50;
+    border: 1px solid #3d5166;
+    color: #e8f0f8;
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 13px;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-section select:focus,
+.sidebar-section input:focus {
+    outline: none;
+    border-color: #5b9bd5;
+}
+
+.btn-primary,
+.btn-secondary {
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.15s;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: #374151;
+    color: #d1d5db;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+.sidebar-divider {
+    border-top: 1px solid #2c3e50;
+    margin: 4px 0;
+}
+
+/* CSS CUSTOM PROPERTIES */
+:root {
+    --ok: #22c55e;
+    --err: #ef4444;
+    --blue: #3b82f6;
+    --blue-hover: #2563eb;
+    --muted: #64748b;
+    --ok-bg: #f0fdf4;
+    --ok-border: #16a34a;
+    --ok-text: #166534;
+    --err-bg: #fef2f2;
+    --err-border: #dc2626;
+    --err-text: #991b1b;
+    --disp-bg: #f1f5f9;
+    --disp-text: #475569;
+}
+
+/* TEXT HELPERS */
+.text-ok {
+    color: var(--ok);
+    font-weight: 700;
+}
+
+.text-err {
+    color: var(--err);
+    font-weight: 700;
+}
+
+/* HOW-TO CARD (top of sidebar) */
+.sidebar-card {
+    background: #1a2f45;
+    border: 1px solid #2c4a66;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 0 0 2px 0;
+}
+
+.sidebar-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #93c5fd;
+    margin-bottom: 6px;
+}
+
+.sidebar-help {
+    margin: 0 0 10px 0;
+    color: #94a3b8;
+    font-size: 11.5px;
+    line-height: 1.4;
+}
+
+.scenario-task-note {
+    margin: 12px 0 0 0;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.5;
+}
+
+.scenario-meta {
+    margin: 6px 0 0 0;
+    font-size: 12px;
+    color: #475569;
+}
+
+.sidebar-howto-list {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 11.5px;
+    color: #cbd5e1;
+    line-height: 1.55;
+}
+
+.sidebar-howto-list li {
+    margin-bottom: 3px;
+}
+
+.sidebar-howto-list ul {
+    margin-top: 3px;
+    padding-left: 14px;
+}
+
+.sidebar-howto-list b {
+    color: #e2e8f0;
+}
+
+.sidebar-steps-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 11.5px;
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+.sidebar-steps-list li {
+    margin-bottom: 2px;
+}
+
+/* PROGRESS */
+.progress-block {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.progress-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #8ba3bd;
+}
+
+.progress-bar-wrap {
+    background: #2c3e50;
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--ok);
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    font-size: 11px;
+    color: #9bb5cc;
+}
+
+/* NAV */
+.section-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nav-item {
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #9bb5cc;
+    transition: background 0.15s, color 0.15s;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background: #2c3e50;
+    color: #fff;
+}
+
+.nav-item.locked {
+    color: #4b5e70;
+    cursor: not-allowed;
+}
+
+/* MAIN */
+.main-content {
+    min-width: 0;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-x: hidden;
+}
+
+/* VIGNETTE */
+.vignette-card {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #1e3a8a;
+}
+
+/* CARD */
+.card {
+    background: #fff;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
+}
+
+.card-header {
+    padding: 10px 18px;
+    border-bottom: 1px solid #dbe3ef;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1d4ed8;
+}
+
+.card-body {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.instruction {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.muted {
+    color: #475569;
+    font-size: 13px;
+}
+
+/* FIELD ROW */
+.field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.field-row label {
+    width: 260px;
+    font-size: 13px;
+    color: #334155;
+}
+
+.num-input {
+    width: 110px;
+    padding: 5px 8px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 13px;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.num-input.small {
+    width: 70px;
+}
+
+.num-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.num-input.correct {
+    border-color: var(--ok-border);
+    background: var(--ok-bg);
+    color: var(--ok-text);
+}
+
+.num-input.incorrect {
+    border-color: var(--err-border);
+    background: var(--err-bg);
+    color: var(--err-text);
+}
+
+/* LIGHTS */
+.light {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #d1d5db;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.light.green {
+    background: var(--ok);
+}
+
+.light.red {
+    background: var(--err);
+}
+
+.field-msg {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* GROUP MEANS */
+#group-means-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* SS GRID */
+.ss-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Diagnostic message rows in the SS table — hidden until a message is set */
+.msg-row {
+    display: none;
+}
+
+.msg-row.active {
+    display: table-row;
+}
+
+.msg-row td {
+    padding: 2px 10px;
+    border-top: none;
+}
+
+.ss-decomp-hint {
+    font-size: 13px;
+    padding: 8px 12px;
+    background: #f8fafd;
+    border-radius: 6px;
+    border: 1px solid #e5eaf0;
+    font-family: monospace;
+    min-height: 28px;
+}
+
+/* ANOVA TABLE */
+.anova-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.anova-table .disp-cell {
+    background: var(--disp-bg);
+    color: var(--disp-text);
+    font-style: italic;
+    font-size: 12px;
+}
+
+.anova-table th,
+.anova-table td {
+    border: 1px solid #e5eaf0;
+    padding: 7px 10px;
+    text-align: center;
+}
+
+.anova-table th {
+    background: #f1f5f9;
+    font-weight: 600;
+    color: #334155;
+}
+
+.anova-table td:first-child {
+    text-align: left;
+    font-weight: 500;
+}
+
+/* FEEDBACK / SIG NOTE */
+.feedback-box {
+    font-size: 13px;
+    color: #334155;
+    min-height: 18px;
+}
+
+.sig-note {
+    font-size: 13px;
+    color: #1e3a5f;
+    padding: 8px 12px;
+    background: #eff6ff;
+    border-radius: 6px;
+    display: none;
+}
+
+.sig-note.visible {
+    display: block;
+}
+
+.success-msg {
+    font-size: 14px;
+    font-weight: 600;
+    color: #166534;
+    padding: 10px 14px;
+    background: #dcfce7;
+    border-radius: 6px;
+    border: 1px solid #86efac;
+    display: none;
+}
+
+.success-msg.visible {
+    display: block;
+}
+
+/* LOCKED SECTION */
+.locked-section .card-header {
+    color: #94a3b8;
+}
+
+.lock-notice {
+    font-size: 13px;
+    color: #94a3b8;
+    padding: 16px;
+    text-align: center;
+    font-style: italic;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* CALC TABLE (Deel III) */
+.table-scroll {
+    overflow-x: auto;
+}
+
+.calc-table {
+    border-collapse: collapse;
+    font-size: 12.5px;
+    width: 100%;
+}
+
+.calc-table th,
+.calc-table td {
+    border: 1px solid #e2e8f0;
+    padding: 5px 7px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.calc-table th {
+    background: #f1f5f9;
+    font-weight: 600;
+    font-size: 12px;
+    color: #475569;
+}
+
+.calc-table td.group-cell {
+    background: #f8fafd;
+    font-weight: 600;
+    font-size: 12px;
+    color: #1e3a5f;
+}
+
+.calc-table td.y-cell {
+    color: #334155;
+}
+
+.calc-table td.readonly {
+    background: #f9fafb;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.calc-table input.tbl-input {
+    width: 78px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 12px;
+    padding: 3px 5px;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.calc-table input.tbl-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.calc-table input.tbl-input.correct {
+    border-color: var(--ok-border);
+    background: var(--ok-bg);
+}
+
+.calc-table input.tbl-input.incorrect {
+    border-color: var(--err-border);
+    background: var(--err-bg);
+}
+
+/* CHARTS */
+.charts-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.chart-wrap {
+    flex: 1;
+    min-width: 260px;
+    background: #f8fafd;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #e5eaf0;
+}
+
+.interpretation-block {
+    font-size: 13px;
+    color: #1e3a5f;
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 14px 18px;
+    line-height: 1.7;
+}
+
+/* CI TABLE */
+.ci-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.ci-table th,
+.ci-table td {
+    border: 1px solid #e5eaf0;
+    padding: 7px 12px;
+    text-align: center;
+}
+
+.ci-table th {
+    background: #f1f5f9;
+    font-weight: 600;
+    color: #334155;
+}
+
+.ci-table td:first-child {
+    font-weight: 500;
+    text-align: left;
+}
+
+.title-card h1 {
+    margin: 0 0 6px 0;
+    color: #1d4ed8;
+    font-size: 1.55rem;
+}
+
+.title-card p {
+    margin: 0;
+}
+
+/* DATASET TABLE */
+.dataset-table {
+    border-collapse: collapse;
+    font-size: 12.5px;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dataset-table th,
+.dataset-table td {
+    border: 1px solid #e2e8f0;
+    padding: 5px 10px;
+    text-align: center;
+}
+
+.dataset-meta {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+#dataset-info {
+    text-align: center;
+}
+
+.dataset-table th {
+    background: #f1f5f9;
+    font-weight: 600;
+    color: #475569;
+    text-align: center;
+}
+
+.dataset-table tr:nth-child(even) {
+    background: #f8fafd;
+}
+
+.dataset-table td.group-col {
+    font-weight: 600;
+    color: #1e3a5f;
+    text-align: left;
+}
+
+.dataset-table td:first-child {
+    text-align: left;
+}
+
+/* FIELD DIAGNOSTICS */
+.field-diag {
+    font-size: 12px;
+    color: #64748b;
+    min-height: 0;
+    line-height: 1.4;
+    overflow: hidden;
+}
+
+.field-diag.visible {
+    padding: 5px 10px;
+    background: #fff7ed;
+    border-left: 3px solid #f59e0b;
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 4px;
+    color: #92400e;
+}
+
+/* SECTION SUMMARY */
+.section-summary {
+    font-size: 12px;
+    border-radius: 5px;
+    min-height: 0;
+    line-height: 1.4;
+}
+
+.section-summary.ok {
+    padding: 5px 10px;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.section-summary.partial {
+    padding: 5px 10px;
+    background: #fef9c3;
+    color: #713f12;
+    border: 1px solid #fde047;
+}
+
+.ok-inline {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.partial-inline {
+    color: #b45309;
+}
+
+/* TEST PANEL (quick testing) */
+.test-panel>summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: #8ba3bd;
+    padding: 3px 0;
+    user-select: none;
+    list-style: none;
+}
+
+.test-panel>summary:hover {
+    color: #cdd9e5;
+}
+
+.test-panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 5px 0 2px;
+}
+
+.paste-hint {
+    font-size: 11px;
+    color: #6b7a8d;
+    line-height: 1.4;
+}
+
+#paste-input {
+    background: #2c3e50;
+    border: 1px solid #3d5166;
+    color: #e8f0f8;
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-family: monospace;
+    resize: vertical;
+    width: 100%;
+}
+
+.paste-status {
+    font-size: 11px;
+    color: #9bb5cc;
+    min-height: 14px;
+}
+
+/* SIDEBAR INFO PANELS (Hoe werkt dit / Stappen NL) */
+.sidebar-info>summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: #8ba3bd;
+    padding: 3px 0;
+    user-select: none;
+    list-style: none;
+}
+
+.sidebar-info>summary:hover {
+    color: #cdd9e5;
+}
+
+.sidebar-info-body {
+    font-size: 11.5px;
+    color: #9bb5cc;
+    padding: 5px 2px 2px;
+    line-height: 1.55;
+}
+
+.sidebar-info-body p {
+    margin-bottom: 4px;
+}
+
+.sidebar-info-body ul,
+.sidebar-info-body ol {
+    padding-left: 14px;
+    margin: 3px 0;
+}
+
+.sidebar-info-body li {
+    margin-bottom: 2px;
+}
+
+.sidebar-info-body b {
+    color: #cdd9e5;
+}
+
+/* DISCLOSURE TRIANGLE for <details> panels in sidebar */
+details.sidebar-info>summary::before,
+details.test-panel>summary::before {
+    content: '\25B6';
+    display: inline-block;
+    margin-right: 5px;
+    font-size: 9px;
+    transition: transform 0.2s;
+    vertical-align: middle;
+}
+
+details.sidebar-info[open]>summary::before,
+details.test-panel[open]>summary::before {
+    transform: rotate(90deg);
+}
+
+/* MOBILE HEADER BAR */
+.mobile-header {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: #1e2a3a;
+    color: #fff;
+    padding: 10px 16px;
+    font-weight: 700;
+    font-size: 15px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.btn-sidebar-toggle {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+/* SIDEBAR CLOSE BUTTON (mobile only) */
+.btn-sidebar-close {
+    display: none;
+    background: none;
+    border: none;
+    color: #cdd9e5;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    position: absolute;
+    top: 14px;
+    right: 12px;
+}
+
+/* SIDEBAR OVERLAY (mobile) */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 199;
+}
+
+.sidebar-overlay.visible {
+    display: block;
+}
+
+/* side-by-side group tables (dataset layout) */
+.group-tables-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.group-table-col {
+    flex: 1;
+    min-width: 130px;
+}
+
+.group-table-title {
+    font-weight: 700;
+    color: #1e3a5f;
+    text-align: center;
+    margin-bottom: 4px;
+    font-size: 13px;
+    background: #e8f0fa;
+    border-radius: 6px 6px 0 0;
+    padding: 4px 6px;
+}
+
+/* ─── R-style detailed feedback panel ─── */
+.feedback-panel {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #fff5f5;
+    border-left: 4px solid #d50000;
+    font-size: 12.5px;
+    line-height: 1.55;
+}
+
+.feedback-panel.visible {
+    display: block;
+}
+
+.feedback-panel-title {
+    font-weight: 700;
+    color: #7a1020;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.feedback-detail-item {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f2c7cf;
+}
+
+.feedback-detail-item:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.feedback-detail-label {
+    font-weight: 700;
+    color: #7a1020;
+    margin-bottom: 3px;
+    font-size: 12px;
+}
+
+/* responsive */
+@media (max-width: 1100px) {
+    .layout {
+        display: block;
+    }
+
+    .sidebar-resize-handle {
+        display: none;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -360px;
+        top: 0;
+        bottom: 0;
+        width: 320px;
+        max-width: 90vw;
+        height: 100vh;
+        z-index: 200;
+        transition: left 0.25s ease;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .btn-sidebar-close {
+        display: block;
+    }
+
+    .mobile-header {
+        display: flex;
+    }
+
+    .main-content {
+        padding: 14px;
+        width: 100%;
+    }
+
+    .field-row label {
+        width: 180px;
+    }
+
+    .num-input {
+        width: 90px;
+    }
+
+    .charts-row {
+        flex-direction: column;
+    }
+
+    .anova-table {
+        font-size: 12px;
+    }
+
+    .anova-table .num-input {
+        width: 72px;
+    }
+}
+
+/* ─── Handsontable overrides ─── */
+#hot-container,
+#hot2-container,
+#hot4-container,
+#hot5-container {
+    margin-top: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.card-body>#hot-container:first-child,
+.card-body>#hot2-container:first-child,
+.card-body>#hot4-container:first-child,
+.card-body>#hot5-container:first-child {
+    margin-top: 0;
+}
+
+/* HOT2/3/4/5: fixed width, centered in section */
+#hot-container,
+#hot2-container,
+#hot4-container,
+#hot5-container {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+}
+
+#hot-container .handsontable td,
+#hot2-container .handsontable td,
+#hot4-container .handsontable td,
+#hot5-container .handsontable td {
+    font-size: 0.86rem;
+    vertical-align: middle;
+}
+
+/* HOT3 (deviation table) keeps center-align per column via cells() callback */
+#hot-container .handsontable td {
+    text-align: center;
+}
+
+#hot-container .handsontable th,
+#hot2-container .handsontable th,
+#hot4-container .handsontable th,
+#hot5-container .handsontable th {
+    background: #eff6ff;
+    color: var(--blue);
+    font-weight: 600;
+    text-align: center;
+    font-size: 0.82rem;
+    white-space: normal;
+    line-height: 1.25;
+}
+
+#hot-container .handsontable td.htLeft,
+#hot2-container .handsontable td.htLeft,
+#hot4-container .handsontable td.htLeft,
+#hot5-container .handsontable td.htLeft {
+    text-align: left !important;
+}
+
+#hot-container .handsontable td.htCenter,
+#hot2-container .handsontable td.htCenter,
+#hot4-container .handsontable td.htCenter,
+#hot5-container .handsontable td.htCenter {
+    text-align: center !important;
+}
+
+#hot-container .handsontable td.htDimmed,
+#hot-container .handsontable td[class*='htReadOnly'],
+#hot2-container .handsontable td.htDimmed,
+#hot2-container .handsontable td[class*='htReadOnly'],
+#hot4-container .handsontable td.htDimmed,
+#hot4-container .handsontable td[class*='htReadOnly'],
+#hot5-container .handsontable td.htDimmed,
+#hot5-container .handsontable td[class*='htReadOnly'] {
+    background: #f8fafd !important;
+    color: #475569 !important;
+}
+
+#hot-container .handsontable td.htCorrect,
+#hot2-container .handsontable td.htCorrect,
+#hot4-container .handsontable td.htCorrect,
+#hot5-container .handsontable td.htCorrect {
+    background: #f0fdf4 !important;
+    outline: 2px solid #16a34a !important;
+    outline-offset: -2px;
+}
+
+#hot-container .handsontable td.htIncorrect,
+#hot2-container .handsontable td.htIncorrect,
+#hot4-container .handsontable td.htIncorrect,
+#hot5-container .handsontable td.htIncorrect {
+    background: #fef2f2 !important;
+    outline: 2px solid #dc2626 !important;
+    outline-offset: -2px;
+}
+
+/* Dimmed placeholder cells (—) in HOT5 */
+.hot-dimmed-cell {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    text-align: center;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* SS read-only display cells in HOT5 (col 1 — filled from HOT4 results) */
+.hot-ss-cell {
+    background: #eff6ff !important;
+    color: #1e3a8a !important;
+    font-weight: 600;
+    text-align: center;
+    cursor: default;
+}
+
+/* Grand mean row separator in HOT2 */
+#hot2-container .handsontable td.hot-grand-mean-cell {
+    border-top: 2px solid #94a3b8 !important;
+    background: #fafbff !important;
+    font-weight: 600;
+}
+
+.text-ok {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.text-err {
+    color: #dc2626;
+    font-weight: 600;
+}
