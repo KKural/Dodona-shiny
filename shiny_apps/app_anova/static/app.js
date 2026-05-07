@@ -618,41 +618,36 @@
         const tbl = document.createElement('table');
         tbl.className = 'means-table';
 
-        // Header row
+        // Column headers
         const thead = tbl.createTHead();
         const hrow = thead.insertRow();
-        sc.groups.forEach((g, i) => {
+        ['Groep', 'Jouw antwoord'].forEach(text => {
             const th = document.createElement('th');
-            th.textContent = `${humanizeGroup(g)} (\u0232${toSub(i + 1)})`;
+            th.textContent = text;
             hrow.appendChild(th);
         });
-        const thGrand = document.createElement('th');
-        thGrand.className = 'grand-mean-th';
-        thGrand.textContent = 'Grootgemiddelde (\u0232..)';
-        hrow.appendChild(thGrand);
 
-        // Input row
+        // One row per group + grand mean
         const tbody = tbl.createTBody();
-        const irow = tbody.insertRow();
-        sc.groups.forEach((g, i) => {
-            const td = irow.insertCell();
-            td.id = `hot2-card-${i}`;
+        const addRow = (labelText, inputId, cardId, isGrand) => {
+            const tr = tbody.insertRow();
+            if (isGrand) tr.className = 'grand-mean-row';
+            const tdLabel = tr.insertCell();
+            tdLabel.className = 'means-label-td';
+            tdLabel.textContent = labelText;
+            const tdInput = tr.insertCell();
+            tdInput.id = cardId;
+            tdInput.className = 'means-input-td';
             const inp = document.createElement('input');
             inp.type = 'number'; inp.step = 'any';
-            inp.id = `hot2-inp-${i}`;
+            inp.id = inputId;
             inp.className = 'means-tbl-input num-input';
             inp.placeholder = '0.0000'; inp.autocomplete = 'off';
-            td.appendChild(inp);
-        });
-        const tdGrand = irow.insertCell();
-        tdGrand.id = 'hot2-card-grand';
-        tdGrand.className = 'grand-mean-td';
-        const grandInp = document.createElement('input');
-        grandInp.type = 'number'; grandInp.step = 'any';
-        grandInp.id = 'hot2-inp-grand';
-        grandInp.className = 'means-tbl-input num-input';
-        grandInp.placeholder = '0.0000'; grandInp.autocomplete = 'off';
-        tdGrand.appendChild(grandInp);
+            tdInput.appendChild(inp);
+        };
+
+        sc.groups.forEach((g, i) => addRow(`${humanizeGroup(g)} (\u0232${toSub(i + 1)})`, `hot2-inp-${i}`, `hot2-card-${i}`, false));
+        addRow('Grootgemiddelde (\u0232..)', 'hot2-inp-grand', 'hot2-card-grand', true);
 
         container.appendChild(tbl);
     }
@@ -674,27 +669,31 @@
         const tbl = document.createElement('table');
         tbl.className = 'ss-table';
 
-        // Header row
+        // Column headers
         const thead = tbl.createTHead();
         const hrow = thead.insertRow();
-        ssItems.forEach(({ label }) => {
+        ['Bron van variatie', 'Jouw antwoord (SS)'].forEach(text => {
             const th = document.createElement('th');
-            th.textContent = label;
+            th.textContent = text;
             hrow.appendChild(th);
         });
 
-        // Input row
+        // One row per SS component
         const tbody = tbl.createTBody();
-        const irow = tbody.insertRow();
-        ssItems.forEach(({ id }) => {
-            const td = irow.insertCell();
-            td.id = `hot4-card-${id}`;
+        ssItems.forEach(({ id, label }) => {
+            const tr = tbody.insertRow();
+            const tdLabel = tr.insertCell();
+            tdLabel.className = 'ss-label-td';
+            tdLabel.textContent = label;
+            const tdInput = tr.insertCell();
+            tdInput.id = `hot4-card-${id}`;
+            tdInput.className = 'ss-input-td';
             const inp = document.createElement('input');
             inp.type = 'number'; inp.step = 'any';
             inp.id = `hot4-inp-${id}`;
             inp.className = 'ss-tbl-input num-input';
             inp.placeholder = '0.0000'; inp.autocomplete = 'off';
-            td.appendChild(inp);
+            tdInput.appendChild(inp);
         });
 
         container.appendChild(tbl);

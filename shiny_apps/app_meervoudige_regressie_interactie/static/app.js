@@ -101,14 +101,64 @@ const state = {
   scenario: null,
   data: [],
   truth: null,
-  predInputs: [],
   unlocked: false,
+  hotMeans: null,
+  hotTotals: null,
+  hotCoef: null,
+  hotFit: null,
+  hotPred: null,
+  hotMeansCellClasses: {},
+  hotTotalsCellClasses: {},
+  hotCoefCellClasses: {},
+  hotFitCellClasses: {},
+  hotPredCellClasses: {},
   charts: {
     interaction: null,
     calibration: null,
     residual: null
   }
 };
+
+const FIELD_HOT_MAP = {
+  mean_X1: { hotKey: 'hotMeans', classKey: 'hotMeansCellClasses', row: 0, col: 1 },
+  mean_X2: { hotKey: 'hotMeans', classKey: 'hotMeansCellClasses', row: 1, col: 1 },
+  mean_Y: { hotKey: 'hotMeans', classKey: 'hotMeansCellClasses', row: 2, col: 1 },
+  tot_S11: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 0, col: 1 },
+  tot_S22: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 1, col: 1 },
+  tot_S33: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 2, col: 1 },
+  tot_S12: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 3, col: 1 },
+  tot_S13: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 4, col: 1 },
+  tot_S23: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 5, col: 1 },
+  tot_S1Y: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 6, col: 1 },
+  tot_S2Y: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 7, col: 1 },
+  tot_S3Y: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 8, col: 1 },
+  tot_SST: { hotKey: 'hotTotals', classKey: 'hotTotalsCellClasses', row: 9, col: 1 },
+  coef_a: { hotKey: 'hotCoef', classKey: 'hotCoefCellClasses', row: 0, col: 1 },
+  coef_b1: { hotKey: 'hotCoef', classKey: 'hotCoefCellClasses', row: 1, col: 1 },
+  coef_b2: { hotKey: 'hotCoef', classKey: 'hotCoefCellClasses', row: 2, col: 1 },
+  coef_b3: { hotKey: 'hotCoef', classKey: 'hotCoefCellClasses', row: 3, col: 1 },
+  fit_R2: { hotKey: 'hotFit', classKey: 'hotFitCellClasses', row: 0, col: 1 },
+  fit_delta_R2: { hotKey: 'hotFit', classKey: 'hotFitCellClasses', row: 1, col: 1 },
+  fit_alienation: { hotKey: 'hotFit', classKey: 'hotFitCellClasses', row: 2, col: 1 }
+};
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), ms);
+  };
+}
+
+function getFieldValue(id) {
+  const m = FIELD_HOT_MAP[id];
+  if (!m) return NaN;
+  const hot = state[m.hotKey];
+  if (!hot) return NaN;
+  const data = hot.getData();
+  if (!data || !data[m.row]) return NaN;
+  return parseNum(data[m.row][m.col]);
+}
 
 function r2(v) {
   return Math.round(v * 100) / 100;
@@ -182,11 +232,6 @@ function checkDecimals(userVal, trueVal, digits = 4) {
   if (!Number.isFinite(userVal) || !Number.isFinite(trueVal)) return false;
   const p = 10 ** digits;
   return Math.round(userVal * p) === Math.round(trueVal * p);
-}
-
-function hasAttempted(inputEl) {
-  if (!inputEl) return false;
-  return Number.isFinite(parseNum(inputEl.value));
 }
 
 function getScenarioById(id) {
@@ -368,54 +413,164 @@ function calcTruth(data) {
   };
 }
 
-function buildInputTable(tableId, fieldIds) {
-  const table = document.getElementById(tableId);
-  if (!table) return;
-
-  table.innerHTML = '';
-  const thead = document.createElement('thead');
-  thead.innerHTML = '<tr><th>Grootheid</th><th>Jouw antwoord</th><th>Status</th></tr>';
-  table.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-  fieldIds.forEach((id) => {
-    const tr = document.createElement('tr');
-
-    const tdLabel = document.createElement('td');
-    tdLabel.className = 'input-row-label';
-    tdLabel.textContent = FIELD_MAP[id].label;
-
-    const tdInput = document.createElement('td');
-    const input = document.createElement('input');
-    input.id = id;
-    input.className = 'input-answer';
-    input.type = 'number';
-    input.step = 'any';
-    input.placeholder = '0.0000';
-    input.addEventListener('input', evaluateAll);
-    tdInput.appendChild(input);
-
-    const tdMsg = document.createElement('td');
-    tdMsg.className = 'input-msg-cell';
-    const msg = document.createElement('div');
-    msg.id = `${id}_msg`;
-    msg.className = 'msg';
-    tdMsg.appendChild(msg);
-
-    tr.appendChild(tdLabel);
-    tr.appendChild(tdInput);
-    tr.appendChild(tdMsg);
-    tbody.appendChild(tr);
-  });
-
-  table.appendChild(tbody);
+function makeHotCells(classKey) {
+  return function cells(row, col) {
+    const key = `${row}-${col}`;
+    const cls = state[classKey][key];
+    const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+    if (cls === 'correct') classes.push('htCorrect');
+    if (cls === 'incorrect') classes.push('htIncorrect');
+    return { className: classes.join(' ') };
+  };
 }
 
-function buildInputSections() {
-  buildInputTable('step1-table', STEP_GROUPS.step1);
-  buildInputTable('step2-table', STEP_GROUPS.step2);
-  buildInputTable('step3-table', STEP_GROUPS.step3);
-  buildInputTable('step5-table', STEP_GROUPS.step5);
+function renderHotMeans() {
+  const container = document.getElementById('hot-means-container');
+  if (!container) return;
+  if (state.hotMeans) { state.hotMeans.destroy(); state.hotMeans = null; }
+  state.hotMeansCellClasses = {};
+  container.innerHTML = '';
+  if (!state.data.length) return;
+
+  const sc = state.scenario;
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    [`Gemiddelde X1 - ${sc.vars.x1}`, null],
+    [`Gemiddelde X2 - ${sc.vars.x2}`, null],
+    [`Gemiddelde Y - ${sc.vars.y}`, null]
+  ];
+
+  state.hotMeans = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [300, 140],
+    rowHeaders: false,
+    allowInsertRow: false,
+    allowInsertColumn: false,
+    width: 440,
+    height: 'auto',
+    stretchH: 'none',
+    cells: makeHotCells('hotMeansCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotTotals() {
+  const container = document.getElementById('hot-totals-container');
+  if (!container) return;
+  if (state.hotTotals) { state.hotTotals.destroy(); state.hotTotals = null; }
+  state.hotTotalsCellClasses = {};
+  container.innerHTML = '';
+  if (!state.data.length) return;
+
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    ['S11', null],
+    ['S22', null],
+    ['S33', null],
+    ['S12', null],
+    ['S13', null],
+    ['S23', null],
+    ['S1Y', null],
+    ['S2Y', null],
+    ['S3Y', null],
+    ['SST', null]
+  ];
+
+  state.hotTotals = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [260, 140],
+    rowHeaders: false,
+    allowInsertRow: false,
+    allowInsertColumn: false,
+    width: 400,
+    height: 'auto',
+    stretchH: 'none',
+    cells: makeHotCells('hotTotalsCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotCoef() {
+  const container = document.getElementById('hot-coef-container');
+  if (!container) return;
+  if (state.hotCoef) { state.hotCoef.destroy(); state.hotCoef = null; }
+  state.hotCoefCellClasses = {};
+  container.innerHTML = '';
+  if (!state.data.length) return;
+
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    ['Intercept a', null],
+    ['b1', null],
+    ['b2', null],
+    ['b3', null]
+  ];
+
+  state.hotCoef = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [260, 140],
+    rowHeaders: false,
+    allowInsertRow: false,
+    allowInsertColumn: false,
+    width: 400,
+    height: 'auto',
+    stretchH: 'none',
+    cells: makeHotCells('hotCoefCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
+}
+
+function renderHotFit() {
+  const container = document.getElementById('hot-fit-container');
+  if (!container) return;
+  if (state.hotFit) { state.hotFit.destroy(); state.hotFit = null; }
+  state.hotFitCellClasses = {};
+  container.innerHTML = '';
+  if (!state.data.length) return;
+
+  const hotValidate = debounce(evaluateAll, 250);
+  const tableData = [
+    ['R2', null],
+    ['Delta R2', null],
+    ['1 - R2', null]
+  ];
+
+  state.hotFit = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [260, 140],
+    rowHeaders: false,
+    allowInsertRow: false,
+    allowInsertColumn: false,
+    width: 400,
+    height: 'auto',
+    stretchH: 'none',
+    cells: makeHotCells('hotFitCellClasses'),
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
+  });
 }
 
 function setScenarioText(sc) {
@@ -447,86 +602,67 @@ function renderDatasetTable() {
   tbl.appendChild(tbody);
 }
 
-function renderPredTable() {
+function renderHotPred() {
+  const container = document.getElementById('pred-table-container');
+  if (!container) return;
+  if (state.hotPred) { state.hotPred.destroy(); state.hotPred = null; }
+  state.hotPredCellClasses = {};
+  container.innerHTML = '';
+  if (!state.data.length || !state.truth) return;
+
   const sc = state.scenario;
-  const truth = state.truth;
-  const tbl = document.getElementById('pred-table');
-  tbl.innerHTML = '';
-  state.predInputs = [];
+  const t = state.truth;
+  const hotValidate = debounce(evaluateAll, 250);
 
-  if (!truth) return;
+  const tableData = state.data.map((r, i) => ([
+    r.entity,
+    t.x1c[i],
+    t.x2c[i],
+    t.int_term[i],
+    r.y,
+    null
+  ]));
 
-  const predName = 'Y-hat = a + b1*X1c + b2*X2c + b3*INT';
-
-  const thead = document.createElement('thead');
-  thead.innerHTML = `<tr><th>Eenheid</th><th>X1c</th><th>X2c</th><th>INT</th><th>${sc.vars.y}</th><th>${predName}</th></tr>`;
-  tbl.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-  state.data.forEach((r, i) => {
-    const tr = document.createElement('tr');
-
-    const tdEntity = document.createElement('td');
-    tdEntity.textContent = r.entity;
-
-    const tdX1c = document.createElement('td');
-    tdX1c.textContent = truth.x1c[i].toFixed(4);
-    tdX1c.className = 'readonly-cell';
-
-    const tdX2c = document.createElement('td');
-    tdX2c.textContent = truth.x2c[i].toFixed(4);
-    tdX2c.className = 'readonly-cell';
-
-    const tdInt = document.createElement('td');
-    tdInt.textContent = truth.int_term[i].toFixed(4);
-    tdInt.className = 'readonly-cell';
-
-    const tdY = document.createElement('td');
-    tdY.textContent = r.y.toFixed(2);
-
-    const tdPred = document.createElement('td');
-    const inp = document.createElement('input');
-    inp.className = 'pred-input';
-    inp.type = 'number';
-    inp.step = 'any';
-    inp.placeholder = '0.0000';
-    inp.dataset.index = String(i);
-    inp.addEventListener('input', evaluateAll);
-    tdPred.appendChild(inp);
-
-    state.predInputs.push(inp);
-
-    tr.appendChild(tdEntity);
-    tr.appendChild(tdX1c);
-    tr.appendChild(tdX2c);
-    tr.appendChild(tdInt);
-    tr.appendChild(tdY);
-    tr.appendChild(tdPred);
-
-    tbody.appendChild(tr);
+  const w0 = Math.max(70, Math.ceil(state.data[0].entity.length * 7) + 16);
+  state.hotPred = new Handsontable(container, {
+    data: tableData,
+    licenseKey: 'non-commercial-and-evaluation',
+    colHeaders: ['Eenheid', 'X1c', 'X2c', 'INT', sc.vars.y, 'Y-hat = a + b1*X1c + b2*X2c + b3*INT'],
+    columns: [
+      { type: 'text', readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.00' }, readOnly: true },
+      { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+    ],
+    colWidths: [w0, 110, 110, 110, 120, 260],
+    rowHeaders: false,
+    allowInsertRow: false,
+    allowInsertColumn: false,
+    width: w0 + 710,
+    height: 'auto',
+    stretchH: 'none',
+    cells(row, col) {
+      const key = `${row}-${col}`;
+      const cls = state.hotPredCellClasses[key];
+      const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+      if (col >= 1 && col <= 4) classes.push('htDimmed');
+      if (cls === 'correct') classes.push('htCorrect');
+      if (cls === 'incorrect') classes.push('htIncorrect');
+      return { className: classes.join(' ') };
+    },
+    afterChange(changes, source) { if (source === 'loadData') return; hotValidate(); }
   });
-
-  tbl.appendChild(tbody);
 }
 
 function resetInputs() {
-  REQUIRED_FIELDS.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.value = '';
-      el.classList.remove('valid', 'invalid');
-    }
-    const msg = document.getElementById(`${id}_msg`);
-    if (msg) {
-      msg.textContent = '';
-      msg.className = 'msg';
-    }
-  });
-
-  const predMsg = document.getElementById('pred-msg');
-  predMsg.textContent = '';
-  predMsg.className = 'status';
-  ['fb-deel2', 'fb-deel3', 'fb-deel4', 'fb-deel6'].forEach(id => {
+  state.hotMeansCellClasses = {};
+  state.hotTotalsCellClasses = {};
+  state.hotCoefCellClasses = {};
+  state.hotFitCellClasses = {};
+  state.hotPredCellClasses = {};
+  ['fb-deel2', 'fb-deel3', 'fb-deel4', 'fb-deel5', 'fb-deel6'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.innerHTML = ''; el.className = 'section-summary'; }
   });
@@ -539,77 +675,50 @@ function resetInputs() {
 }
 
 function markField(id, ok, attempted) {
-  const el = document.getElementById(id);
-  const msg = document.getElementById(`${id}_msg`);
-  if (!el || !msg) return;
-
-  el.classList.remove('valid', 'invalid');
-  msg.textContent = '';
-  msg.className = 'msg';
-
-  if (!attempted) return;
-
-  if (ok) {
-    el.classList.add('valid');
-    msg.classList.add('ok');
-    msg.textContent = 'OK';
+  const m = FIELD_HOT_MAP[id];
+  if (!m) return;
+  const key = `${m.row}-${m.col}`;
+  if (!attempted) {
+    delete state[m.classKey][key];
+  } else if (ok) {
+    state[m.classKey][key] = 'correct';
   } else {
-    el.classList.add('invalid');
-    msg.classList.add('err');
-    msg.textContent = `${FIELD_MAP[id].label} is onjuist.`;
+    state[m.classKey][key] = 'incorrect';
   }
 }
 
 function evaluatePredictions() {
-  const truth = state.truth;
-  const msg = document.getElementById('pred-msg');
-  if (!truth || !state.predInputs.length) {
-    msg.textContent = '';
-    msg.className = 'status';
-    return { allEntered: false, allCorrect: false, correctCount: 0, totalCount: state.predInputs.length };
-  }
+  if (!state.truth || !state.data.length) return { allEntered: false, allCorrect: false };
+  const t = state.truth;
+  const d = state.hotPred ? state.hotPred.getData() : [];
+  const n = state.data.length;
+  const newCls = {};
+  let correct = 0;
+  let entered = 0;
 
-  let allEntered = true;
-  let allCorrect = true;
-  let correctCount = 0;
-  let totalCount = 0;
+  for (let i = 0; i < n; i++) {
+    const raw = d[i] ? d[i][5] : null;
+    const str = raw == null ? '' : String(raw).trim();
+    if (!str) continue;
+    entered += 1;
 
-  state.predInputs.forEach((inp, i) => {
-    totalCount += 1;
-    const val = parseNum(inp.value);
-    inp.classList.remove('valid', 'invalid');
-
-    if (Number.isFinite(val)) {
-      const ok = checkDecimals(val, truth.yhat[i], 4);
-      if (ok) {
-        inp.classList.add('valid');
-        correctCount += 1;
-      }
-      else {
-        inp.classList.add('invalid');
-        allCorrect = false;
-      }
-    } else {
-      allEntered = false;
-      allCorrect = false;
+    const num = parseNum(str);
+    if (!Number.isFinite(num)) {
+      newCls[`${i}-5`] = 'incorrect';
+      continue;
     }
-  });
-
-  if (!allEntered) {
-    msg.textContent = '';
-    msg.className = 'status';
-    return { allEntered, allCorrect, correctCount, totalCount };
+    if (checkDecimals(num, t.yhat[i], 4)) {
+      newCls[`${i}-5`] = 'correct';
+      correct += 1;
+    } else {
+      newCls[`${i}-5`] = 'incorrect';
+    }
   }
 
-  if (allCorrect) {
-    msg.textContent = 'Voorspellingen OK';
-    msg.className = 'status ok';
-  } else {
-    msg.textContent = 'Sommige voorspellingen zijn fout.';
-    msg.className = 'status err';
-  }
-
-  return { allEntered, allCorrect, correctCount, totalCount };
+  state.hotPredCellClasses = newCls;
+  if (state.hotPred) state.hotPred.render();
+  updateSectionSummary('fb-deel5', correct, n, 'Voorspellingen correct', 'controleer voorspellingen');
+  return { allEntered: entered === n, allCorrect: correct === n };
 }
 
 function simpleLine(points) {
@@ -842,28 +951,30 @@ function updateSectionSummary(divId, correct, total, labelOk, labelPartial) {
 function evaluateAll() {
   if (!state.truth) return;
 
-  let allAttempted = true;
+  let allEntered = true;
   let allCorrect = true;
   let correctCount = 0;
   let totalCount = 0;
 
   REQUIRED_FIELDS.forEach(id => {
     totalCount += 1;
-    const el = document.getElementById(id);
-    const attempted = hasAttempted(el);
-    const val = parseNum(el.value);
+    const val = getFieldValue(id);
+    const attempted = Number.isFinite(val);
     const truthKey = FIELD_MAP[id].truth;
     const truthVal = state.truth[truthKey];
     const ok = attempted && checkDecimals(val, truthVal, 4);
 
-    if (!attempted) allAttempted = false;
+    if (!attempted) allEntered = false;
     if (!ok) allCorrect = false;
     if (ok) correctCount += 1;
 
     markField(id, ok, attempted);
   });
 
-  evaluatePredictions();
+  [state.hotMeans, state.hotTotals, state.hotCoef, state.hotFit].forEach((hot) => {
+    if (hot) hot.render();
+  });
+  const predResult = evaluatePredictions();
 
   const SECTION_GROUPS = [
     { id: 'fb-deel2', fields: STEP_GROUPS.step1, ok: 'Gemiddelden correct', partial: 'controleer gemiddelden' },
@@ -874,10 +985,8 @@ function evaluateAll() {
   SECTION_GROUPS.forEach(sg => {
     let sc = 0;
     sg.fields.forEach(fid => {
-      const el = document.getElementById(fid);
-      if (!el) return;
-      const attempted = hasAttempted(el);
-      const val = parseNum(el.value);
+      const val = getFieldValue(fid);
+      const attempted = Number.isFinite(val);
       const truthKey = FIELD_MAP[fid].truth;
       const ok = attempted && checkDecimals(val, state.truth[truthKey], 4);
       if (ok) sc++;
@@ -887,7 +996,7 @@ function evaluateAll() {
 
   updateProgress(correctCount, totalCount);
 
-  const unlock = allAttempted && allCorrect;
+  const unlock = allEntered && allCorrect && predResult.allEntered && predResult.allCorrect;
   if (unlock !== state.unlocked) {
     state.unlocked = unlock;
     setVizNavLock(unlock);
@@ -1017,8 +1126,13 @@ function generate(random = false) {
 
   setScenarioText(sc);
   renderDatasetTable();
-  renderPredTable();
   resetInputs();
+  renderHotMeans();
+  renderHotTotals();
+  renderHotCoef();
+  renderHotPred();
+  renderHotFit();
+  evaluateAll();
   destroyCharts();
   document.getElementById('interpretation').innerHTML = '';
 }
@@ -1051,7 +1165,6 @@ function bindControls() {
 
 function init() {
   initScenarioSelect();
-  buildInputSections();
   setupNav();
   setupSidebarChrome();
   bindControls();

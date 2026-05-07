@@ -1160,48 +1160,61 @@ details.test-panel[open]>summary::before {
     cursor: default;
 }
 
-/* ─── Table layout: group means (Deel II) & SS values (Deel IV) ─── */
+/* ─── Plain HTML tables: group means (Deel II) & SS values (Deel IV) ─── */
 .means-table,
 .ss-table {
     border-collapse: collapse;
-    width: auto;
     margin-top: 8px;
 }
 
 .means-table th,
 .ss-table th {
-    background: #e8f0fa;
-    color: #1e3a5f;
-    font-size: 12px;
+    background: #1e3a5f;
+    color: #fff;
+    font-size: 13px;
     font-weight: 600;
     text-align: center;
-    padding: 6px 14px;
-    border: 1.5px solid #cdd5e0;
+    padding: 6px 16px;
+    border: 1px solid #1e3a5f;
 }
 
 .means-table td,
 .ss-table td {
-    border: 1.5px solid #cdd5e0;
-    background: #f8fafd;
-    text-align: center;
-    padding: 6px 10px;
-    transition: background 0.2s, border-color 0.2s;
+    border: 1px solid #cdd5e0;
+    font-size: 13px;
+    padding: 5px 12px;
+    background: #fff;
 }
 
-/* Grand mean column — dashed left border to separate it */
-.means-table th.grand-mean-th,
-.means-table td.grand-mean-td {
-    border-left: 2px dashed #94a3b8;
+.means-label-td,
+.ss-label-td {
+    background: #f8fafd;
+    color: #222;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Grand mean row — top border separator */
+.means-table tr.grand-mean-row .means-label-td,
+.means-table tr.grand-mean-row .means-input-td {
+    border-top: 2px solid #94a3b8;
+    background: #f1f5fb;
+    font-weight: 600;
+}
+
+.means-input-td,
+.ss-input-td {
+    text-align: center;
 }
 
 .means-tbl-input,
 .ss-tbl-input {
-    width: 110px;
+    width: 130px;
     text-align: center;
     font-size: 13px;
-    padding: 5px 6px;
-    border: 1.5px solid #cdd5e0;
-    border-radius: 4px;
+    padding: 4px 6px;
+    border: 1px solid #cdd5e0;
+    border-radius: 3px;
     background: #fff;
     color: #222;
     -moz-appearance: textfield;
@@ -1215,26 +1228,27 @@ details.test-panel[open]>summary::before {
     margin: 0;
 }
 
-.means-table td.card-correct,
-.ss-table td.card-correct {
+/* Correct / incorrect colouring on the input cell */
+.means-input-td.card-correct,
+.ss-input-td.card-correct {
     background: #f0fdf4;
     border-color: #16a34a;
 }
 
-.means-table td.card-incorrect,
-.ss-table td.card-incorrect {
+.means-input-td.card-incorrect,
+.ss-input-td.card-incorrect {
     background: #fff5f5;
     border-color: #dc2626;
 }
 
-.means-table td.card-correct .means-tbl-input,
-.ss-table td.card-correct .ss-tbl-input {
+.means-input-td.card-correct .means-tbl-input,
+.ss-input-td.card-correct .ss-tbl-input {
     border-color: #16a34a;
     color: #15803d;
 }
 
-.means-table td.card-incorrect .means-tbl-input,
-.ss-table td.card-incorrect .ss-tbl-input {
+.means-input-td.card-incorrect .means-tbl-input,
+.ss-input-td.card-incorrect .ss-tbl-input {
     border-color: #dc2626;
     color: #b91c1c;
 }
