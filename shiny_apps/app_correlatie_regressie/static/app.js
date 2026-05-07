@@ -1432,6 +1432,15 @@
       };
       seedEl.addEventListener('input', markManual);
       seedEl.addEventListener('change', markManual);
+      seedEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); generate(false); }
+      });
+    }
+    const nEl = document.getElementById('n');
+    if (nEl) {
+      nEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); generate(false); }
+      });
     }
     document.getElementById('mode').addEventListener('change', (e) => {
       state.mode = e.target.value === 'Correlation' ? 'Correlation' : 'Bivariate';

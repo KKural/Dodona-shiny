@@ -2259,6 +2259,9 @@
       };
       seedEl.addEventListener('input', markManual);
       seedEl.addEventListener('change', markManual);
+      seedEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); generate(false); }
+      });
     }
     document.querySelectorAll('.answer-table input:not(.no-eval), .answer-table textarea, .answer-table select.blank-select').forEach((el) => {
       el.addEventListener('input', debounce(() => checkOpenAnswers(false), 300));
@@ -2283,6 +2286,18 @@
       if (e.target.classList.contains('blank-select')) {
         const container = e.target.closest('.sentence-blank');
         if (container) updateSentencePreview(container);
+      }
+    });
+    // Enter in answer text inputs moves to next input (Excel-style)
+    document.querySelector('.answer-table')?.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.target.tagName === 'SELECT') return;
+      const inputs = Array.from(document.querySelectorAll(
+        '.answer-table input[type="text"], .answer-table textarea'
+      ));
+      const idx = inputs.indexOf(e.target);
+      if (idx !== -1 && idx + 1 < inputs.length) {
+        e.preventDefault();
+        inputs[idx + 1].focus();
       }
     });
   }

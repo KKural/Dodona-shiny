@@ -1551,6 +1551,15 @@
             };
             seedEl.addEventListener('input', markManual);
             seedEl.addEventListener('change', markManual);
+            seedEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); doGenerate(); }
+            });
+        }
+        const nEl = document.getElementById('inp-n');
+        if (nEl) {
+            nEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); doGenerate(); }
+            });
         }
         // Sidebar mobile toggle
         const sidebarEl = document.querySelector('.sidebar');
