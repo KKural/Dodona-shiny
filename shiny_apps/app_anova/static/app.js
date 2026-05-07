@@ -614,40 +614,47 @@
         if (!sc) return;
 
         const toSub = n => String(n).split('').map(d => '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089'[+d]).join('');
-        const row = document.createElement('div');
-        row.className = 'means-cards-row';
 
+        const tbl = document.createElement('table');
+        tbl.className = 'means-table';
+
+        // Header row
+        const thead = tbl.createTHead();
+        const hrow = thead.insertRow();
         sc.groups.forEach((g, i) => {
-            const card = document.createElement('div');
-            card.className = 'means-card';
-            card.id = `hot2-card-${i}`;
-            const label = document.createElement('span');
-            label.className = 'means-card-label';
-            label.textContent = `${humanizeGroup(g)} (\u0232${toSub(i + 1)})`;
+            const th = document.createElement('th');
+            th.textContent = `${humanizeGroup(g)} (\u0232${toSub(i + 1)})`;
+            hrow.appendChild(th);
+        });
+        const thGrand = document.createElement('th');
+        thGrand.className = 'grand-mean-th';
+        thGrand.textContent = 'Grootgemiddelde (\u0232..)';
+        hrow.appendChild(thGrand);
+
+        // Input row
+        const tbody = tbl.createTBody();
+        const irow = tbody.insertRow();
+        sc.groups.forEach((g, i) => {
+            const td = irow.insertCell();
+            td.id = `hot2-card-${i}`;
             const inp = document.createElement('input');
             inp.type = 'number'; inp.step = 'any';
             inp.id = `hot2-inp-${i}`;
-            inp.className = 'means-card-input num-input';
+            inp.className = 'means-tbl-input num-input';
             inp.placeholder = '0.0000'; inp.autocomplete = 'off';
-            card.appendChild(label); card.appendChild(inp);
-            row.appendChild(card);
+            td.appendChild(inp);
         });
-
-        const grandCard = document.createElement('div');
-        grandCard.className = 'means-card grand-mean-card';
-        grandCard.id = 'hot2-card-grand';
-        const grandLabel = document.createElement('span');
-        grandLabel.className = 'means-card-label';
-        grandLabel.textContent = 'Grootgemiddelde (\u0232..)';
+        const tdGrand = irow.insertCell();
+        tdGrand.id = 'hot2-card-grand';
+        tdGrand.className = 'grand-mean-td';
         const grandInp = document.createElement('input');
         grandInp.type = 'number'; grandInp.step = 'any';
         grandInp.id = 'hot2-inp-grand';
-        grandInp.className = 'means-card-input num-input';
+        grandInp.className = 'means-tbl-input num-input';
         grandInp.placeholder = '0.0000'; grandInp.autocomplete = 'off';
-        grandCard.appendChild(grandLabel); grandCard.appendChild(grandInp);
-        row.appendChild(grandCard);
+        tdGrand.appendChild(grandInp);
 
-        container.appendChild(row);
+        container.appendChild(tbl);
     }
 
     // ─── RENDER SS TABLE (Deel IV) ────────────────────────────────────────────────
@@ -663,24 +670,34 @@
             { id: 1, label: 'Tussen groepen (SSB)' },
             { id: 2, label: 'Totaal (SST)' }
         ];
-        const row = document.createElement('div');
-        row.className = 'ss-cards-row';
 
-        ssItems.forEach(({ id, label }) => {
-            const card = document.createElement('div');
-            card.className = 'ss-card'; card.id = `hot4-card-${id}`;
-            const lbl = document.createElement('span');
-            lbl.className = 'ss-card-label'; lbl.textContent = label;
+        const tbl = document.createElement('table');
+        tbl.className = 'ss-table';
+
+        // Header row
+        const thead = tbl.createTHead();
+        const hrow = thead.insertRow();
+        ssItems.forEach(({ label }) => {
+            const th = document.createElement('th');
+            th.textContent = label;
+            hrow.appendChild(th);
+        });
+
+        // Input row
+        const tbody = tbl.createTBody();
+        const irow = tbody.insertRow();
+        ssItems.forEach(({ id }) => {
+            const td = irow.insertCell();
+            td.id = `hot4-card-${id}`;
             const inp = document.createElement('input');
             inp.type = 'number'; inp.step = 'any';
             inp.id = `hot4-inp-${id}`;
-            inp.className = 'ss-card-input num-input';
+            inp.className = 'ss-tbl-input num-input';
             inp.placeholder = '0.0000'; inp.autocomplete = 'off';
-            card.appendChild(lbl); card.appendChild(inp);
-            row.appendChild(card);
+            td.appendChild(inp);
         });
 
-        container.appendChild(row);
+        container.appendChild(tbl);
     }
 
     // ─── RENDER ANOVA TABLE (HOT5 — Deel V) ──────────────────────────────────────
