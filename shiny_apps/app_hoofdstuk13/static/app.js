@@ -2241,7 +2241,7 @@
     document.getElementById('btn-generate').addEventListener('click', () => generate(false));
     document.getElementById('btn-random').addEventListener('click', () => generate(true));
     document.getElementById('btn-reset-answers').addEventListener('click', resetAnswers);
-    document.getElementById('btn-print').addEventListener('click', printQuestionPaper);
+    document.getElementById('btn-print')?.addEventListener('click', printQuestionPaper);
     document.getElementById('btn-open-dataset-window')?.addEventListener('click', openDatasetInNewWindow);
     document.querySelectorAll('.nav-list a[href^="#"]').forEach((a) => {
       a.addEventListener('click', () => {

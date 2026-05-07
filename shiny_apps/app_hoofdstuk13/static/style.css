@@ -338,6 +338,12 @@ th {
     text-align: center;
 }
 
+/* Tabel 2: centreer laatste kolom (groepslabel) */
+#dataset-table td:last-child,
+#dataset-table th:last-child {
+    text-align: center;
+}
+
 .data-table tr:nth-child(even) td {
     background: #f8fafd;
 }
