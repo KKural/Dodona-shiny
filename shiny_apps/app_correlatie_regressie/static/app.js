@@ -425,7 +425,7 @@
       feedbackStore[msgId] = 'Geen geldig getal.';
       return 'incorrect';
     }
-    if (Math.abs(r4(num) - r4(expected)) < 0.0001) {
+    if (Math.abs(r4(num) - r4(expected)) <= 0.0001) {
       hotCellClasses[key] = 'correct';
       feedbackStore[msgId] = null;
       return 'correct';
