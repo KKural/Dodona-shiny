@@ -320,6 +320,12 @@
     return Math.floor(Math.random() * 1000000000) + 1;
   }
 
+  function randomSeedForInput(el) {
+    const maxAttr = el && el.max !== '' ? parseInt(el.max, 10) : NaN;
+    const cap = Number.isFinite(maxAttr) && maxAttr > 0 ? maxAttr : 1000000000;
+    return Math.floor(Math.random() * cap) + 1;
+  }
+
   function mulberry32(seed) {
     return function () {
       let t = (seed += 0x6D2B79F5);
@@ -1797,7 +1803,7 @@
       seedEl.dataset.seedManual = '0';
       seedEl.dataset.nextRandom = '1';
     } else {
-      seedToUse = nextRandomSeed();
+      seedToUse = randomSeedForInput(seedEl);
       seedEl.value = String(seedToUse);
       seedEl.dataset.seedManual = '0';
       seedEl.dataset.nextRandom = '0';
@@ -2324,7 +2330,7 @@
     bindEvents();
     const seedEl = document.getElementById('seed');
     if (seedEl) {
-      seedEl.value = String(nextRandomSeed());
+      seedEl.value = String(randomSeedForInput(seedEl));
       seedEl.dataset.seedManual = '0';
       seedEl.dataset.nextRandom = '0';
     }

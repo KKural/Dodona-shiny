@@ -916,7 +916,9 @@ function evaluateAll() {
   const stepDone = {
     2: isComplete('fb-deel2'),
     3: isComplete('fb-deel3'),
-    4: isComplete('fb-deel4') && isComplete('fb-deel4a') && isComplete('fb-deel4b'),
+    4: isComplete('fb-deel4'),
+    '4a': isComplete('fb-deel4a'),
+    '4b': isComplete('fb-deel4b'),
     5: isComplete('fb-deel5'),
     6: predResult.allEntered && predResult.allCorrect,
     7: isComplete('fb-deel7')
@@ -963,16 +965,24 @@ function setVizNavLock(unlocked) {
 
 // Step-by-step section locking
 function updateStepLocks(stepDone) {
-  const corrMode = state.mode === 'Correlation';
-  const lastStep = corrMode ? 4 : 7;
+  const steps = [
+    { id: 'deel2', prereq: null },
+    { id: 'deel3', prereq: 2 },
+    { id: 'deel4', prereq: 3 },
+    { id: 'deel4a', prereq: 4 },
+    { id: 'deel4b', prereq: '4a' },
+    { id: 'deel5', prereq: '4b' },
+    { id: 'deel6', prereq: 5 },
+    { id: 'deel7', prereq: 6 }
+  ];
 
-  for (let step = 2; step <= 7; step++) {
-    const sec = document.getElementById(`deel${step}`);
-    const nav = document.querySelector(`.nav-item[data-target="deel${step}"]`);
-    if (!sec) continue;
+  steps.forEach(({ id, prereq }) => {
+    const sec = document.getElementById(id);
+    const nav = document.querySelector(`.nav-item[data-target="${id}"]`);
+    if (!sec) return;
 
-    const prevDone = step === 2 ? true : (stepDone[step - 1] === true);
-    const locked = !prevDone;
+    const unlocked = prereq == null ? true : (stepDone[prereq] === true);
+    const locked = !unlocked;
 
     if (locked) {
       sec.classList.add('step-locked');
@@ -986,10 +996,10 @@ function updateStepLocks(stepDone) {
       sec.classList.remove('hidden');
       if (nav) {
         nav.classList.remove('step-nav-locked');
-        if (step <= lastStep) nav.classList.remove('locked');
+        nav.classList.remove('locked');
       }
     }
-  }
+  });
 }
 
 function lockAllSteps() {
