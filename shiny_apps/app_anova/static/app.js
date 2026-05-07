@@ -1082,12 +1082,14 @@
 
             if (locked) {
                 sec.classList.add('step-locked');
+                sec.classList.add('hidden');
                 if (nav) {
                     nav.classList.add('step-nav-locked');
                     nav.classList.add('locked');
                 }
             } else {
                 sec.classList.remove('step-locked');
+                sec.classList.remove('hidden');
                 if (nav) {
                     nav.classList.remove('step-nav-locked');
                     if (step <= lastStep) nav.classList.remove('locked');

@@ -40,6 +40,8 @@
           <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij
             fout.</li>
           <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> automatisch.</li>
+          <li>De delen openen automatisch in volgorde: een deel wordt pas zichtbaar als het vorige deel volledig correct
+            is.</li>
         </ul>
       </div>
 
@@ -54,12 +56,12 @@
           <select id="scenario"></select>
         </div>
         <div class="sidebar-section">
-          <label for="n">Steekproefgrootte N (5-50)</label>
-          <input id="n" type="number" min="5" max="50" step="1" value="10" />
+          <label for="n">Steekproefgrootte N (6-50)</label>
+          <input id="n" type="number" min="6" max="50" step="1" value="10" />
         </div>
         <div class="sidebar-section">
           <label for="seed">Datasetcode (seed, optioneel)</label>
-          <input id="seed" type="number" min="6" placeholder="bijv. 123" />
+          <input id="seed" type="number" min="1" placeholder="bijv. 123" />
         </div>
 
         <button id="btn-generate" class="btn-primary">&#9654; Genereer dataset</button>
