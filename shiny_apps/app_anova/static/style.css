@@ -1167,19 +1167,6 @@ details.test-panel[open]>summary::before {
     font-weight: 600;
 }
 
-/* HOT2 + HOT4 side-by-side row */
-.hot-tables-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: flex-start;
-}
-
-.hot-tables-row .card {
-    flex: 1 1 300px;
-    min-width: 0;
-}
-
 .text-ok {
     color: #16a34a;
     font-weight: 600;
