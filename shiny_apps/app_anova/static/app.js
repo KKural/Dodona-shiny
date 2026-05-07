@@ -607,52 +607,53 @@
     function renderGroupMeansTable() {
         const container = document.getElementById('hot2-container');
         if (!container) return;
+        const sc = state.scenario;
         if (state.hot2) { state.hot2.destroy(); state.hot2 = null; }
         state.hot2CellClasses = {};
         container.innerHTML = '';
-        const sc = state.scenario;
         if (!sc) return;
 
+        const k = sc.groups.length;
         const toSub = n => String(n).split('').map(d => '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089'[+d]).join('');
+        const tableData = sc.groups.map((g, i) => [`${humanizeGroup(g)} (\u0232${toSub(i + 1)})`, null]);
+        tableData.push(['Grootgemiddelde (\u0232..)', null]);
 
-        const tbl = document.createElement('table');
-        tbl.className = 'means-table';
+        const longestLabel2 = tableData.map(r => r[0]).reduce((a, b) => a.length >= b.length ? a : b, 'Groep');
+        const hot2ColW = Math.max(150, Math.ceil(longestLabel2.length * 7) + 16);
+        const hot2W = hot2ColW + 150;
 
-        // Column headers
-        const thead = tbl.createTHead();
-        const hrow = thead.insertRow();
-        ['Groep', 'Jouw antwoord'].forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            hrow.appendChild(th);
+        const hotValidate = debounce(validateAll, 250);
+
+        state.hot2 = new Handsontable(container, {
+            data: tableData,
+            licenseKey: 'non-commercial-and-evaluation',
+            colHeaders: ['Groep', 'Jouw antwoord'],
+            columns: [
+                { type: 'text', readOnly: true },
+                { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+            ],
+            colWidths: [hot2ColW, 150],
+            rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
+            width: hot2W,
+            height: 'auto',
+            stretchH: 'none',
+            cells(row, col) {
+                const key = `${row}-${col}`;
+                const cls = state.hot2CellClasses[key];
+                const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+                if (row === k) classes.push('hot-grand-mean-cell');
+                if (cls === 'correct') classes.push('htCorrect');
+                else if (cls === 'incorrect') classes.push('htIncorrect');
+                return { className: classes.join(' ') };
+            },
+            afterChange(changes, source) {
+                if (source === 'loadData') return;
+                hotValidate();
+            }
         });
-
-        // One row per group + grand mean
-        const tbody = tbl.createTBody();
-        const addRow = (labelText, inputId, cardId, isGrand) => {
-            const tr = tbody.insertRow();
-            if (isGrand) tr.className = 'grand-mean-row';
-            const tdLabel = tr.insertCell();
-            tdLabel.className = 'means-label-td';
-            tdLabel.textContent = labelText;
-            const tdInput = tr.insertCell();
-            tdInput.id = cardId;
-            tdInput.className = 'means-input-td';
-            const inp = document.createElement('input');
-            inp.type = 'number'; inp.step = 'any';
-            inp.id = inputId;
-            inp.className = 'means-tbl-input num-input';
-            inp.placeholder = '0.0000'; inp.autocomplete = 'off';
-            tdInput.appendChild(inp);
-        };
-
-        sc.groups.forEach((g, i) => addRow(`${humanizeGroup(g)} (\u0232${toSub(i + 1)})`, `hot2-inp-${i}`, `hot2-card-${i}`, false));
-        addRow('Grootgemiddelde (\u0232..)', 'hot2-inp-grand', 'hot2-card-grand', true);
-
-        container.appendChild(tbl);
     }
 
-    // ─── RENDER SS TABLE (Deel IV) ────────────────────────────────────────────────
+    // ─── RENDER SS TABLE (HOT4 — Deel IV) ────────────────────────────────────────
     function renderSSTable() {
         const container = document.getElementById('hot4-container');
         if (!container) return;
@@ -660,43 +661,41 @@
         state.hot4CellClasses = {};
         container.innerHTML = '';
 
-        const ssItems = [
-            { id: 0, label: 'Binnen groepen (SSW)' },
-            { id: 1, label: 'Tussen groepen (SSB)' },
-            { id: 2, label: 'Totaal (SST)' }
+        const tableData = [
+            ['Binnen groepen (SSW)', null],
+            ['Tussen groepen (SSB)', null],
+            ['Totaal (SST)', null]
         ];
 
-        const tbl = document.createElement('table');
-        tbl.className = 'ss-table';
+        const hotValidate = debounce(validateAll, 250);
 
-        // Column headers
-        const thead = tbl.createTHead();
-        const hrow = thead.insertRow();
-        ['Bron van variatie', 'Jouw antwoord (SS)'].forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            hrow.appendChild(th);
+        state.hot4 = new Handsontable(container, {
+            data: tableData,
+            licenseKey: 'non-commercial-and-evaluation',
+            colHeaders: ['Bron van variatie', 'Jouw antwoord (SS)'],
+            columns: [
+                { type: 'text', readOnly: true },
+                { type: 'numeric', numericFormat: { pattern: '0.0000' } }
+            ],
+            colWidths: [220, 140],
+            rowHeaders: false, allowInsertRow: false, allowInsertColumn: false,
+            width: 375,
+            height: 'auto',
+            stretchH: 'none',
+            cells(row, col) {
+                const key = `${row}-${col}`;
+                const cls = state.hot4CellClasses[key];
+                const classes = [col === 0 ? 'htLeft' : 'htCenter'];
+                if (cls === 'correct') classes.push('htCorrect');
+                else if (cls === 'incorrect') classes.push('htIncorrect');
+                return { className: classes.join(' ') };
+            },
+            afterChange(changes, source) {
+                if (source === 'loadData') return;
+                hotValidate();
+                hotValidate(changes);
+            }
         });
-
-        // One row per SS component
-        const tbody = tbl.createTBody();
-        ssItems.forEach(({ id, label }) => {
-            const tr = tbody.insertRow();
-            const tdLabel = tr.insertCell();
-            tdLabel.className = 'ss-label-td';
-            tdLabel.textContent = label;
-            const tdInput = tr.insertCell();
-            tdInput.id = `hot4-card-${id}`;
-            tdInput.className = 'ss-input-td';
-            const inp = document.createElement('input');
-            inp.type = 'number'; inp.step = 'any';
-            inp.id = `hot4-inp-${id}`;
-            inp.className = 'ss-tbl-input num-input';
-            inp.placeholder = '0.0000'; inp.autocomplete = 'off';
-            tdInput.appendChild(inp);
-        });
-
-        container.appendChild(tbl);
     }
 
     // ─── RENDER ANOVA TABLE (HOT5 — Deel V) ──────────────────────────────────────
@@ -862,44 +861,21 @@
             return 'incorrect';
         }
 
-        // helper: validate a plain-input card (Deel II group means, Deel IV SS)
-        function chkCard(cardId, expected, rawVal, msgId, fieldKey) {
-            totalFields++;
-            const card = document.getElementById(cardId);
-            const str = rawVal == null ? '' : String(rawVal).trim();
-            if (!str || str === 'null') {
-                if (card) card.classList.remove('card-correct', 'card-incorrect');
-                feedbackStore[msgId] = null;
-                return 'empty';
-            }
-            const num = parseFloat(str.replace(',', '.'));
-            if (isNaN(num)) {
-                if (card) { card.classList.remove('card-correct'); card.classList.add('card-incorrect'); }
-                feedbackStore[msgId] = 'Geen geldig getal.';
-                return 'incorrect';
-            }
-            if (Math.abs(num - expected) < 0.0005) {
-                correctFields++;
-                if (card) { card.classList.remove('card-incorrect'); card.classList.add('card-correct'); }
-                feedbackStore[msgId] = null;
-                return 'correct';
-            }
-            if (card) { card.classList.remove('card-correct'); card.classList.add('card-incorrect'); }
-            feedbackStore[msgId] = getFeedbackMsg(fieldKey, str, truth);
-            return 'incorrect';
-        }
-
-        // Deel II: group means (card layout)
+        // Deel II: group means (HOT2)
+        const hot2Data = state.hot2 ? state.hot2.getData() : [];
+        const newHot2Classes = {};
         let d2correct = 0, d2total = 0;
         sc.groups.forEach((g, i) => {
             d2total++;
-            const inp = document.getElementById(`hot2-inp-${i}`);
-            const rawVal = inp ? inp.value : null;
-            if (chkCard(`hot2-card-${i}`, truth.grpMeans[g], rawVal, `msg2-grp-${i}`, `grp_${i}`) === 'correct') d2correct++;
+            const rawVal = hot2Data[i] ? hot2Data[i][1] : null;
+            const st = chkHot(newHot2Classes, i, 1, truth.grpMeans[g], rawVal, `msg2-grp-${i}`, `grp_${i}`);
+            if (st === 'correct') d2correct++;
         });
         d2total++;
-        const grandInp = document.getElementById('hot2-inp-grand');
-        if (chkCard('hot2-card-grand', truth.grandMean, grandInp ? grandInp.value : null, 'msg2-grand', 'grandMean') === 'correct') d2correct++;
+        const grandRaw = hot2Data[sc.groups.length] ? hot2Data[sc.groups.length][1] : null;
+        if (chkHot(newHot2Classes, sc.groups.length, 1, truth.grandMean, grandRaw, 'msg2-grand', 'grandMean') === 'correct') d2correct++;
+        state.hot2CellClasses = newHot2Classes;
+        if (state.hot2) state.hot2.render();
         updateSectionSummary('feedback-deel2', d2correct, d2total, 'Alle gemiddelden correct', 'controleer groepsgemiddelden');
         const d2map = Object.fromEntries(sc.groups.map((g, i) => [`Y̅ ${humanizeGroup(g)}`, `msg2-grp-${i}`]));
         d2map['Grootgemiddelde Y̅..'] = 'msg2-grand';
@@ -957,17 +933,15 @@
         updateSectionSummary('feedback-deel3', tableCorrect, tableTotal,
             'Afwijkingtabel volledig correct', 'controleer de afwijkingskolommen');
 
-        // Deel IV: SS (card layout — SSW, SSB, SST)
+        // Deel IV: SS (HOT4 — row 0=SSW, 1=SSB, 2=SST)
+        const hot4Data = state.hot4 ? state.hot4.getData() : [];
+        const newHot4Classes = {};
         let d4correct = 0;
-        const ss4 = [
-            { id: 0, key: 'SSW', expected: truth.SSW, msg: 'msg4-ssw', field: 'ssw' },
-            { id: 1, key: 'SSB', expected: truth.SSB, msg: 'msg4-ssb', field: 'ssb' },
-            { id: 2, key: 'SST', expected: truth.SST, msg: 'msg4-sst', field: 'sst' }
-        ];
-        ss4.forEach(({ id, expected, msg, field }) => {
-            const inp = document.getElementById(`hot4-inp-${id}`);
-            if (chkCard(`hot4-card-${id}`, expected, inp ? inp.value : null, msg, field) === 'correct') d4correct++;
-        });
+        if (chkHot(newHot4Classes, 0, 1, truth.SSW, hot4Data[0] ? hot4Data[0][1] : null, 'msg4-ssw', 'ssw') === 'correct') d4correct++;
+        if (chkHot(newHot4Classes, 1, 1, truth.SSB, hot4Data[1] ? hot4Data[1][1] : null, 'msg4-ssb', 'ssb') === 'correct') d4correct++;
+        if (chkHot(newHot4Classes, 2, 1, truth.SST, hot4Data[2] ? hot4Data[2][1] : null, 'msg4-sst', 'sst') === 'correct') d4correct++;
+        state.hot4CellClasses = newHot4Classes;
+        if (state.hot4) state.hot4.render();
         updateSectionSummary('feedback-deel4', d4correct, 3, 'Alle kwadratensommen correct', 'controleer SS-waarden');
         renderFeedbackPanel('feedback-detail-deel4', {
             'SSW (binnengroeps)': 'msg4-ssw',
@@ -1399,26 +1373,23 @@
             state.hotCellClasses = {};
             state.hot.render();
         }
-        // Clear group means cards
-        if (state.scenario) {
-            state.scenario.groups.forEach((_, i) => {
-                const inp = document.getElementById(`hot2-inp-${i}`);
-                if (inp) inp.value = '';
-                const card = document.getElementById(`hot2-card-${i}`);
-                if (card) card.classList.remove('card-correct', 'card-incorrect');
-            });
-            const grandInp2 = document.getElementById('hot2-inp-grand');
-            if (grandInp2) grandInp2.value = '';
-            const grandCard2 = document.getElementById('hot2-card-grand');
-            if (grandCard2) grandCard2.classList.remove('card-correct', 'card-incorrect');
+        if (state.hot2 && state.scenario) {
+            const toSub = n => String(n).split('').map(d => '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089'[+d]).join('');
+            const emptyData2 = state.scenario.groups.map((g, i) => [`${humanizeGroup(g)} (\u0232${toSub(i + 1)})`, null]);
+            emptyData2.push(['Grootgemiddelde (\u0232..)', null]);
+            state.hot2.loadData(emptyData2);
+            state.hot2CellClasses = {};
+            state.hot2.render();
         }
-        // Clear SS cards
-        [0, 1, 2].forEach(i => {
-            const inp = document.getElementById(`hot4-inp-${i}`);
-            if (inp) inp.value = '';
-            const card = document.getElementById(`hot4-card-${i}`);
-            if (card) card.classList.remove('card-correct', 'card-incorrect');
-        });
+        if (state.hot4) {
+            state.hot4.loadData([
+                ['Binnen groepen (SSW)', null],
+                ['Tussen groepen (SSB)', null],
+                ['Totaal (SST)', null]
+            ]);
+            state.hot4CellClasses = {};
+            state.hot4.render();
+        }
         if (state.hot5) {
             state.hot5.loadData([
                 ['Tussen groepen', '\u2014', null, null, null, null],
@@ -1470,19 +1441,20 @@
             state.hot.loadData(fillData);
         }
 
-        // Fill group means cards
-        sc.groups.forEach((g, i) => {
-            const inp = document.getElementById(`hot2-inp-${i}`);
-            if (inp) inp.value = truth.grpMeans[g];
-        });
-        const grandAutoInp = document.getElementById('hot2-inp-grand');
-        if (grandAutoInp) grandAutoInp.value = truth.grandMean;
+        if (state.hot2) {
+            const toSub = n => String(n).split('').map(d => '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089'[+d]).join('');
+            const fillData2 = sc.groups.map((g, i) => [`${humanizeGroup(g)} (\u0232${toSub(i + 1)})`, truth.grpMeans[g]]);
+            fillData2.push(['Grootgemiddelde (\u0232..)', truth.grandMean]);
+            state.hot2.loadData(fillData2);
+        }
 
-        // Fill SS cards
-        [[0, truth.SSW], [1, truth.SSB], [2, truth.SST]].forEach(([id, val]) => {
-            const inp = document.getElementById(`hot4-inp-${id}`);
-            if (inp) inp.value = val;
-        });
+        if (state.hot4) {
+            state.hot4.loadData([
+                ['Binnen groepen (SSW)', truth.SSW],
+                ['Tussen groepen (SSB)', truth.SSB],
+                ['Totaal (SST)', truth.SST]
+            ]);
+        }
 
         if (state.hot5) {
             state.hot5.setDataAtCell([

@@ -63,29 +63,29 @@ function normalizeScenarioLabels() {
 normalizeScenarioLabels();
 
 const FIELD_MAP = {
-  mean_X1: { label: 'Gemiddelde X1 (x1-gemiddelde)', truth: 'x1_bar' },
-  mean_X2: { label: 'Gemiddelde X2 (x2-gemiddelde)', truth: 'x2_bar' },
+  mean_X1: { label: 'Gemiddelde X₁ (x̄₁)', truth: 'x1_bar' },
+  mean_X2: { label: 'Gemiddelde X₂ (x̄₂)', truth: 'x2_bar' },
   mean_Y: { label: 'Gemiddelde Y', truth: 'y_bar' },
 
-  tot_S11: { label: 'S11', truth: 'S11' },
-  tot_S22: { label: 'S22', truth: 'S22' },
-  tot_S33: { label: 'S33', truth: 'S33' },
-  tot_S12: { label: 'S12', truth: 'S12' },
-  tot_S13: { label: 'S13', truth: 'S13' },
-  tot_S23: { label: 'S23', truth: 'S23' },
-  tot_S1Y: { label: 'S1Y', truth: 'S1y' },
-  tot_S2Y: { label: 'S2Y', truth: 'S2y' },
-  tot_S3Y: { label: 'S3Y', truth: 'S3y' },
+  tot_S11: { label: 'S₁₁', truth: 'S11' },
+  tot_S22: { label: 'S₂₂', truth: 'S22' },
+  tot_S33: { label: 'S₃₃', truth: 'S33' },
+  tot_S12: { label: 'S₁₂', truth: 'S12' },
+  tot_S13: { label: 'S₁₃', truth: 'S13' },
+  tot_S23: { label: 'S₂₃', truth: 'S23' },
+  tot_S1Y: { label: 'S₁Y', truth: 'S1y' },
+  tot_S2Y: { label: 'S₂Y', truth: 'S2y' },
+  tot_S3Y: { label: 'S₃Y', truth: 'S3y' },
   tot_SST: { label: 'SST', truth: 'SST' },
 
   coef_a: { label: 'Intercept a', truth: 'a' },
-  coef_b1: { label: 'b1', truth: 'b1' },
-  coef_b2: { label: 'b2', truth: 'b2' },
-  coef_b3: { label: 'b3', truth: 'b3' },
+  coef_b1: { label: 'b₁', truth: 'b1' },
+  coef_b2: { label: 'b₂', truth: 'b2' },
+  coef_b3: { label: 'b₃', truth: 'b3' },
 
-  fit_R2: { label: 'R2', truth: 'R2' },
-  fit_delta_R2: { label: 'Delta R2', truth: 'delta_R2' },
-  fit_alienation: { label: '1 - R2', truth: 'alienation' }
+  fit_R2: { label: 'R²', truth: 'R2' },
+  fit_delta_R2: { label: 'ΔR²', truth: 'delta_R2' },
+  fit_alienation: { label: '1 − R²', truth: 'alienation' }
 };
 
 const STEP_GROUPS = {
@@ -435,15 +435,15 @@ function renderHotMeans() {
   const sc = state.scenario;
   const hotValidate = debounce(evaluateAll, 250);
   const tableData = [
-    [`Gemiddelde X1 - ${sc.vars.x1}`, null],
-    [`Gemiddelde X2 - ${sc.vars.x2}`, null],
-    [`Gemiddelde Y - ${sc.vars.y}`, null]
+    [`Gemiddelde X₁ — ${sc.vars.x1}`, null],
+    [`Gemiddelde X₂ — ${sc.vars.x2}`, null],
+    [`Gemiddelde Y — ${sc.vars.y}`, null]
   ];
 
   state.hotMeans = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    colHeaders: ['Maat', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -470,22 +470,22 @@ function renderHotTotals() {
 
   const hotValidate = debounce(evaluateAll, 250);
   const tableData = [
-    ['S11', null],
-    ['S22', null],
-    ['S33', null],
-    ['S12', null],
-    ['S13', null],
-    ['S23', null],
-    ['S1Y', null],
-    ['S2Y', null],
-    ['S3Y', null],
+    ['S₁₁', null],
+    ['S₂₂', null],
+    ['S₃₃', null],
+    ['S₁₂', null],
+    ['S₁₃', null],
+    ['S₂₃', null],
+    ['S₁Y', null],
+    ['S₂Y', null],
+    ['S₃Y', null],
     ['SST', null]
   ];
 
   state.hotTotals = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    colHeaders: ['Maat', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -513,15 +513,15 @@ function renderHotCoef() {
   const hotValidate = debounce(evaluateAll, 250);
   const tableData = [
     ['Intercept a', null],
-    ['b1', null],
-    ['b2', null],
-    ['b3', null]
+    ['b₁', null],
+    ['b₂', null],
+    ['b₃', null]
   ];
 
   state.hotCoef = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    colHeaders: ['Maat', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -548,15 +548,15 @@ function renderHotFit() {
 
   const hotValidate = debounce(evaluateAll, 250);
   const tableData = [
-    ['R2', null],
-    ['Delta R2', null],
-    ['1 - R2', null]
+    ['R²', null],
+    ['ΔR²', null],
+    ['1 − R²', null]
   ];
 
   state.hotFit = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Grootheid', 'Jouw antwoord'],
+    colHeaders: ['Maat', 'Jouw antwoord'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' } }
@@ -627,7 +627,7 @@ function renderHotPred() {
   state.hotPred = new Handsontable(container, {
     data: tableData,
     licenseKey: 'non-commercial-and-evaluation',
-    colHeaders: ['Eenheid', 'X1c', 'X2c', 'INT', sc.vars.y, 'Y-hat = a + b1*X1c + b2*X2c + b3*INT'],
+    colHeaders: ['Eenheid', 'X₁c', 'X₂c', 'INT', sc.vars.y, 'Ŷ = a + b₁X₁c + b₂X₂c + b₃INT'],
     columns: [
       { type: 'text', readOnly: true },
       { type: 'numeric', numericFormat: { pattern: '0.0000' }, readOnly: true },
