@@ -1133,6 +1133,14 @@ function evaluateAll() {
   if (cOk) correctCount += 1;
 
   updateProgress(correctCount, totalCount);
+  const stepDone = {
+    2: meansRes.allEntered && meansRes.allCorrect,
+    3: devRes.allEntered && devRes.allCorrect,
+    4: varRes.allEntered && varRes.allCorrect,
+    5: covRes.allEntered && covRes.allCorrect,
+    6: partialRes.allEntered && partialRes.allCorrect && cOk
+  };
+  updateStepLocks(stepDone);
 
   const unlock = allEntered && allCorrect;
   if (unlock !== state.unlocked) {
@@ -1166,6 +1174,40 @@ function setVizNavLock(unlocked) {
   const nav = document.querySelector('.nav-item[data-target="viz-card"]');
   if (!nav) return;
   nav.classList.toggle('locked', !unlocked);
+}
+
+// Step-by-step section locking
+function updateStepLocks(stepDone) {
+  const corrMode = state.mode === 'Correlation';
+  const lastStep = corrMode ? 4 : 7;
+
+  for (let step = 2; step <= 7; step++) {
+    const sec = document.getElementById(`deel${step}`);
+    const nav = document.querySelector(`.nav-item[data-target="deel${step}"]`);
+    if (!sec) continue;
+
+    const prevDone = step === 2 ? true : (stepDone[step - 1] === true);
+    const locked = !prevDone;
+
+    if (locked) {
+      sec.classList.add('step-locked');
+      if (nav) {
+        nav.classList.add('step-nav-locked');
+        nav.classList.add('locked');
+      }
+    } else {
+      sec.classList.remove('step-locked');
+      if (nav) {
+        nav.classList.remove('step-nav-locked');
+        if (step <= lastStep) nav.classList.remove('locked');
+      }
+    }
+  }
+}
+
+function lockAllSteps() {
+  const done = {};
+  updateStepLocks(done);
 }
 
 function setupNav() {
@@ -1270,6 +1312,7 @@ function generate(random = false) {
   renderCovRTable();
   renderPartialHot();
   clearFixedStatuses();
+  lockAllSteps();
   evaluateAll();
 }
 

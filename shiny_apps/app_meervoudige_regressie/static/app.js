@@ -896,6 +896,7 @@ function evaluateAll() {
     { id: 'fb-deel5', fields: ['multi_det', 'multi_b1', 'multi_b2', 'multi_intercept'], ok: 'RegressiecoÃ«fficiÃ«nten correct', partial: 'controleer determinant en coÃ«fficiÃ«nten' },
     { id: 'fb-deel7', fields: ['multi_r_squared', 'multi_alienation', 'multi_f_stat', 'multi_model_p'], ok: 'Model fit correct', partial: 'controleer R\u00b2, F en p' },
   ];
+  const sectionScores = {};
   SECTION_GROUPS.forEach(sg => {
     let sc = 0;
     sg.fields.forEach(fid => {
@@ -903,10 +904,24 @@ function evaluateAll() {
       const ok = Number.isFinite(val) && check4(val, state.truth[FIELD_TRUTH_KEY[fid]]);
       if (ok) sc++;
     });
+    sectionScores[sg.id] = { correct: sc, total: sg.fields.length };
     updateSectionSummary(sg.id, sc, sg.fields.length, sg.ok, sg.partial);
   });
 
   updateProgress(correctCount, totalCount);
+  const isComplete = (id) => {
+    const info = sectionScores[id];
+    return Boolean(info && info.total > 0 && info.correct === info.total);
+  };
+  const stepDone = {
+    2: isComplete('fb-deel2'),
+    3: isComplete('fb-deel3'),
+    4: isComplete('fb-deel4') && isComplete('fb-deel4a') && isComplete('fb-deel4b'),
+    5: isComplete('fb-deel5'),
+    6: predResult.allEntered && predResult.allCorrect,
+    7: isComplete('fb-deel7')
+  };
+  updateStepLocks(stepDone);
 
   const unlock = allEntered && allCorrect && predResult.allEntered && predResult.allCorrect;
   if (unlock !== state.unlocked) {
@@ -944,6 +959,40 @@ function setVizNavLock(unlocked) {
   const nav = document.querySelector('.nav-item[data-target="viz-card"]');
   if (!nav) return;
   nav.classList.toggle('locked', !unlocked);
+}
+
+// Step-by-step section locking
+function updateStepLocks(stepDone) {
+  const corrMode = state.mode === 'Correlation';
+  const lastStep = corrMode ? 4 : 7;
+
+  for (let step = 2; step <= 7; step++) {
+    const sec = document.getElementById(`deel${step}`);
+    const nav = document.querySelector(`.nav-item[data-target="deel${step}"]`);
+    if (!sec) continue;
+
+    const prevDone = step === 2 ? true : (stepDone[step - 1] === true);
+    const locked = !prevDone;
+
+    if (locked) {
+      sec.classList.add('step-locked');
+      if (nav) {
+        nav.classList.add('step-nav-locked');
+        nav.classList.add('locked');
+      }
+    } else {
+      sec.classList.remove('step-locked');
+      if (nav) {
+        nav.classList.remove('step-nav-locked');
+        if (step <= lastStep) nav.classList.remove('locked');
+      }
+    }
+  }
+}
+
+function lockAllSteps() {
+  const done = {};
+  updateStepLocks(done);
 }
 
 function setupNav() {
@@ -1052,6 +1101,7 @@ function generate(random = false) {
   renderHotCoef();
   renderHotPred();
   renderHotFit();
+  lockAllSteps();
   evaluateAll();
 }
 

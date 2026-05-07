@@ -981,6 +981,14 @@
         updateProgress(correctFields, totalFields);
         updateANOVATableDisplay();
         updateSigNote();
+        const stepDone = {
+            2: d2total > 0 && d2correct === d2total,
+            3: tableTotal > 0 && tableCorrect === tableTotal,
+            4: d4correct === 3,
+            5: d5correct === 7,
+            6: totalFields > 0 && correctFields === totalFields
+        };
+        updateStepLocks(stepDone);
 
         const wasCorrect = state.allCorrect;
         const allCorrect = correctFields === totalFields && totalFields > 0;
@@ -1057,6 +1065,40 @@
         const pct = total > 0 ? Math.round(correct / total * 100) : 0;
         bar.style.width = pct + '%';
         text.textContent = `${correct} / ${total} correct`;
+    }
+
+    // Step-by-step section locking
+    function updateStepLocks(stepDone) {
+        const corrMode = state.mode === 'Correlation';
+        const lastStep = corrMode ? 4 : 7;
+
+        for (let step = 2; step <= 7; step++) {
+            const sec = document.getElementById(`deel${step}`);
+            const nav = document.querySelector(`.nav-item[data-target="deel${step}"]`);
+            if (!sec) continue;
+
+            const prevDone = step === 2 ? true : (stepDone[step - 1] === true);
+            const locked = !prevDone;
+
+            if (locked) {
+                sec.classList.add('step-locked');
+                if (nav) {
+                    nav.classList.add('step-nav-locked');
+                    nav.classList.add('locked');
+                }
+            } else {
+                sec.classList.remove('step-locked');
+                if (nav) {
+                    nav.classList.remove('step-nav-locked');
+                    if (step <= lastStep) nav.classList.remove('locked');
+                }
+            }
+        }
+    }
+
+    function lockAllSteps() {
+        const done = {};
+        updateStepLocks(done);
     }
 
     // \u2500\u2500\u2500 DESTROY CHARTS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1358,6 +1400,7 @@
         renderSSTable();
         renderANOVAHotTable();
         resetAllInputs();
+        lockAllSteps();
         lockVisualSections();
         updateProgress(0, 0);
     }
