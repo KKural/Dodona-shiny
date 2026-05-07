@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const N_FIXED = 10;
+  const N_FIXED = 6;
 
   const SCENARIOS = [
     {
