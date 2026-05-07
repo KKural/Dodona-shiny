@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Partiële Correlatie &mdash; Oefening</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.js"></script>
+</head>
+
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-title">Partiële Correlatie &mdash; Oefening
+        <button class="btn-sidebar-close" id="btn-sidebar-close">&#10005;</button>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Hoe deze webpagina werkt</div>
+        <ul class="sidebar-howto-list">
+          <li>Oefen <b>partiële correlatie</b> met 3 variabelen: X, Y en controlevariabele Z (gebruik <b>4
+              decimalen</b>).</li>
+          <li>Voltooi <b>7 delen</b> om handmatig partiële correlatie uit te voeren:
+            <ul>
+              <li><b>Deel I:</b> Dataset bekijken</li>
+              <li><b>Deel II:</b> Rekenkundige gemiddelden voor X, Y en Z</li>
+              <li><b>Deel III:</b> Afwijkingen, kwadraten en kruisproducten</li>
+              <li><b>Deel IV:</b> SS, varianties en standaarddeviaties</li>
+              <li><b>Deel V:</b> SCP, covarianties en bivariate correlaties</li>
+              <li><b>Deel VI:</b> Partiële correlatie r<sub>xy.z</sub> en conclusie</li>
+              <li><b>Deel VII:</b> Visualisaties &#128274;</li>
+            </ul>
+          </li>
+          <li>Cellen worden <span class="text-ok">groen</span> bij correct en <span class="text-err">rood</span> bij
+            fout.</li>
+          <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> automatisch.</li>
+        </ul>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Scenario &amp; dataset</div>
+        <p class="sidebar-help">Kies een scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te openen.
+        </p>
+        <div class="sidebar-section">
+          <label for="scenario">Scenario</label>
+          <select id="scenario"></select>
+        </div>
+        <div class="sidebar-section">
+          <label for="n">Steekproefgrootte N (4-50)</label>
+          <input id="n" type="number" min="4" max="50" step="1" value="10" />
+        </div>
+        <div class="sidebar-section">
+          <label for="seed">Datasetcode (seed)</label>
+          <input id="seed" type="number" min="1" placeholder="bijv. 123" />
+        </div>
+
+        <button id="btn-generate" class="btn-primary">&#9654; Genereer dataset</button>
+        <button id="btn-random" class="btn-secondary">&#8635; Willekeurig scenario</button>
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Stappen</div>
+        <ol class="sidebar-steps-list">
+          <li>Deel II: Stap I (gemiddelden X, Y, Z).</li>
+          <li>Deel III: Stappen II&ndash;IV (afwijkingen, kwadraten en kruisproducten per rij).</li>
+          <li>Deel IV: Stap V (SS, varianties en standaarddeviaties).</li>
+          <li>Deel V: Stap VI (SCP, covarianties en bivariate correlaties).</li>
+          <li>Deel VI: Stap VII (partiële correlatie r_xy.z en conclusie).</li>
+        </ol>
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Conclusietypen (Deel VI)</div>
+        <ol class="sidebar-steps-list">
+          <li><b>Schijnverband:</b> r<sub>xy</sub> &ne; 0 maar r<sub>xy.z</sub> &asymp; 0 &mdash; de relatie verdwijnt
+            na controle (Z veroorzaakt zowel X als Y).</li>
+          <li><b>Indirect/confounding:</b> r<sub>xy</sub> sterk daalt maar blijft &ne; 0 &mdash; Z verklaart deel van de
+            relatie.</li>
+          <li><b>Suppressie:</b> r<sub>xy.z</sub> &gt; r<sub>xy</sub> &mdash; Z maskeert de echte relatie (suppressor).
+          </li>
+          <li><b>Direct effect blijft:</b> r<sub>xy.z</sub> &asymp; r<sub>xy</sub> &mdash; relatie XY verandert
+            nauwelijks na controle voor Z.</li>
+          <li><b>Tekenwisseling:</b> r<sub>xy.z</sub> heeft tegengesteld teken aan r<sub>xy</sub>.</li>
+        </ol>
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="progress-block" id="progress-block">
+        <div class="progress-label">Voortgang</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-text" id="progress-text">0 / 0 correct</div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="section-nav" id="section-nav">
+        <div class="nav-item" data-target="deel-taak">Scenario &amp; opdracht</div>
+        <div class="nav-item active" data-target="deel1">I. Dataset</div>
+        <div class="nav-item" data-target="deel2">II. Gemiddelden</div>
+        <div class="nav-item" data-target="deel3">III. Afwijkingtabel</div>
+        <div class="nav-item" data-target="deel4">IV. s² en s</div>
+        <div class="nav-item" data-target="deel5">V. Cov/r</div>
+        <div class="nav-item" data-target="deel6">VI. r_xy.z</div>
+        <div class="nav-item locked" data-target="viz-card">VII. Visualisaties &#128274;</div>
+      </div>
+    </aside>
+
+    <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <main class="main-content">
+      <div class="mobile-header">
+        <button class="btn-sidebar-toggle" id="btn-sidebar-toggle">&#9776;</button>
+        <span>Partiële Correlatie &mdash; Oefening</span>
+      </div>
+
+      <section class="card title-card">
+        <div class="card-body">
+          <h1>Partiële Correlatie &mdash; Oefening</h1>
+          <p class="muted">Statische oefenmodule voor handmatige partiële correlatieanalyse.</p>
+        </div>
+      </section>
+
+      <section class="card" id="deel-taak">
+        <div class="card-header">Scenario &amp; opdracht</div>
+        <div class="card-body">
+          <div class="vignette-card" id="scenario-vignette-box">
+            <strong id="scenario-title">Scenario</strong>
+            <p id="scenario-text" style="margin:6px 0 0 0;">Genereer een dataset om de taakomschrijving te zien.</p>
+            <p id="scenario-meta" class="scenario-meta"></p>
+          </div>
+          <p class="scenario-task-note"><strong>Opdracht:</strong> Bereken de partiële correlatiecoëfficiënt
+            r<sub>XY·Z</sub> stap voor stap: gemiddelden (Deel II), afwijkingen (Deel III), varianties s² en
+            standaardafwijkingen s
+            (Deel IV), covarianties en bivariate correlaties (Deel V), partiële correlatie en conclusie (Deel VI).
+            Gebruik <strong>4 decimalen</strong> voor alle tussenberekeningen.
+            Wanneer alle antwoorden correct zijn, verschijnen de visualisaties automatisch in Deel VII.</p>
+        </div>
+      </section>
+
+      <section class="card" id="deel1">
+        <div class="card-header">Deel I - Dataset</div>
+        <div class="card-body">
+          <p id="dataset-info" class="dataset-meta"></p>
+          <div class="table-wrap">
+            <table id="dataset-table" class="dataset-table"></table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="deel2">
+        <div class="card-header">Deel II &mdash; Stap I: Rekenkundige Gemiddelden</div>
+        <div class="card-body">
+          <div class="hot-table-container" id="means-grid"></div>
+          <div id="means-msg" class="section-summary"></div>
+          <div id="means-detail" class="feedback-panel"></div>
+        </div>
+      </section>
+
+      <section class="card" id="deel3">
+        <div class="card-header">Deel III &mdash; Stappen II&ndash;IV: Afwijkingtabel</div>
+        <div class="card-body">
+          <p class="instruction">Vul alle afwijkingen, kwadraten en kruisproducten in (4 decimalen).</p>
+          <div class="hot-table-container" id="dev-table-wrap"></div>
+          <div id="dev-msg" class="section-summary"></div>
+          <div id="dev-detail" class="feedback-panel"></div>
+        </div>
+      </section>
+
+      <section class="card" id="deel4">
+        <div class="card-header">Deel IV &mdash; Stap V: Sommen, Varianties en Standaarddeviaties</div>
+        <div class="card-body">
+          <p class="instruction">Vul SS, variantie s² en standaardafwijking s in voor X, Y en Z (4 decimalen).</p>
+          <div class="hot-table-container" id="varsd-table-wrap"></div>
+          <div id="varsd-msg" class="section-summary"></div>
+          <div id="varsd-detail" class="feedback-panel"></div>
+        </div>
+      </section>
+
+      <section class="card" id="deel5">
+        <div class="card-header">Deel V &mdash; Stap VI: SCP, Covarianties en Bivariate Correlaties</div>
+        <div class="card-body">
+          <p class="instruction">Vul SCP, Cov en r in voor de paren XY, XZ en YZ (4 decimalen).</p>
+          <div class="hot-table-container" id="covr-table-wrap"></div>
+          <div id="covr-msg" class="section-summary"></div>
+          <div id="covr-detail" class="feedback-panel"></div>
+        </div>
+      </section>
+
+      <section class="card" id="deel6">
+        <div class="card-header">Deel VI &mdash; Stap VII: Partiële Correlatie r_xy.z</div>
+        <div class="card-body">
+          <div class="hot-table-container" id="partial-grid"></div>
+          <div id="partial-msg" class="section-summary"></div>
+          <div id="partial-detail" class="feedback-panel"></div>
+          <div class="field" style="margin-top: 10px;">
+            <label for="conclusie_type">Type conclusie (1-5)</label>
+            <select id="conclusie_type">
+              <option value="">Kies...</option>
+              <option value="1">1 - Schijnverband</option>
+              <option value="2">2 - Indirect/confounding</option>
+              <option value="3">3 - Suppressie</option>
+              <option value="4">4 - Direct effect blijft</option>
+              <option value="5">5 - Tekenwisseling</option>
+            </select>
+            <div id="conclusie_type_msg" class="msg"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card success hidden" id="success-card">
+        <div class="card-header">Volledige partiële correlatie correct uitgewerkt</div>
+      </section>
+
+      <section class="card locked hidden" id="viz-card">
+        <div class="card-header">Deel VII - Visualisaties &#128274;</div>
+        <div class="card-body">
+          <p class="lock-notice" id="lock-viz">Voltooi Deel II t/m VI correct om de visualisaties te ontgrendelen.</p>
+          <div class="chart-wrap"><canvas id="scatter-chart"></canvas></div>
+          <div id="interpretation" class="interpretation"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

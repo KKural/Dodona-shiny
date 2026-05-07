@@ -203,7 +203,7 @@ concepts_for <- function(sc_id) {
 scenarios <- list(
   list(
     id = "crime_program",
-    title = "Implementatie van het criminaliteitspreventieprogramma",
+    title = "Implementatie van het criminaliteitspreventie-programma",
     vignette = "Een stad heeft een preventieprogramma geïmplementeerd in verschillende buurten. Onderzoek of een hogere blootstelling samenhangt met lagere inbraakcijfers.",
     vars = list(x = list(name="ProgrammaBlootstelling", unit="%"), y = list(name="InbraakCijfer", unit="per 1.000")),
     gen  = list(r_target = -0.45),

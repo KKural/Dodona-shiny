@@ -11,7 +11,7 @@
 const SCENARIOS = [
     {
         id: 'crime_program',
-        title: 'Implementatie van het criminaliteitspreventieprogramma (3 niveaus)',
+        title: 'Implementatie van het criminaliteitspreventie-programma (3 niveaus)',
         vignette: 'Een stad wil weten of haar criminaliteitspreventiebeleid effectief is. Twaalf vergelijkbare buurten worden willekeurig toegewezen aan drie interventieniveaus: (1) geen programma (controlegroep), (2) basispreventie (informatiepanelen en buurtwerk) of (3) intensief programma (dagelijkse surveillance en gerichte coaching). De afhankelijke variabele is het inbraakcijfer per 1.000 inwoners. Onderzoeksvraag: verschilt het gemiddeld inbraakcijfer significant tussen de drie groepen? Toets via eenweg-ANOVA (α = 0,05).',
         groups: ['GeenProgramma', 'BasisProgramma', 'IntensiefProgramma'],
         yName: 'InbraakCijfer', yUnit: 'per 1.000', entity: 'Buurt',

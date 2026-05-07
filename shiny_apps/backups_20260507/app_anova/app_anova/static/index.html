@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eenweg ANOVA &mdash; Oefening</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.js"></script>
+</head>
+
+<body>
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-title">Eenweg ANOVA &mdash; Oefening
+                <button class="btn-sidebar-close" id="btn-sidebar-close">&#10005;</button>
+            </div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-card-title">Hoe deze webpagina werkt</div>
+                <ul class="sidebar-howto-list">
+                    <li>Oefen <b>eenweg-ANOVA</b> met criminologiedatasets (gebruik <b>4 decimalen</b>).</li>
+                    <li>Voltooi <b>7 delen</b> om handmatig ANOVA uit te voeren:
+                        <ul>
+                            <li><b>Deel I:</b> Dataset bekijken</li>
+                            <li><b>Deel II:</b> Groepsgemiddelden &amp; grootgemiddelde</li>
+                            <li><b>Deel III:</b> Afwijkingtabel &mdash; (Y&minus;Yj), (Y&minus;Yj)&sup2;,
+                                (Yj&minus;&#x0232;..), (Yj&minus;&#x0232;..)&sup2;</li>
+                            <li><b>Deel IV:</b> SSW, SSB, SST</li>
+                            <li><b>Deel V:</b> df, MS, F-ratio, &eta;&sup2;</li>
+                            <li><b>Deel VI&ndash;VII:</b> Visualisaties &amp; BI &#128274;</li>
+                        </ul>
+                    </li>
+                    <li>Velden worden <span class="text-ok">groen</span> bij correct en <span
+                            class="text-err">rood</span> bij fout.</li>
+                    <li>Wanneer alles correct is, verschijnen de <b>visualisaties</b> en <b>BI-tabel</b> in Deel
+                        VI&ndash;VII.</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-card-title">Scenario &amp; dataset</div>
+                <p class="sidebar-help">Kies een scenario, of gebruik een datasetcode om dezelfde oefening opnieuw te
+                    openen.</p>
+                <div class="sidebar-section">
+                    <label for="sel-scenario">Scenario</label>
+                    <select id="sel-scenario"></select>
+                </div>
+                <div class="sidebar-section">
+                    <label for="inp-n">n per groep</label>
+                    <input type="number" id="inp-n" value="10" min="3" max="16" />
+                </div>
+                <div class="sidebar-section">
+                    <label for="inp-seed">Datasetcode (seed)</label>
+                    <input type="number" id="inp-seed" value="42" min="1" />
+                </div>
+                <button class="btn-primary" id="btn-generate">Genereer dataset</button>
+                <button class="btn-secondary" id="btn-random">&#8635; Willekeurig scenario</button>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-card-title">Stappen</div>
+                <ol class="sidebar-steps-list">
+                    <li>Bereken &Ycirc;<sub>j</sub> per groep.</li>
+                    <li>Bereken &Ycirc;.. (gemiddelde van <i>alle</i> Y-waarden).</li>
+                    <li>(Y<sub>ij</sub> &minus; &Ycirc;<sub>j</sub>) per observatie.</li>
+                    <li>Kwadrateer: (Y<sub>ij</sub> &minus; &Ycirc;<sub>j</sub>)&sup2;.</li>
+                    <li>(&Ycirc;<sub>j</sub> &minus; &Ycirc;..) per groep.</li>
+                    <li>Kwadrateer: (&Ycirc;<sub>j</sub> &minus; &Ycirc;..)&sup2;.</li>
+                    <li>SSW = &sum;(Y<sub>ij</sub> &minus; &Ycirc;<sub>j</sub>)&sup2;.</li>
+                    <li>SSB = &sum;[n<sub>j</sub> &times; (&Ycirc;<sub>j</sub> &minus; &Ycirc;..)&sup2;].</li>
+                    <li>SST = SSW + SSB.</li>
+                    <li>df<sub>B</sub> = k &minus; 1, df<sub>W</sub> = N &minus; k, df<sub>T</sub> = N &minus; 1.</li>
+                    <li>MSB = SSB / df<sub>B</sub>, MSW = SSW / df<sub>W</sub>.</li>
+                    <li>F = MSB / MSW.</li>
+                </ol>
+            </div>
+
+            <div class="sidebar-divider"></div>
+            <div class="progress-block" id="progress-block">
+                <div class="progress-label">Voortgang</div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="progress-text" id="progress-text">0 / 0 correct</div>
+            </div>
+            <div class="sidebar-divider"></div>
+            <div class="section-nav" id="section-nav">
+                <div class="nav-item" data-target="deel-taak">Scenario &amp; opdracht</div>
+                <div class="nav-item active" data-target="deel1">I. Dataset</div>
+                <div class="nav-item" data-target="deel2">II. Gemiddelden</div>
+                <div class="nav-item" data-target="deel3">III. Afwijkingtabel</div>
+                <div class="nav-item" data-target="deel4">IV. SS-waarden</div>
+                <div class="nav-item" data-target="deel5">V. ANOVA-tabel</div>
+                <div class="nav-item locked" data-target="deel6">VI. Visualisaties &#128274;</div>
+                <div class="nav-item locked" data-target="deel7">VII. BI&ndash;intervallen &#128274;</div>
+            </div>
+        </aside>
+        <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- MAIN -->
+        <main class="main-content">
+
+            <!-- Mobile header (hamburger, hidden on desktop) -->
+            <div class="mobile-header">
+                <button class="btn-sidebar-toggle" id="btn-sidebar-toggle">&#9776;</button>
+                <span>Eenweg ANOVA &mdash; Oefening</span>
+            </div>
+
+            <section class="card title-card">
+                <div class="card-body">
+                    <h1>Eenweg ANOVA &mdash; Oefening</h1>
+                    <p class="muted">Statische oefenmodule voor handmatige variantieanalyse.</p>
+                </div>
+            </section>
+
+            <!-- Scenario & Opdracht -->
+            <section class="card" id="deel-taak">
+                <div class="card-header">Scenario &amp; opdracht</div>
+                <div class="card-body">
+                    <div class="vignette-card" id="scenario-vignette-box">
+                        <strong id="scenario-title">Scenario</strong>
+                        <p id="scenario-text" style="margin:6px 0 0 0;">Genereer een dataset om de taakomschrijving te
+                            zien.</p>
+                        <p id="scenario-meta" class="scenario-meta"></p>
+                    </div>
+                    <p class="scenario-task-note"><strong>Opdracht:</strong> Voltooi Deel II t/m V stap voor stap.
+                        Wanneer alle antwoorden correct zijn, verschijnen de visualisaties en BI-intervallen automatisch
+                        in Deel VI&ndash;VII.</p>
+                </div>
+            </section>
+
+            <!-- DEEL I -->
+            <section class="card" id="deel1">
+                <div class="card-header">Deel I &mdash; Dataset bekijken</div>
+                <div class="card-body">
+                    <p id="dataset-info" class="muted">Klik op <strong>Genereer dataset</strong> om een dataset te
+                        laden.</p>
+                    <p class="dataset-meta" id="seed-display" style="display:none"><strong>Datasetcode (seed):</strong>
+                        <span id="seed-used">&ndash;</span>
+                    </p>
+                    <div id="dataset-table-wrap"></div>
+                </div>
+            </section>
+
+            <!-- DEEL II -->
+            <section class="card" id="deel2">
+                <div class="card-header">Deel II &mdash; Groepsgemiddelden &amp; grootgemiddelde</div>
+                <div class="card-body">
+                    <p class="instruction">Bereken het gemiddelde voor elke groep en het grootgemiddelde (gemiddelde van
+                        alle waarnemingen samen). Rond af op 4 decimalen.</p>
+                    <div id="hot2-container" class="hot-table-container"></div>
+                    <div class="section-summary" id="feedback-deel2"></div>
+                    <div class="feedback-panel" id="feedback-detail-deel2"></div>
+                </div>
+            </section>
+
+            <!-- DEEL III -->
+            <section class="card" id="deel3">
+                <div class="card-header">Deel III &mdash; Afwijkingtabel</div>
+                <div class="card-body">
+                    <p class="instruction">Vul de afwijkingen in de tabel hieronder in (gebruik <strong>4
+                            decimalen</strong>).
+                        Kolommen <em>(Y&minus;Yj)</em> en <em>(Y&minus;Yj)&sup2;</em> worden per rij ingevuld.
+                        Kolommen <em>(Yj&minus;<span style="text-decoration:overline">Y</span>..)</em> en
+                        <em>(Yj&minus;<span style="text-decoration:overline">Y</span>..)&sup2;</em> zijn
+                        samengevoegd per groep &mdash; vul alleen de <strong>eerste rij</strong> van elk groepsblok in;
+                        die waarde geldt voor alle observaties in die groep.
+                    </p>
+                    <div id="hot-container"></div>
+                    <div id="table-feedback"></div>
+                    <div class="section-summary" id="feedback-deel3"></div>
+                </div>
+            </section>
+
+            <!-- DEEL IV -->
+            <section class="card" id="deel4">
+                <div class="card-header">Deel IV &mdash; Kwadratensom (SS)</div>
+                <div class="card-body">
+                    <p class="instruction">Bereken de kwadratensommen op basis van de afwijkingtabel. Rond af op 4
+                        decimalen.</p>
+                    <div id="hot4-container" class="hot-table-container"></div>
+                    <div class="section-summary" id="feedback-deel4"></div>
+                    <div class="feedback-panel" id="feedback-detail-deel4"></div>
+                </div>
+            </section>
+
+            <!-- DEEL V -->
+            <section class="card" id="deel5">
+                <div class="card-header">Deel V &mdash; ANOVA-tabel (df, MS, F, &eta;&sup2;)</div>
+                <div class="card-body">
+                    <p class="instruction">Bereken de vrijheidsgraden, gemiddelde kwadratensommen, F-ratio en
+                        eta-kwadraat.</p>
+                    <div id="hot5-container" class="hot-table-container"></div>
+                    <div class="sig-note" id="sig-note"></div>
+                    <div class="section-summary" id="feedback-deel5"></div>
+                    <div class="feedback-panel" id="feedback-detail-deel5"></div>
+                    <div class="success-msg" id="success-msg"></div>
+                </div>
+            </section>
+
+            <!-- DEEL VI -->
+            <section class="card locked-section hidden" id="deel6">
+                <div class="card-header">Deel VI &mdash; Visualisaties &amp; conclusie &#128274;</div>
+                <div class="card-body">
+                    <div class="lock-notice" id="lock6">Voltooi Deel II t/m V correct om de visualisaties te
+                        ontgrendelen.</div>
+                    <div class="viz-content hidden" id="viz-content">
+                        <div class="charts-row">
+                            <div class="chart-wrap">
+                                <canvas id="chart-boxplot" height="280"></canvas>
+                            </div>
+                            <div class="chart-wrap">
+                                <canvas id="chart-ss" height="280"></canvas>
+                            </div>
+                        </div>
+                        <div class="interpretation-block" id="interpretation-block"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DEEL VII -->
+            <section class="card locked-section hidden" id="deel7">
+                <div class="card-header">Deel VII &mdash; 95%-betrouwbaarheidsintervallen &#128274;</div>
+                <div class="card-body">
+                    <div class="lock-notice" id="lock7">Voltooi Deel II t/m V correct om de BI-tabel te ontgrendelen.
+                    </div>
+                    <div class="ci-content hidden" id="ci-content">
+                        <table class="ci-table" id="ci-table">
+                            <thead>
+                                <tr>
+                                    <th>Groep</th>
+                                    <th>n</th>
+                                    <th>Gem.</th>
+                                    <th>Marge</th>
+                                    <th>BI onder</th>
+                                    <th>BI boven</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <canvas id="chart-ci" height="220"></canvas>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="stats-utils.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

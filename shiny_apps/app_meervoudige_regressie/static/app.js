@@ -8,7 +8,7 @@ const MAX_SAMPLE_SIZE = 50;
 const SCENARIOS = [
   {
     id: 'crime_program',
-    title: 'Implementatie van het criminaliteitspreventieprogramma',
+    title: 'Implementatie van het criminaliteitspreventie-programma',
     vignette: 'Een stad heeft een criminaliteitspreventieprogramma uitgerold in tien vergelijkbare buurten. De blootstelling aan het programma en een tweede buurtkarakteristiek worden als onafhankelijke variabelen ingezet. De afhankelijke variabele is het inbraakcijfer per 1.000 inwoners. Onderzoeksvraag: welke combinatie van voorspellers verklaart inbraakcijfers het best? Schat het meervoudige regressiemodel en toets de significantie ervan (\u03b1\u00a0=\u00a00,05).',
     vars: { x: { name: 'Programma-blootstelling', unit: '%' }, y: { name: 'Inbraakcijfer', unit: 'per 1.000' } },
     gen: { r_target: -0.45 },

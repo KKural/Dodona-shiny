@@ -96,7 +96,7 @@ format_p_value <- function(p, digits = 4) {
 scenarios <- list(
   list(
     id = "crime_program",
-    title = "Implementatie van het criminaliteitspreventieprogramma (3 niveaus)",
+    title = "Implementatie van het criminaliteitspreventie-programma (3 niveaus)",
     vignette = "Een stad test drie interventieniveaus in buurten: geen programma, basispreventie en intensief programma. Onderzoek of het interventieniveau samenhangt met het inbraakcijfer.",
     groups = c("GeenProgramma", "BasisProgramma", "IntensiefProgramma"),
     y_var = list(name = "InbraakCijfer", unit = "per 1.000"),
