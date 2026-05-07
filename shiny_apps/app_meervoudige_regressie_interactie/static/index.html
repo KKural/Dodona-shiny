@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interactiemodel &mdash; Oefening</title>
+  <title>Meervoudige Regressie met Interactie &mdash; Oefening</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
@@ -12,7 +12,7 @@
 <body>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-title">Interactiemodel &mdash; Oefening
+      <div class="sidebar-title"><span class="sidebar-title-text">Meervoudige Regressie met Interactie &mdash; Oefening</span>
         <button class="btn-sidebar-close" id="btn-sidebar-close">&#10005;</button>
       </div>
 
@@ -103,12 +103,12 @@
     <main class="main-content">
       <div class="mobile-header">
         <button class="btn-sidebar-toggle" id="btn-sidebar-toggle">&#9776;</button>
-        <span>Interactiemodel &mdash; Oefening</span>
+        <span>Meervoudige Regressie met Interactie &mdash; Oefening</span>
       </div>
 
       <section class="card title-card">
         <div class="card-body">
-          <h1>Interactiemodel &mdash; Oefening</h1>
+          <h1>Meervoudige Regressie met Interactie &mdash; Oefening</h1>
           <p class="muted">Statische oefenmodule voor regressieanalyse met interactietermen.</p>
         </div>
       </section>
@@ -142,7 +142,9 @@
       <section class="card" id="deel2">
         <div class="card-header">Deel II &mdash; Stap I: Gemiddelden</div>
         <div class="card-body">
-          <div class="grid three" id="step1-grid"></div>
+          <div class="table-wrap">
+            <table id="step1-table" class="input-table"></table>
+          </div>
           <div id="fb-deel2" class="section-summary"></div>
         </div>
       </section>
@@ -150,7 +152,9 @@
       <section class="card" id="deel3">
         <div class="card-header">Deel III &mdash; Stap II: Totalen voor het interactiemodel</div>
         <div class="card-body">
-          <div class="grid two" id="step2-grid"></div>
+          <div class="table-wrap">
+            <table id="step2-table" class="input-table"></table>
+          </div>
           <div id="fb-deel3" class="section-summary"></div>
         </div>
       </section>
@@ -158,7 +162,9 @@
       <section class="card" id="deel4">
         <div class="card-header">Deel IV &mdash; Stap III: Coëfficiënten</div>
         <div class="card-body">
-          <div class="grid two" id="step3-grid"></div>
+          <div class="table-wrap">
+            <table id="step3-table" class="input-table"></table>
+          </div>
           <div id="fb-deel4" class="section-summary"></div>
         </div>
       </section>
@@ -178,7 +184,9 @@
       <section class="card" id="deel6">
         <div class="card-header">Deel VI &mdash; Stap V: Model fit</div>
         <div class="card-body">
-          <div class="grid three" id="step5-grid"></div>
+          <div class="table-wrap">
+            <table id="step5-table" class="input-table"></table>
+          </div>
           <div id="fb-deel6" class="section-summary"></div>
         </div>
       </section>

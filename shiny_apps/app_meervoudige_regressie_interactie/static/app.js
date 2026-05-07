@@ -7,7 +7,7 @@ const SCENARIOS = [
   {
     id: 'program_collective',
     title: 'Programma-intensiteit x collectieve effectiviteit',
-    vignette: 'Een stad implementeerde een criminaliteitspreventie-programma in buurten met uiteenlopende niveaus van collectieve effectiviteit. Onderzocht wordt of het effect van programma-intensiteit op inbraakcijfers groter is in buurten met hogere collectieve effectiviteit. Onderzoeksvraag: is er een significant interactie-effect tussen programma-intensiteit (x1) en collectieve effectiviteit (x2) bij de verklaring van inbraakcijfer (Y)? Gebruik α = 0,05.',
+    vignette: 'Een stad implementeerde een criminaliteitspreventie-programma in buurten met uiteenlopende niveaus van collectieve effectiviteit. Onderzocht wordt of het effect van programma-intensiteit op inbraakcijfers groter is in buurten met hogere collectieve effectiviteit. Onderzoeksvraag: is er een significant interactie-effect tussen programma-intensiteit (x1) en collectieve effectiviteit (x2) bij de verklaring van inbraakcijfer (Y)? Gebruik alpha = 0,05.',
     entity: 'Buurt',
     vars: { x1: 'Programma-intensiteit', x2: 'Collectieve effectiviteit', y: 'Inbraakcijfer' },
     design: { x1_center: 50, x1_scale: 14, x1_bounds: [0, 100], x2_center: 5.2, x2_scale: 2.0, x2_bounds: [0, 10], y_base: 26, b1: -0.20, b2: -1.05, b3: -0.10, rho: 0.30, noise: 3.4, y_bounds: [0, 100] }
@@ -15,7 +15,7 @@ const SCENARIOS = [
   {
     id: 'policing_disorder',
     title: 'Politie-aanwezigheid x buurtwanorde',
-    vignette: 'In stedelijke straten met uiteenlopende wanordeniveaus wordt de effectiviteit van politie-aanwezigheid onderzocht. De verwachting is dat verhoogde politie-aanwezigheid sterker samenhangt met een daling van het aantal meldingen in straten met hogere wanorde. Onderzoeksvraag: is er een significant interactie-effect tussen politie-aanwezigheid (x1) en wanorde-index (x2) bij de verklaring van meldingen aan de politie (Y)? Gebruik α = 0,05.',
+    vignette: 'In stedelijke straten met uiteenlopende wanordeniveaus wordt de effectiviteit van politie-aanwezigheid onderzocht. De verwachting is dat verhoogde politie-aanwezigheid sterker samenhangt met een daling van het aantal meldingen in straten met hogere wanorde. Onderzoeksvraag: is er een significant interactie-effect tussen politie-aanwezigheid (x1) en wanorde-index (x2) bij de verklaring van meldingen aan de politie (Y)? Gebruik alpha = 0,05.',
     entity: 'Straat',
     vars: { x1: 'Politie-aanwezigheid', x2: 'Wanorde-index', y: 'Meldingen' },
     design: { x1_center: 22, x1_scale: 7, x1_bounds: [0, 40], x2_center: 5.5, x2_scale: 2.2, x2_bounds: [0, 10], y_base: 58, b1: -0.55, b2: 2.20, b3: -0.09, rho: 0.20, noise: 5.5, y_bounds: [0, 120] }
@@ -23,7 +23,7 @@ const SCENARIOS = [
   {
     id: 'school_peers',
     title: 'Schoolbinding x delinquente peers',
-    vignette: 'Bij middelbare scholieren met variabele schoolbinding en blootstelling aan delinquente leeftijdsgenoten wordt onderzocht of schoolbinding als beschermende factor sterker werkt wanneer het contact met delinquente peers lager is. Onderzoeksvraag: is er een significant interactie-effect tussen schoolbinding (x1) en delinquente peers (x2) bij de verklaring van delictscore (Y)? Gebruik α = 0,05.',
+    vignette: 'Bij middelbare scholieren met variabele schoolbinding en blootstelling aan delinquente leeftijdsgenoten wordt onderzocht of schoolbinding als beschermende factor sterker werkt wanneer het contact met delinquente peers lager is. Onderzoeksvraag: is er een significant interactie-effect tussen schoolbinding (x1) en delinquente peers (x2) bij de verklaring van delictscore (Y)? Gebruik alpha = 0,05.',
     entity: 'Student',
     vars: { x1: 'Schoolbinding', x2: 'Delinquente peers', y: 'Delictscore' },
     design: { x1_center: 4.2, x1_scale: 1.1, x1_bounds: [1, 7], x2_center: 4.8, x2_scale: 2.1, x2_bounds: [0, 10], y_base: 46, b1: -3.60, b2: 2.10, b3: 0.45, rho: -0.15, noise: 6.0, y_bounds: [0, 100] }
@@ -31,7 +31,7 @@ const SCENARIOS = [
   {
     id: 'reentry_support',
     title: 'Nazorg x werkhervatting',
-    vignette: 'Ex-gedetineerden ontvangen variabele hoeveelheden nazorgondersteuning en bereiken uiteenlopende niveaus van werkhervatting. Onderzocht wordt of nazorgbegeleiding meer bijdraagt aan recidivevermindering wanneer de persoon erin slaagt opnieuw aan het werk te gaan. Onderzoeksvraag: is er een significant interactie-effect tussen nazorguren (x1) en werkhervatting (x2) bij de verklaring van recidiverisico (Y)? Gebruik α = 0,05.',
+    vignette: 'Ex-gedetineerden ontvangen variabele hoeveelheden nazorgondersteuning en bereiken uiteenlopende niveaus van werkhervatting. Onderzocht wordt of nazorgbegeleiding meer bijdraagt aan recidivevermindering wanneer de persoon erin slaagt opnieuw aan het werk te gaan. Onderzoeksvraag: is er een significant interactie-effect tussen nazorguren (x1) en werkhervatting (x2) bij de verklaring van recidiverisico (Y)? Gebruik alpha = 0,05.',
     entity: 'Deelnemer',
     vars: { x1: 'Nazorguren', x2: 'Werkhervatting', y: 'Recidiverisico' },
     design: { x1_center: 16, x1_scale: 5.5, x1_bounds: [0, 35], x2_center: 5.1, x2_scale: 2.0, x2_bounds: [0, 10], y_base: 54, b1: -0.85, b2: -1.50, b3: -0.12, rho: 0.25, noise: 5.2, y_bounds: [0, 100] }
@@ -63,9 +63,9 @@ function normalizeScenarioLabels() {
 normalizeScenarioLabels();
 
 const FIELD_MAP = {
-  mean_X1: { label: 'Gemiddelde X₁ (x̄₁)', truth: 'x1_bar' },
-  mean_X2: { label: 'Gemiddelde X₂ (x̄₂)', truth: 'x2_bar' },
-  mean_Y: { label: 'Gemiddelde Y (ȳ)', truth: 'y_bar' },
+  mean_X1: { label: 'Gemiddelde X1 (x1-gemiddelde)', truth: 'x1_bar' },
+  mean_X2: { label: 'Gemiddelde X2 (x2-gemiddelde)', truth: 'x2_bar' },
+  mean_Y: { label: 'Gemiddelde Y', truth: 'y_bar' },
 
   tot_S11: { label: 'S11', truth: 'S11' },
   tot_S22: { label: 'S22', truth: 'S22' },
@@ -79,13 +79,13 @@ const FIELD_MAP = {
   tot_SST: { label: 'SST', truth: 'SST' },
 
   coef_a: { label: 'Intercept a', truth: 'a' },
-  coef_b1: { label: 'b₁', truth: 'b1' },
-  coef_b2: { label: 'b₂', truth: 'b2' },
-  coef_b3: { label: 'b₃', truth: 'b3' },
+  coef_b1: { label: 'b1', truth: 'b1' },
+  coef_b2: { label: 'b2', truth: 'b2' },
+  coef_b3: { label: 'b3', truth: 'b3' },
 
-  fit_R2: { label: 'R²', truth: 'R2' },
-  fit_delta_R2: { label: 'ΔR²', truth: 'delta_R2' },
-  fit_alienation: { label: '1 − R²', truth: 'alienation' }
+  fit_R2: { label: 'R2', truth: 'R2' },
+  fit_delta_R2: { label: 'Delta R2', truth: 'delta_R2' },
+  fit_alienation: { label: '1 - R2', truth: 'alienation' }
 };
 
 const STEP_GROUPS = {
@@ -368,42 +368,54 @@ function calcTruth(data) {
   };
 }
 
-function makeField(container, id, label) {
-  const wrap = document.createElement('div');
-  wrap.className = 'field';
+function buildInputTable(tableId, fieldIds) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
 
-  const lab = document.createElement('label');
-  lab.setAttribute('for', id);
-  lab.textContent = label;
+  table.innerHTML = '';
+  const thead = document.createElement('thead');
+  thead.innerHTML = '<tr><th>Grootheid</th><th>Jouw antwoord</th><th>Status</th></tr>';
+  table.appendChild(thead);
 
-  const input = document.createElement('input');
-  input.id = id;
-  input.type = 'number';
-  input.step = 'any';
-  input.placeholder = '0.0000';
+  const tbody = document.createElement('tbody');
+  fieldIds.forEach((id) => {
+    const tr = document.createElement('tr');
 
-  const msg = document.createElement('div');
-  msg.id = `${id}_msg`;
-  msg.className = 'msg';
+    const tdLabel = document.createElement('td');
+    tdLabel.className = 'input-row-label';
+    tdLabel.textContent = FIELD_MAP[id].label;
 
-  input.addEventListener('input', evaluateAll);
+    const tdInput = document.createElement('td');
+    const input = document.createElement('input');
+    input.id = id;
+    input.className = 'input-answer';
+    input.type = 'number';
+    input.step = 'any';
+    input.placeholder = '0.0000';
+    input.addEventListener('input', evaluateAll);
+    tdInput.appendChild(input);
 
-  wrap.appendChild(lab);
-  wrap.appendChild(input);
-  wrap.appendChild(msg);
-  container.appendChild(wrap);
+    const tdMsg = document.createElement('td');
+    tdMsg.className = 'input-msg-cell';
+    const msg = document.createElement('div');
+    msg.id = `${id}_msg`;
+    msg.className = 'msg';
+    tdMsg.appendChild(msg);
+
+    tr.appendChild(tdLabel);
+    tr.appendChild(tdInput);
+    tr.appendChild(tdMsg);
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
 }
 
 function buildInputSections() {
-  const step1 = document.getElementById('step1-grid');
-  const step2 = document.getElementById('step2-grid');
-  const step3 = document.getElementById('step3-grid');
-  const step5 = document.getElementById('step5-grid');
-
-  STEP_GROUPS.step1.forEach(id => makeField(step1, id, FIELD_MAP[id].label));
-  STEP_GROUPS.step2.forEach(id => makeField(step2, id, FIELD_MAP[id].label));
-  STEP_GROUPS.step3.forEach(id => makeField(step3, id, FIELD_MAP[id].label));
-  STEP_GROUPS.step5.forEach(id => makeField(step5, id, FIELD_MAP[id].label));
+  buildInputTable('step1-table', STEP_GROUPS.step1);
+  buildInputTable('step2-table', STEP_GROUPS.step2);
+  buildInputTable('step3-table', STEP_GROUPS.step3);
+  buildInputTable('step5-table', STEP_GROUPS.step5);
 }
 
 function setScenarioText(sc) {
@@ -444,10 +456,10 @@ function renderPredTable() {
 
   if (!truth) return;
 
-  const predName = 'Ŷ = a + b₁X₁c + b₂X₂c + b₃INT';
+  const predName = 'Y-hat = a + b1*X1c + b2*X2c + b3*INT';
 
   const thead = document.createElement('thead');
-  thead.innerHTML = `<tr><th>Eenheid</th><th>X₁c</th><th>X₂c</th><th>INT</th><th>${sc.vars.y}</th><th>${predName}</th></tr>`;
+  thead.innerHTML = `<tr><th>Eenheid</th><th>X1c</th><th>X2c</th><th>INT</th><th>${sc.vars.y}</th><th>${predName}</th></tr>`;
   tbl.appendChild(thead);
 
   const tbody = document.createElement('tbody');
@@ -495,79 +507,6 @@ function renderPredTable() {
   });
 
   tbl.appendChild(tbody);
-}
-
-function parseExcelPasteValues(raw) {
-  return String(raw || '')
-    .trim()
-    .split(/\t|\r?\n|;|\s{2,}/)
-    .map(v => v.trim().replace(',', '.'))
-    .filter(v => v !== '');
-}
-
-function getExcelPasteFieldOrder() {
-  const fields = REQUIRED_FIELDS.map(id => ({ label: FIELD_MAP[id]?.label || id, target: id }));
-  state.predInputs.forEach((input, i) => fields.push({ label: `Ŷ rij ${i + 1}`, target: input }));
-  return fields;
-}
-
-function updateExcelPasteHint() {
-  const hint = document.getElementById('excel-paste-format-hint');
-  if (!hint) return;
-  const fields = getExcelPasteFieldOrder();
-  hint.innerHTML = `
-    <div class="paste-hint">Volgorde kolommen (kopieer/plak uit Excel):</div>
-    <table class="paste-cols-table">
-      <thead><tr>${fields.map(f => `<th>${f.label}</th>`).join('')}</tr></thead>
-      <tbody><tr>${fields.map(() => '<td>...</td>').join('')}</tr></tbody>
-    </table>`;
-}
-
-function setExcelPasteTarget(target, value) {
-  const el = typeof target === 'string' ? document.getElementById(target) : target;
-  if (!el) return false;
-  el.value = value;
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-  return true;
-}
-
-function fillFromExcelPaste() {
-  const area = document.getElementById('excel-paste-values');
-  const status = document.getElementById('excel-paste-status');
-  if (!area) return;
-  const values = parseExcelPasteValues(area.value);
-  const fields = getExcelPasteFieldOrder();
-  let filled = 0;
-  fields.forEach((field, i) => {
-    if (i < values.length && setExcelPasteTarget(field.target, values[i])) filled += 1;
-  });
-  evaluateAll();
-  if (status) {
-    status.textContent = values.length < fields.length
-      ? `${filled}/${fields.length} waarden ingevuld. Er ontbreken nog waarden.`
-      : `${filled}/${fields.length} waarden ingevuld.`;
-  }
-}
-
-function initExcelPastePanel() {
-  const anchor = document.getElementById('btn-random');
-  if (!anchor || document.getElementById('excel-paste-card')) return;
-  const card = document.createElement('div');
-  card.className = 'sidebar-card excel-paste-card';
-  card.id = 'excel-paste-card';
-  card.innerHTML = `
-    <div class="sidebar-card-title">Plakken uit Excel</div>
-    <p class="paste-hint">Plak een rij of bereik met tab-gescheiden waarden. De waarden worden van links naar rechts ingevuld.</p>
-    <div id="excel-paste-format-hint" class="paste-format-wrap"></div>
-    <textarea id="excel-paste-values" class="excel-paste-area" rows="3" placeholder="Plak hier waarden uit Excel"></textarea>
-    <button id="btn-paste-excel" class="btn-secondary" type="button">Vul waarden in</button>
-    <div id="excel-paste-status" class="paste-status"></div>`;
-  anchor.insertAdjacentElement('afterend', card);
-  document.getElementById('btn-paste-excel').addEventListener('click', fillFromExcelPaste);
-  document.getElementById('excel-paste-values').addEventListener('paste', () => {
-    window.setTimeout(fillFromExcelPaste, 0);
-  });
-  updateExcelPasteHint();
 }
 
 function resetInputs() {
@@ -707,9 +646,9 @@ function renderInteractionChart() {
   const seq = Array.from({ length: 80 }, (_, i) => minX + (i * (maxX - minX) / 79));
 
   const lines = [
-    { label: 'Lage X₂ (-1 s)', x2c: -t.x2_sd, color: '#2563eb' },
-    { label: 'Gemiddelde X₂', x2c: 0, color: '#16a34a' },
-    { label: 'Hoge X₂ (+1 s)', x2c: t.x2_sd, color: '#dc2626' }
+    { label: 'Lage X2 (-1 s)', x2c: -t.x2_sd, color: '#2563eb' },
+    { label: 'Gemiddelde X2', x2c: 0, color: '#16a34a' },
+    { label: 'Hoge X2 (+1 s)', x2c: t.x2_sd, color: '#dc2626' }
   ];
 
   const datasets = [
@@ -869,8 +808,8 @@ function renderInterpretation() {
   el.innerHTML = `
     <b>Interpretatie</b>
     <ul>
-      <li>Model: ${sc.vars.y} ~ X₁c + X₂c + INT</li>
-      <li>b₁ = ${t.b1.toFixed(4)}, b₂ = ${t.b2.toFixed(4)}, b₃ = ${t.b3.toFixed(4)}</li>
+      <li>Model: ${sc.vars.y} ~ X1c + X2c + INT</li>
+      <li>b1 = ${t.b1.toFixed(4)}, b2 = ${t.b2.toFixed(4)}, b3 = ${t.b3.toFixed(4)}</li>
       <li>De interactie is <b>${direction}</b>: het effect van X\u2081 op Y verandert naargelang het niveau van X\u2082.</li>
       <li>Simple slopes tonen het effect van X\u2081 bij drie niveaus van X\u2082:</li>
       <li style="padding-left:1.2em">Laag X\u2082: ${t.slope_low.toFixed(4)} &nbsp;|&nbsp; Gemiddeld X\u2082: ${t.slope_mean.toFixed(4)} &nbsp;|&nbsp; Hoog X\u2082: ${t.slope_high.toFixed(4)}</li>
@@ -930,7 +869,7 @@ function evaluateAll() {
     { id: 'fb-deel2', fields: STEP_GROUPS.step1, ok: 'Gemiddelden correct', partial: 'controleer gemiddelden' },
     { id: 'fb-deel3', fields: STEP_GROUPS.step2, ok: 'Totalen correct', partial: 'controleer S-waarden' },
     { id: 'fb-deel4', fields: STEP_GROUPS.step3, ok: 'Co\u00ebffici\u00ebnten correct', partial: 'controleer co\u00ebffici\u00ebnten' },
-    { id: 'fb-deel6', fields: STEP_GROUPS.step5, ok: 'Model fit correct', partial: 'controleer R\u00b2 en ΔR\u00b2' },
+    { id: 'fb-deel6', fields: STEP_GROUPS.step5, ok: 'Model fit correct', partial: 'controleer R2 en Delta R2' },
   ];
   SECTION_GROUPS.forEach(sg => {
     let sc = 0;
@@ -1080,7 +1019,6 @@ function generate(random = false) {
   renderDatasetTable();
   renderPredTable();
   resetInputs();
-  updateExcelPasteHint();
   destroyCharts();
   document.getElementById('interpretation').innerHTML = '';
 }
@@ -1117,7 +1055,6 @@ function init() {
   setupNav();
   setupSidebarChrome();
   bindControls();
-  initExcelPastePanel();
   const seedEl = document.getElementById('seed');
   if (seedEl) {
     seedEl.value = String(nextRandomSeed());
@@ -1131,3 +1068,4 @@ document.addEventListener('DOMContentLoaded', init);
 
 
 })();
+

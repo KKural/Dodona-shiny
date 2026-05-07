@@ -50,12 +50,19 @@ body {
 
 .sidebar-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 8px;
   font-size: 16px;
   font-weight: 700;
   color: #fff;
   margin-bottom: 6px;
+  line-height: 1.25;
+}
+
+.sidebar-title-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .btn-sidebar-close,
@@ -292,6 +299,11 @@ body {
   padding: 10px;
 }
 
+.mobile-header span {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
 .vignette-card {
   background: #eff6ff;
   border: 1px solid #bfdbfe;
@@ -413,36 +425,50 @@ body {
   background-color: #fee2e2 !important;
 }
 
-.field {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
+.input-table {
+  width: auto;
+  min-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.input-table th:first-child,
+.input-table td:first-child {
+  text-align: left;
+}
+
+.input-row-label {
+  font-weight: 600;
+  color: #334155;
   background: #f8fafc;
+  min-width: 240px;
 }
 
-.field label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
-}
-
-.field input,
-.field select {
-  width: 100%;
-  padding: 8px;
-  border-radius: 8px;
+.input-answer {
+  width: 140px;
+  padding: 6px;
+  border-radius: 6px;
   border: 1px solid #cbd5e1;
+  text-align: center;
 }
 
-.field input.valid,
-.field select.valid,
+.input-msg-cell {
+  min-width: 150px;
+}
+
+.input-msg-cell .msg {
+  margin: 0;
+  min-height: 0;
+  text-align: left;
+}
+
+.input-answer.valid,
 .pred-input.valid {
   border: 2px solid var(--ok);
   background: #ecfdf3;
 }
 
-.field input.invalid,
-.field select.invalid,
+.input-answer.invalid,
 .pred-input.invalid {
   border: 2px solid var(--bad);
   background: #fef2f2;
@@ -674,57 +700,4 @@ td .pred-input {
   .grid.two {
     grid-template-columns: 1fr;
   }
-}
-
-.excel-paste-card {
-  margin-top: 12px;
-}
-
-.excel-paste-area {
-  width: 100%;
-  min-height: 68px;
-  box-sizing: border-box;
-  resize: vertical;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 8px;
-  font-family: Consolas, "Courier New", monospace;
-  font-size: 0.82rem;
-}
-
-.paste-format-wrap {
-  overflow-x: auto;
-  margin: 8px 0;
-}
-
-.paste-hint {
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.35;
-}
-
-.paste-cols-table {
-  width: max-content;
-  min-width: 100%;
-  border-collapse: collapse;
-  font-size: 0.76rem;
-}
-
-.paste-cols-table th,
-.paste-cols-table td {
-  border: 1px solid #cbd5e1;
-  padding: 4px 6px;
-  white-space: nowrap;
-  text-align: center;
-}
-
-.paste-cols-table th {
-  background: #eff6ff;
-  color: var(--blue);
-}
-
-.paste-status {
-  margin-top: 6px;
-  font-size: 0.82rem;
-  color: var(--muted);
 }
