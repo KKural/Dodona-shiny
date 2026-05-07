@@ -87,6 +87,13 @@ body {
   margin-bottom: 6px;
 }
 
+.sidebar-help {
+  margin: 0 0 10px 0;
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .sidebar-howto-list,
 .sidebar-steps-list {
   margin: 0;
@@ -335,6 +342,13 @@ body {
   color: var(--muted);
 }
 
+.dataset-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 6px 0;
+  text-align: center;
+}
+
 .grid {
   display: grid;
   gap: 10px;
@@ -346,6 +360,57 @@ body {
 
 .grid.two {
   grid-template-columns: repeat(2, minmax(180px, 1fr));
+}
+
+/* HOT table containers */
+.hot-table-container {
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.card-body>.hot-table-container:first-child {
+  margin-top: 0;
+}
+
+.hot-table-container .handsontable th {
+  background: #eff6ff;
+  color: var(--accent);
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.82rem;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.hot-table-container .handsontable td {
+  font-size: 0.86rem;
+  vertical-align: middle;
+  text-align: left;
+}
+
+.hot-table-container .handsontable td.htLeft {
+  text-align: left !important;
+}
+
+.hot-table-container .handsontable td.htCenter {
+  text-align: center !important;
+}
+
+.hot-table-container .handsontable td[class*='htReadOnly'] {
+  background: #f8fafd !important;
+  color: #334155;
+}
+
+.htCorrect {
+  background-color: #dcfce7 !important;
+}
+
+.htIncorrect {
+  background-color: #fee2e2 !important;
 }
 
 .field {
@@ -534,6 +599,14 @@ td .pred-input {
 .locked {
   opacity: 0.55;
   pointer-events: none;
+}
+
+.lock-notice {
+  font-size: 13px;
+  color: #94a3b8;
+  padding: 16px;
+  text-align: center;
+  font-style: italic;
 }
 
 .chart-wrap {
