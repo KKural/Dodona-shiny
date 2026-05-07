@@ -798,7 +798,7 @@
             if (lightEl) { lightEl.classList.remove('green'); lightEl.classList.add('red'); }
             return { state: 'incorrect' };
         }
-        const correct = Math.abs(num - expected) < 0.0005;
+        const correct = Math.round(num * 10000) === Math.round(expected * 10000);
         if (correct) {
             inputEl.classList.add('correct'); inputEl.classList.remove('incorrect');
             if (lightEl) { lightEl.classList.add('green'); lightEl.classList.remove('red'); }
@@ -850,7 +850,7 @@
                 feedbackStore[msgId] = 'Geen geldig getal.';
                 return 'incorrect';
             }
-            if (Math.abs(num - expected) < 0.0005) {
+            if (Math.round(num * 10000) === Math.round(expected * 10000)) {
                 correctFields++;
                 hotCellClasses[`${row}-${col}`] = 'correct';
                 feedbackStore[msgId] = null;
@@ -893,7 +893,7 @@
             if (rawVal == null || rawVal === '') return 'empty';
             const num = typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal).replace(',', '.'));
             if (isNaN(num)) return 'incorrect';
-            return Math.abs(num - expected) < 0.0005 ? 'correct' : 'incorrect';
+            return Math.round(num * 10000) === Math.round(expected * 10000) ? 'correct' : 'incorrect';
         }
 
         const newHotClasses = {};

@@ -187,7 +187,7 @@
 
   function check4(userVal, trueVal) {
     if (!Number.isFinite(userVal) || !Number.isFinite(trueVal)) return false;
-    return r4(userVal) === r4(trueVal);
+    return Math.round(userVal * 10000) === Math.round(trueVal * 10000);
   }
 
   function debounce(fn, ms) {

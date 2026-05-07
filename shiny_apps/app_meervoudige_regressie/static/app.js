@@ -241,7 +241,7 @@
 
   function check4(u, t) {
     if (!Number.isFinite(u) || !Number.isFinite(t)) return false;
-    return Math.abs(u - t) < 0.0005;
+    return Math.round(u * 10000) === Math.round(t * 10000);
   }
 
   function safeSeed(seedRaw) {

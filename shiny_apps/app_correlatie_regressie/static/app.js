@@ -352,11 +352,11 @@
     const mean_X = r4(mean(X));
     const mean_Y = r4(mean(Y));
 
-    const dX = X.map(v => v - mean_X);
-    const dY = Y.map(v => v - mean_Y);
-    const dX2 = dX.map(v => v * v);
-    const dY2 = dY.map(v => v * v);
-    const dXdY = dX.map((v, i) => v * dY[i]);
+    const dX = X.map(v => r4(v - mean_X));
+    const dY = Y.map(v => r4(v - mean_Y));
+    const dX2 = dX.map(v => r4(v * v));
+    const dY2 = dY.map(v => r4(v * v));
+    const dXdY = dX.map((v, i) => r4(v * dY[i]));
 
     const sum_dX2 = r4(dX2.reduce((s, v) => s + v, 0));
     const sum_dY2 = r4(dY2.reduce((s, v) => s + v, 0));
@@ -425,7 +425,7 @@
       feedbackStore[msgId] = 'Geen geldig getal.';
       return 'incorrect';
     }
-    if (Math.abs(r4(num) - r4(expected)) <= 0.0001) {
+    if (Math.round(num * 10000) === Math.round(expected * 10000)) {
       hotCellClasses[key] = 'correct';
       feedbackStore[msgId] = null;
       return 'correct';

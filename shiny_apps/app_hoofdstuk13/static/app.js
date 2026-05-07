@@ -1511,7 +1511,7 @@
 
   function approxNum(user, truth) {
     if (!Number.isFinite(user) || !Number.isFinite(truth)) return false;
-    return Math.abs(user - truth) <= 0.015 || Math.abs(user - truth) <= 0.0007;
+    return Math.round(user * 10000) === Math.round(truth * 10000);
   }
 
   function numericFeedback(rawValue, truth, formulaHint) {
